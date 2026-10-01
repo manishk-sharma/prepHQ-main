@@ -3,29 +3,63 @@ import { useNavigate } from "react-router-dom";
 
 const ExploreTopCategory = () => {
   const scrollRef = useRef(null);
+  const targetScrollRef = useRef(0);
+  const lastClickTimeRef = useRef(0);
 
   const navigate = useNavigate();
 
   const scroll = (direction) => {
     const container = scrollRef.current;
     if (!container) return;
-    const firstCard = container.querySelector(".category-card");
-    const cardWidth = firstCard ? firstCard.offsetWidth + 22 : 280;
+
+    const cards = container.querySelectorAll(".category-card");
+    if (!cards || cards.length === 0) return;
+
+    const firstCard = cards[0];
+    const secondCard = cards[1];
+    const gap = secondCard
+      ? secondCard.offsetLeft - (firstCard.offsetLeft + firstCard.offsetWidth)
+      : 22;
+    const cardStep = firstCard ? firstCard.offsetWidth + Math.max(0, gap) : 300;
+    const maxScroll = Math.max(0, container.scrollWidth - container.clientWidth);
+
+    const now = Date.now();
+    const isRapidClick = now - lastClickTimeRef.current < 600;
+    lastClickTimeRef.current = now;
+
+    // Use targetScrollRef if clicked rapidly in succession, otherwise use actual scrollLeft
+    let baseScroll = isRapidClick ? targetScrollRef.current : container.scrollLeft;
+    baseScroll = Math.max(0, Math.min(maxScroll, baseScroll));
 
     if (direction === "right") {
-      if (
-        container.scrollLeft + container.clientWidth >=
-        container.scrollWidth - 10
-      ) {
+      // If we are at or near the end (within 35px), loop back to card 1 (start)
+      if (baseScroll >= maxScroll - 35) {
+        targetScrollRef.current = 0;
         container.scrollTo({ left: 0, behavior: "smooth" });
       } else {
-        container.scrollBy({ left: cardWidth, behavior: "smooth" });
+        const nextScroll = baseScroll + cardStep;
+        if (nextScroll >= maxScroll - 35) {
+          targetScrollRef.current = maxScroll;
+          container.scrollTo({ left: maxScroll, behavior: "smooth" });
+        } else {
+          targetScrollRef.current = nextScroll;
+          container.scrollTo({ left: nextScroll, behavior: "smooth" });
+        }
       }
     } else {
-      if (container.scrollLeft <= 10) {
-        container.scrollTo({ left: container.scrollWidth, behavior: "smooth" });
+      // If we are at or near the start (within 35px), loop to the last cards (end)
+      if (baseScroll <= 35) {
+        targetScrollRef.current = maxScroll;
+        container.scrollTo({ left: maxScroll, behavior: "smooth" });
       } else {
-        container.scrollBy({ left: -cardWidth, behavior: "smooth" });
+        const prevScroll = baseScroll - cardStep;
+        if (prevScroll <= 35) {
+          targetScrollRef.current = 0;
+          container.scrollTo({ left: 0, behavior: "smooth" });
+        } else {
+          targetScrollRef.current = prevScroll;
+          container.scrollTo({ left: prevScroll, behavior: "smooth" });
+        }
       }
     }
   };
