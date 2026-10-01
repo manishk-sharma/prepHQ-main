@@ -1,68 +1,15 @@
-import { useRef } from "react";
+import { useRef, useEffect, useLayoutEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+
+const REPEAT_COUNT = 5;
+const MIDDLE_SET = 2; // Sets: 0, 1, [2], 3, 4
 
 const ExploreTopCategory = () => {
   const scrollRef = useRef(null);
-  const targetScrollRef = useRef(0);
-  const lastClickTimeRef = useRef(0);
+  const activeIndexRef = useRef(0);
+  const isNormalizingRef = useRef(false);
 
   const navigate = useNavigate();
-
-  const scroll = (direction) => {
-    const container = scrollRef.current;
-    if (!container) return;
-
-    const cards = container.querySelectorAll(".category-card");
-    if (!cards || cards.length === 0) return;
-
-    const firstCard = cards[0];
-    const secondCard = cards[1];
-    const gap = secondCard
-      ? secondCard.offsetLeft - (firstCard.offsetLeft + firstCard.offsetWidth)
-      : 22;
-    const cardStep = firstCard ? firstCard.offsetWidth + Math.max(0, gap) : 300;
-    const maxScroll = Math.max(0, container.scrollWidth - container.clientWidth);
-
-    const now = Date.now();
-    const isRapidClick = now - lastClickTimeRef.current < 600;
-    lastClickTimeRef.current = now;
-
-    // Use targetScrollRef if clicked rapidly in succession, otherwise use actual scrollLeft
-    let baseScroll = isRapidClick ? targetScrollRef.current : container.scrollLeft;
-    baseScroll = Math.max(0, Math.min(maxScroll, baseScroll));
-
-    if (direction === "right") {
-      // If we are at or near the end (within 35px), loop back to card 1 (start)
-      if (baseScroll >= maxScroll - 35) {
-        targetScrollRef.current = 0;
-        container.scrollTo({ left: 0, behavior: "smooth" });
-      } else {
-        const nextScroll = baseScroll + cardStep;
-        if (nextScroll >= maxScroll - 35) {
-          targetScrollRef.current = maxScroll;
-          container.scrollTo({ left: maxScroll, behavior: "smooth" });
-        } else {
-          targetScrollRef.current = nextScroll;
-          container.scrollTo({ left: nextScroll, behavior: "smooth" });
-        }
-      }
-    } else {
-      // If we are at or near the start (within 35px), loop to the last cards (end)
-      if (baseScroll <= 35) {
-        targetScrollRef.current = maxScroll;
-        container.scrollTo({ left: maxScroll, behavior: "smooth" });
-      } else {
-        const prevScroll = baseScroll - cardStep;
-        if (prevScroll <= 35) {
-          targetScrollRef.current = 0;
-          container.scrollTo({ left: 0, behavior: "smooth" });
-        } else {
-          targetScrollRef.current = prevScroll;
-          container.scrollTo({ left: prevScroll, behavior: "smooth" });
-        }
-      }
-    }
-  };
 
   const topCategories = [
     // data science
@@ -135,30 +82,11 @@ const ExploreTopCategory = () => {
     {
       title: "AI/Generative AI/Agentic AI",
       icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="25"
-          height="25"
-          viewBox="0 0 25 25"
-          fill="none"
-        >
-          <path
-            d="M12.4999 24.9968C10.1927 24.9968 7.88553 25.0048 5.57759 24.9946C2.84083 24.9822 0.64428 23.188 0.104063 20.5236C0.0305289 20.1617 0.00650306 19.7845 0.005775 19.4138C-4.94486e-05 14.8088 -0.00296167 10.203 0.00431889 5.59726C0.00868723 2.69181 1.99847 0.430069 4.88375 0.0346651C5.12547 0.00116868 5.37301 0.00262505 5.61836 0.00262505C10.2058 0.00116869 14.7933 -0.00247223 19.3808 0.00262505C22.1503 0.00553779 24.3622 1.80197 24.8973 4.48678C24.9716 4.85743 24.9927 5.24409 24.9934 5.6242C25 10.2118 25.0021 14.7993 24.9956 19.3869C24.9919 22.1562 23.19 24.3669 20.5049 24.8985C20.1161 24.9757 19.7113 24.9917 19.3131 24.9932C17.0423 25.0019 14.7708 24.9968 12.4999 24.9968ZM11.113 17.5606C11.5047 17.554 11.8148 17.3072 11.9597 16.8725C12.6696 14.7491 13.3765 12.6242 14.0849 10.5001C14.2946 9.87243 14.5123 9.24692 14.7118 8.61631C14.8872 8.06071 14.5727 7.54224 14.0201 7.44685C13.5964 7.37403 13.1996 7.64418 13.0394 8.12479C12.1294 10.8504 11.2215 13.5767 10.3136 16.303C10.2852 16.3889 10.259 16.4763 10.2452 16.5659C10.1643 17.0829 10.591 17.5693 11.113 17.5606ZM6.76723 12.499C6.84441 12.4174 6.90993 12.3446 6.9791 12.2754C7.62707 11.6259 8.28086 10.9822 8.92301 10.3261C9.2732 9.96855 9.26884 9.44134 8.93539 9.10055C8.59466 8.75175 8.05298 8.74374 7.69114 9.10201C6.76141 10.0224 5.83605 10.9472 4.91651 11.8771C4.55249 12.2456 4.55249 12.7517 4.91651 13.1201C5.83605 14.0507 6.76141 14.9755 7.69114 15.8952C8.05371 16.2542 8.59466 16.2462 8.93611 15.8974C9.26956 15.5566 9.27393 15.0287 8.92447 14.6719C8.28232 14.0165 7.62925 13.3721 6.98055 12.7225C6.91139 12.6534 6.84586 12.5805 6.76796 12.4983L6.76723 12.499ZM18.2443 12.4873C18.1606 12.5762 18.1009 12.6424 18.0375 12.7058C17.3896 13.3553 16.7372 14.0012 16.0929 14.6544C15.7303 15.0221 15.7252 15.5508 16.0667 15.8996C16.4067 16.2469 16.9462 16.2535 17.3117 15.893C18.2421 14.9734 19.1675 14.0486 20.087 13.1172C20.4511 12.7488 20.4401 12.2507 20.0827 11.8735C19.8955 11.6754 19.699 11.4861 19.506 11.2938C18.7802 10.5678 18.0579 9.83747 17.3255 9.11803C16.8282 8.62942 16.0492 8.80928 15.857 9.45154C15.7514 9.80471 15.8519 10.1098 16.1155 10.3698C16.8195 11.0659 17.5199 11.7657 18.2443 12.4873Z"
-            fill="#57CC99"
-          />
-          <path
-            d="M11.113 17.5606C10.591 17.5693 10.1643 17.0829 10.2452 16.5659C10.259 16.4763 10.2852 16.3889 10.3136 16.303C11.2215 13.5767 12.1294 10.8504 13.0394 8.12479C13.1996 7.64418 13.5964 7.37403 14.0201 7.44685C14.5727 7.54224 14.8872 8.06071 14.7118 8.61631C14.5123 9.24692 14.2946 9.87243 14.0849 10.5001C13.3765 12.6242 12.6696 14.7491 11.9597 16.8725C11.8148 17.3072 11.5047 17.554 11.113 17.5606Z"
-            fill="#074568"
-          />
-          <path
-            d="M6.76723 12.499C6.84514 12.5813 6.91066 12.6541 6.97983 12.7233C7.6278 13.3728 8.28159 14.0172 8.92374 14.6726C9.2732 15.0294 9.26884 15.5574 8.93539 15.8981C8.59393 16.2469 8.05371 16.255 7.69041 15.896C6.76068 14.9755 5.83532 14.0507 4.91579 13.1209C4.55176 12.7524 4.55176 12.2463 4.91579 11.8778C5.83532 10.948 6.76068 10.0224 7.69041 9.10274C8.05298 8.74447 8.59393 8.75248 8.93466 9.10128C9.26811 9.44207 9.27248 9.96927 8.92228 10.3268C8.28014 10.9822 7.62707 11.6266 6.97837 12.2762C6.90921 12.3453 6.84368 12.4182 6.76651 12.4997L6.76723 12.499Z"
-            fill="#074568"
-          />
-          <path
-            d="M18.2443 12.4873C17.5199 11.7657 16.8195 11.0659 16.1155 10.3698C15.8519 10.1098 15.7514 9.80471 15.857 9.45154C16.0492 8.80928 16.8282 8.62942 17.3255 9.11803C18.0579 9.83747 18.7802 10.5678 19.506 11.2938C19.699 11.4861 19.8955 11.6754 20.0827 11.8735C20.4401 12.2507 20.4511 12.7488 20.087 13.1172C19.1675 14.0486 18.2421 14.9734 17.3117 15.893C16.9469 16.2542 16.4067 16.2469 16.0667 15.8996C15.726 15.5515 15.7303 15.0221 16.0929 14.6544C16.7372 14.0012 17.3896 13.3553 18.0375 12.7058C18.1009 12.6424 18.1606 12.5762 18.2443 12.4873Z"
-            fill="#074568"
-          />
-        </svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="25" viewBox="0 0 32 25" fill="none">
+  <path d="M19.848 2.509C19.6744 3.59686 19.4707 4.87206 19.266 6.14619C18.8329 8.83602 18.4008 11.5259 17.9655 14.2157C17.5386 16.8534 17.1085 19.49 16.6795 22.1266C16.6289 22.4406 16.5844 22.7567 16.5203 23.0676C16.2495 24.4024 15.1351 25.2039 13.909 24.9548C12.6995 24.7079 11.9604 23.4997 12.1795 22.1734C12.6964 19.0493 13.1978 15.922 13.7085 12.7968C14.2553 9.44488 14.8053 6.09297 15.3542 2.74105C15.4142 2.37488 15.4504 2.00127 15.5475 1.64468C15.8546 0.522761 16.8914 -0.147835 18.01 0.0277972C19.0789 0.194914 19.8646 1.17207 19.8491 2.50794L19.848 2.509Z" fill="#074568"/>
+  <path d="M26.7888 12.4998C25.3425 10.8766 23.9076 9.30012 22.5183 7.68217C22.1327 7.23298 21.7605 6.69544 21.5992 6.13342C21.3129 5.13284 21.8153 4.15356 22.6847 3.67882C23.5613 3.20089 24.623 3.36481 25.3322 4.14185C26.4404 5.35638 27.5227 6.59538 28.6165 7.82374C29.5241 8.84347 30.438 9.85575 31.3384 10.8829C32.2233 11.892 32.2212 13.1236 31.328 14.1316C29.367 16.3456 27.4008 18.5533 25.4304 20.7577C24.5289 21.7668 23.1737 21.8669 22.2515 21.0111C21.3025 20.1308 21.2622 18.7268 22.175 17.6943C23.6926 15.9763 25.2195 14.2668 26.7908 12.4998H26.7888Z" fill="#57CC99"/>
+  <path d="M5.21915 12.5105C6.79048 14.2774 8.3339 15.9954 9.85664 17.7315C10.907 18.9301 10.5968 20.6662 9.23225 21.357C8.34631 21.8051 7.33425 21.6029 6.60544 20.7929C5.1778 19.2068 3.76464 17.607 2.34527 16.0135C1.77567 15.3738 1.19986 14.7383 0.636452 14.0912C-0.202969 13.1268 -0.217442 11.8739 0.62508 10.9213C2.60682 8.67955 4.59476 6.44317 6.59303 4.21743C7.49551 3.2126 8.85906 3.14021 9.77188 4.01199C10.694 4.89228 10.7302 6.27711 9.83597 7.29259C8.40316 8.92118 6.95589 10.5381 5.51585 12.1613C5.42487 12.2646 5.337 12.371 5.21915 12.5105Z" fill="#57CC99"/>
+</svg>
       ),
       href: "artificial-intelligence-genai",
     },
@@ -628,6 +556,170 @@ const ExploreTopCategory = () => {
     }
   ];
 
+  const displayCategories = Array.from({ length: REPEAT_COUNT }, () => topCategories).flat();
+
+  const getMetrics = useCallback(() => {
+    const container = scrollRef.current;
+    if (!container) return null;
+    const cards = container.querySelectorAll(".category-card");
+    const N = topCategories.length;
+    if (!cards || cards.length < N * 2) return null;
+
+    const cardStep = cards[1].offsetLeft - cards[0].offsetLeft;
+    const singleSetWidth = cards[N].offsetLeft - cards[0].offsetLeft;
+    const middleBase = cards[MIDDLE_SET * N].offsetLeft - cards[0].offsetLeft;
+
+    return { cardStep, singleSetWidth, middleBase, cards };
+  }, [topCategories.length]);
+
+  const silentScrollTo = useCallback((container, newLeft) => {
+    if (Math.abs(container.scrollLeft - newLeft) < 1) return;
+    isNormalizingRef.current = true;
+    container.style.scrollBehavior = "auto";
+    container.style.scrollSnapType = "none";
+    void container.offsetHeight;
+    container.scrollLeft = newLeft;
+    void container.offsetHeight;
+    requestAnimationFrame(() => {
+      container.style.scrollBehavior = "";
+      container.style.scrollSnapType = "";
+      setTimeout(() => {
+        isNormalizingRef.current = false;
+      }, 60);
+    });
+  }, []);
+
+  const normalizePosition = useCallback(() => {
+    if (isNormalizingRef.current) return;
+    const container = scrollRef.current;
+    if (!container) return;
+    const cards = container.querySelectorAll(".category-card");
+    const N = topCategories.length;
+    if (!cards || cards.length < N * 2) return;
+
+    const cardStep = cards[1].offsetLeft - cards[0].offsetLeft;
+    if (cardStep <= 0) return;
+
+    const currentScroll = container.scrollLeft;
+    const activeIdx = Math.round((currentScroll - cards[0].offsetLeft) / cardStep);
+    const relativeIdx = activeIdx - MIDDLE_SET * N;
+
+    // Normalize if we've drifted outside Set 2:
+    if (relativeIdx >= N || relativeIdx < 0) {
+      const setsToShift = Math.floor(relativeIdx / N);
+      const normalizedIdx = activeIdx - setsToShift * N;
+      if (cards[normalizedIdx]) {
+        silentScrollTo(container, cards[normalizedIdx].offsetLeft - cards[0].offsetLeft);
+      }
+    }
+  }, [silentScrollTo, topCategories.length]);
+
+  const scroll = (direction) => {
+    const container = scrollRef.current;
+    if (!container) return;
+    const cards = container.querySelectorAll(".category-card");
+    const N = topCategories.length;
+    if (!cards || cards.length < N * 2) return;
+
+    const cardStep = cards[1].offsetLeft - cards[0].offsetLeft;
+    if (cardStep <= 0) return;
+
+    // Current card index aligned at the left:
+    const currentScroll = container.scrollLeft;
+    const currentIndex = Math.round((currentScroll - cards[0].offsetLeft) / cardStep);
+
+    // Target the next or previous whole card:
+    let targetIndex = direction === "right" ? currentIndex + 1 : currentIndex - 1;
+
+    // If near the buffer edges, shift index to middle set:
+    if (targetIndex >= cards.length - 4) {
+      const sets = Math.floor((targetIndex - MIDDLE_SET * N) / N);
+      targetIndex -= sets * N;
+      silentScrollTo(container, cards[targetIndex - 1].offsetLeft - cards[0].offsetLeft);
+    } else if (targetIndex < 1) {
+      const sets = Math.floor((targetIndex - MIDDLE_SET * N) / N);
+      targetIndex -= sets * N;
+      silentScrollTo(container, cards[targetIndex + 1].offsetLeft - cards[0].offsetLeft);
+    }
+
+    if (cards[targetIndex]) {
+      container.scrollTo({
+        left: cards[targetIndex].offsetLeft - cards[0].offsetLeft,
+        behavior: "smooth",
+      });
+    }
+  };
+
+  useLayoutEffect(() => {
+    const container = scrollRef.current;
+    if (!container) return;
+    const cards = container.querySelectorAll(".category-card");
+    const N = topCategories.length;
+    if (cards && cards.length >= (MIDDLE_SET + 1) * N) {
+      const targetCard = cards[MIDDLE_SET * N];
+      if (targetCard) {
+        container.style.scrollBehavior = "auto";
+        container.scrollLeft = targetCard.offsetLeft - cards[0].offsetLeft;
+        void container.offsetHeight;
+        container.style.scrollBehavior = "";
+      }
+    }
+  }, [topCategories.length]);
+
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container) return;
+
+    const snapToCard = () => {
+      const cards = container.querySelectorAll(".category-card");
+      const N = topCategories.length;
+      if (!cards || cards.length < (MIDDLE_SET + 1) * N) return;
+      const targetCard = cards[MIDDLE_SET * N];
+      if (targetCard && Math.abs(container.scrollLeft - (targetCard.offsetLeft - cards[0].offsetLeft)) > 5) {
+        silentScrollTo(container, targetCard.offsetLeft - cards[0].offsetLeft);
+      }
+    };
+
+    snapToCard();
+    const t = setTimeout(snapToCard, 80);
+
+    let scrollTimeout = null;
+
+    const handleScroll = () => {
+      if (scrollTimeout) clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(normalizePosition, 140);
+    };
+
+    const handleScrollEnd = () => {
+      normalizePosition();
+    };
+
+    const handleResize = () => {
+      const cards = container.querySelectorAll(".category-card");
+      const N = topCategories.length;
+      if (!cards || cards.length < (MIDDLE_SET + 1) * N) return;
+      const cardStep = cards[1].offsetLeft - cards[0].offsetLeft;
+      if (cardStep <= 0) return;
+      const currentScroll = container.scrollLeft;
+      const currentIdx = Math.round((currentScroll - cards[0].offsetLeft) / cardStep);
+      if (cards[currentIdx]) {
+        silentScrollTo(container, cards[currentIdx].offsetLeft - cards[0].offsetLeft);
+      }
+    };
+
+    container.addEventListener("scroll", handleScroll, { passive: true });
+    container.addEventListener("scrollend", handleScrollEnd);
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      clearTimeout(t);
+      if (scrollTimeout) clearTimeout(scrollTimeout);
+      container.removeEventListener("scroll", handleScroll);
+      container.removeEventListener("scrollend", handleScrollEnd);
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [normalizePosition, silentScrollTo, topCategories.length]);
+
   return (
     <section className="explore-category">
       <div className="container position-relative">
@@ -635,8 +727,8 @@ const ExploreTopCategory = () => {
           <h2 className="explore-heading">
             Choose Your Desired <span className="domain-highlight">Domain</span>
           </h2>
-          </div>
-          <div className="arrow-buttons-wrapper">
+        </div>
+        <div className="arrow-buttons-wrapper">
           <div className="arrow-buttons">
             <button
               type="button"
@@ -680,10 +772,10 @@ const ExploreTopCategory = () => {
         </div>
 
         <div className="category-list" ref={scrollRef}>
-          {topCategories.map((item, i) => (
+          {displayCategories.map((item, i) => (
             <div
               className="category-card"
-              key={i}
+              key={`cat-${i}`}
               onClick={() => {
                 item.href && navigate(item.href);
               }}
@@ -700,20 +792,8 @@ const ExploreTopCategory = () => {
               >
                 <span>Explore</span>
                 <span className="arrow-badge">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="12"
-                    height="12"
-                    viewBox="0 0 12 12"
-                    fill="none"
-                  >
-                    <path
-                      d="M2.5 9.5L9.5 2.5M9.5 2.5H4M9.5 2.5V8"
-                      stroke="white"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
+                  <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10" fill="none">
+                    <path d="M9.76597 2.27529L9.94532 8.38494L7.90955 8.32507L7.77187 3.65515L1.48255 9.94446L0.000453328 8.46237L6.28977 2.17305L1.61985 2.03536L1.55997 -0.000403038L7.66963 0.178952C8.79418 0.212701 9.73222 1.15074 9.76597 2.27529Z" fill="#074568" />
                   </svg>
                 </span>
               </button>
