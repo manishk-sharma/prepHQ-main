@@ -1,0 +1,22 @@
+.privacy-policy{
+    padding: 60px 0;
+}
+.privacy-policy .heading{
+    font-size: 20px;
+}
+.privacy-policy p,
+.privacy-policy ul li{
+    color: #646464;
+    margin-bottom: 0.5rem;
+}
+.privacy-policy p strong{
+    color: #000;
+}
+.privacy-policy ul{
+    padding-left: 20px;
+    margin-bottom: 20px;
+}
+.privacy-policy ul li a,
+.privacy-policy p a{
+    color: #074568;
+}

@@ -1,0 +1,22 @@
+.terms-and-conditions{
+    padding: 60px 0;
+}
+.terms-and-conditions .heading{
+    font-size: 20px;
+}
+.terms-and-conditions p,
+.terms-and-conditions ul li{
+    color: #646464;
+    margin-bottom: 0.5rem;
+}
+.terms-and-conditions p strong{
+    color: #000;
+}
+.terms-and-conditions ul{
+    padding-left: 20px;
+    margin-bottom: 20px;
+}
+.terms-and-conditions ul li a,
+.terms-and-conditions p a{
+    color: #074568;
+}

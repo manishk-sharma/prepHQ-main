@@ -1,0 +1,15 @@
+/* src/pages/coding/layout/CodingLayout.css */
+
+.coding-layout-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+.coding-main-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  background: #f3f4f6;
+}

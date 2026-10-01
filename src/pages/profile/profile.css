@@ -1,0 +1,545 @@
+.profile-sec {
+  padding: 60px 0;
+}
+
+.profile-sec .parts {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.profile-sec .parts .left-side {
+  width: calc(33.33% - 30px);
+  padding: 0 26px;
+}
+
+.profile-sec .parts .right-side {
+  width: calc(66.67% - 30px);
+  padding: 0 26px;
+}
+
+.profile-sec .profile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.profile-sec .profile .circular-progress {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transform: rotate(-50deg);
+}
+
+.profile-sec .profile .circular-progress::before {
+  content: "";
+  position: absolute;
+  width: 90px;
+  height: 90px;
+  background: #fff;
+  border-radius: 50%;
+  z-index: 1;
+}
+
+.profile-sec .profile .circular-progress img {
+  width: 80px;
+  height: 80px;
+  min-width: 80px;
+  min-height: 80px;
+  max-width: 80px;
+  max-height: 80px;
+  position: absolute;
+  z-index: 2;
+  transform: rotate(50deg);
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.profile-sec .full-name {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  color: #202020;
+  text-align: center;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: normal;
+  text-transform: capitalize;
+  margin-top: 16px;
+}
+
+.profile-sec .full-name span {
+  text-transform: capitalize;
+}
+
+.profile-sec .user-name {
+  color: #7E7E7E;
+  text-align: center;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: normal;
+  text-transform: capitalize;
+  margin-top: 6px;
+}
+
+.profile-sec .user-type {
+  display: flex;
+  max-width: 187px;
+  padding: 5px 37px;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  border-radius: 25px;
+  border: 1px solid #7E7E7E;
+  color: #7E7E7E;
+  text-align: center;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: normal;
+  text-transform: capitalize;
+  margin: auto;
+  margin-top: 10px;
+}
+
+.profile-sec .profile-links {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 23px;
+  list-style: none;
+  padding: 0;
+  margin-top: 20px;
+}
+
+.profile-sec .profile-links li a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  color: #000;
+  text-align: center;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: normal;
+  text-transform: capitalize;
+}
+
+.profile-sec .profile-links li span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 39px;
+  height: 39px;
+  border: 1px solid #074568;
+  border-radius: 50%;
+}
+
+.profile-sec .profile-links li span svg {
+  transition: ease 0.3s;
+}
+
+.profile-sec .profile-links li:hover span svg {
+  transform: scale(1.1);
+}
+
+.profile-sec .profile-links li span svg path {
+  fill-rule: evenodd;
+  clip-rule: evenodd;
+}
+
+.profile-sec .reset-btn,
+.profile-sec .edit-profile-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.profile-sec .reset-btn a,
+.profile-sec .edit-profile-btn a {
+  display: flex;
+  width: 226px;
+  padding: 8px 12px;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  border-radius: 40px;
+  background: #57CC99;
+  color: #FFF;
+  text-align: right;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: normal;
+  position: relative;
+}
+
+.profile-sec .edit-profile-btn a {
+  background: #fff;
+  color: #074568;
+  border: 1px solid #074568;
+  transition: ease 0.3s;
+}
+
+.profile-sec .edit-profile-btn a:hover {
+  color: #57CC99;
+  border: 1px solid #57CC99;
+  background: #E6FFF4;
+}
+
+.profile-sec .edit-profile-btn a svg {
+  position: absolute;
+  right: 12px;
+}
+
+.profile-sec .edit-profile-btn a:hover svg path {
+  fill: #57CC99;
+}
+
+.profile-sec .profile-details {
+  margin-top: 30px;
+}
+
+.profile-sec .profile-details .head,
+.profile-sec .edu-and-Pro-details .head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: auto;
+  margin-bottom: 30px;
+}
+
+.profile-sec .profile-details .head span,
+.profile-sec .edu-and-Pro-details .head span {
+  color: #535353;
+  font-size: 20px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 20px;
+}
+
+.profile-sec .profile-details p {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 15px 20px;
+  min-height: 51px;
+  border-radius: 10px;
+  border: 1px solid #ABABAB;
+  margin: auto;
+  color: #535353;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 20px;
+  margin-bottom: 10px;
+}
+
+.profile-sec .logout-btn {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  margin-top: 20px;
+}
+
+.profile-sec .logout-btn a {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 12px;
+  min-width: 146px;
+  color: #F13E3E;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: normal;
+  padding: 8px 0;
+}
+
+.profile-sec .logout-btn a svg path {
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.profile-sec .head-part {
+  position: relative;
+  overflow: hidden;
+  padding: 30px;
+  border-radius: 20px;
+  background: #074568;
+}
+
+.profile-sec .head-part .star-bg {
+  position: absolute;
+  top: 0;
+  right: 0;
+  object-fit: cover;
+  height: 100%;
+}
+
+.profile-sec .head-part .star-bg path {
+  fill-opacity: 0.1;
+}
+
+.profile-sec .head-part .star-bg path:nth-child(1) {
+  fill-opacity: 0.25;
+}
+
+.profile-sec .head-part p {
+  color: #FFF;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: normal;
+  text-transform: uppercase;
+}
+
+.profile-sec .head-part .head {
+  color: #FFF;
+  font-size: 24px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+  width: 59%;
+  margin: 16px 0;
+  text-transform: capitalize;
+}
+
+.profile-sec .head-part .btn-group {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.profile-sec .head-part .btn-group a {
+  display: inline-flex;
+  height: 36px;
+  padding: 8px 12px;
+  align-items: center;
+  gap: 12px;
+  border-radius: 40px;
+  background: #57CC99;
+  color: #FFF;
+  text-align: right;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: normal;
+}
+
+.profile-sec .head-part .btn-group a span {
+  display: flex;
+  width: 20px;
+  height: 20px;
+  padding: 6px;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  border-radius: 50px;
+  background: #FFF;
+}
+
+.profile-sec .head-part .btn-group a span svg path {
+  stroke-miterlimit: 10;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.profile-sec .head-part .btn-group p {
+  color: #FFF;
+  font-size: 16px;
+  font-style: italic;
+  font-weight: 400;
+  line-height: 25px;
+  text-transform: capitalize;
+  margin: 0;
+}
+
+.profile-sec .head-part .btn-group p a {
+  background: transparent;
+  color: #FFF;
+  font-size: 16px;
+  font-style: italic;
+  font-weight: 700;
+  line-height: 25px;
+  text-decoration-line: underline;
+  text-decoration-style: solid;
+  text-decoration-skip-ink: auto;
+  text-decoration-thickness: auto;
+  text-underline-offset: auto;
+}
+
+.profile-sec .resume {
+  margin-top: 30px;
+  margin-bottom: 120px;
+}
+
+.profile-sec .resume p {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 50px;
+  padding: 6px 6px 6px 20px;
+  border-radius: 10px;
+  border: 1px solid #ABABAB;
+  color: #535353;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 20px;
+}
+
+.profile-sec .resume p a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  width: 100%;
+  color: #57cc99;
+}
+
+.profile-sec .resume p span {
+  line-height: 0;
+}
+
+.profile-sec .resume .resume-date {
+    font-size: 14px;
+    line-height: 40px;
+    color: #1a9e65;
+    font-style: italic;
+    padding-left: 20px;
+}
+
+.profile-sec .edu-and-Pro-details {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 60px;
+}
+
+.profile-sec .edu-and-Pro-details .edu-details,
+.profile-sec .edu-and-Pro-details .pro-details {
+  width: calc(50% - 30px);
+}
+
+.profile-sec .edu-and-Pro-details .head a,
+.profile-sec .edu-and-Pro-details .head button {
+  display: flex;
+  width: 24px;
+  height: 24px;
+  padding: 6px;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  border-radius: 50px;
+  border: 1px solid #9E9E9E;
+  outline: none;
+  box-shadow: none;
+  transition: ease 0.3s;
+}
+
+.profile-sec .edu-and-Pro-details .head a:hover,
+.profile-sec .edu-and-Pro-details .head button:hover {
+  background: #57CC99;
+  border-color: #57CC99;
+}
+
+.profile-sec .edu-and-Pro-details .head a svg path,
+.profile-sec .edu-and-Pro-details .head button svg path {
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.profile-sec .edu-and-Pro-details .head a:hover svg path,
+.profile-sec .edu-and-Pro-details .head button:hover svg path {
+  stroke: #fff;
+}
+
+.profile-sec .edu-and-Pro-details .edit-details-btn {
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 10px 20px;
+  color: #535353;
+  font-size: 13px;
+  transition: ease 0.3s;
+}
+
+.profile-sec .edu-and-Pro-details .edit-details-btn:hover {
+  border: 1px solid #57CC99;
+  background: #E6FFF4;
+}
+
+.profile-sec .edu-and-Pro-details .part {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 30px;
+}
+
+.profile-sec .edu-and-Pro-details .part label {
+  color: #535353;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 20px;
+}
+
+.profile-sec .edu-and-Pro-details .part p {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 15px 20px;
+  min-height: 50px;
+  border-radius: 10px;
+  border: 1px solid #ABABAB;
+  margin: 0;
+  color: #535353;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 20px;
+}
+
+.profile-sec .edu-and-Pro-details .part p span {
+  color: #BDBDBD;
+}
+
+@media (max-width: 991px) {
+  .profile-sec .parts .left-side,
+  .profile-sec .parts .right-side{
+    width: 100%;
+  }
+}
+@media (max-width: 767px) {
+  .profile-sec .edu-and-Pro-details{
+    flex-wrap: wrap;
+    gap: 30px;
+  }
+  .profile-sec .edu-and-Pro-details .edu-details,
+  .profile-sec .edu-and-Pro-details .pro-details {
+    width: 100%;
+  }
+}

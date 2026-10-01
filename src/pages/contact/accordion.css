@@ -1,0 +1,78 @@
+.accordion {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.accordion .accordion-item {
+    border-radius: 5px;
+    border: 1px solid #D9D9D9;
+    background: #FFF;
+    overflow: hidden;
+}
+
+.accordion .accordion-item .accordion-header {
+    width: 100%;
+    text-align: left;
+    padding: 0 9px 0 20px;
+    background: #fff;
+    border: none;
+    outline: none;
+    min-height: 56px;
+    color: #000;
+    font-family: "Merriweather Sans";
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.accordion .accordion-item .accordion-header.active {
+    color: #FFF !important;
+    background: #57CC99 !important;
+}
+
+.accordion .accordion-item .accordion-header .arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 41px;
+    min-width: 41px;
+    height: 41px;
+    min-height: 41px;
+    border-radius: 10px;
+    background: #074568;
+}
+
+.accordion .accordion-item .accordion-body {
+    padding: 15px 20px;
+    background-color: #fff;
+    animation: fadeIn 0.3s ease-in-out;
+}
+.accordion .accordion-item .accordion-body p{
+    color: #646464;
+    font-family: "Merriweather Sans";
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 20px;
+    margin-bottom: 0;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}

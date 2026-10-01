@@ -1,0 +1,31 @@
+.tabs-container .tab-buttons{
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 20px;
+    margin-bottom: 33px;
+}
+.tabs-container .tab-buttons button{
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    min-height: 50px;
+    width: 25%;
+    border-radius: 5px;
+    border: 1px solid #748893;
+    background: #fff;
+    color: #000;
+    font-family: "Merriweather Sans";
+    text-align: center;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 20px; 
+    cursor: pointer;
+}
+.tabs-container .tab-buttons button.active{
+    color: #fff;
+    background: #57CC99;
+    border-color: #57CC99;
+}

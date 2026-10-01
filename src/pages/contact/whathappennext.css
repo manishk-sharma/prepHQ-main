@@ -1,0 +1,89 @@
+.whathappennext .heading {
+    text-align: center;
+    margin-bottom: 60px;
+}
+
+.whathappennext .items {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 30px;
+}
+
+.whathappennext .items .item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 30px 15px;
+    border-radius: 10px;
+    border: 2px solid #DCDCDC;
+    background: #FFF;
+    box-shadow: 0 12px 42px -4px rgba(24, 39, 75, 0.10);
+    width: calc(25% - 30px);
+    min-height: 308px;
+    position: relative;
+    transition: ease 0.3s;
+}
+
+.whathappennext .items .item:hover {
+    border-radius: 10px 50px 10px 10px;
+    border: 2px solid #57CC99;
+}
+
+.whathappennext .items .item .count {
+    position: absolute;
+    top: 0;
+    left: 24px;
+    width: 40px;
+    height: 50px;
+    border-radius: 0 0 10px 10px;
+    background: #57CC99;
+    color: #FFF;
+    text-align: center;
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.whathappennext .items .item .icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    background: #E9FEF2;
+    border-radius: 50%;
+    margin-bottom: 40px;
+    transition: ease 0.3s;
+}
+.whathappennext .items .item:hover .icon {
+    background: #57CC99;
+}
+.whathappennext .items .item:hover .icon svg path{
+    fill: #fff;
+}
+
+.whathappennext .items .item .head {
+    color: #000;
+    text-align: center;
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 25px;
+    margin-bottom: 10px;
+}
+
+.whathappennext .items .item p {
+    color: #646464;
+    text-align: center;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 25px;
+    margin-bottom: 0;
+}

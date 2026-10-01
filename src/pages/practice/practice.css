@@ -1,0 +1,866 @@
+.practice-banner {
+    padding: 16px 0;
+    background: #EBFFF7;
+    position: relative;
+    z-index: 1;
+}
+
+.practice-banner::before {
+    content: "";
+    width: 285px;
+    height: 285px;
+    border-radius: 285px;
+    background: linear-gradient(180deg, #57CC99 0%, #EBFFF7 77.06%);
+    filter: blur(27.950000762939453px);
+    position: absolute;
+    top: 40px;
+    left: -140px;
+    z-index: -1;
+}
+
+.practice-banner::after {
+    content: "";
+    width: 885px;
+    height: 100%;
+    background: linear-gradient(180deg, #074568 0%, #57CC99 100%);
+    clip-path: polygon(100% 0%, 0% 100%, 100% 100%);
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: -1;
+}
+
+.practice-banner .heading {
+    color: #074568;
+    font-size: 40px;
+    font-style: normal;
+    font-weight: 800;
+    line-height: 60px;
+    margin-bottom: 20px;
+}
+
+.practice-banner .tagline {
+    color: #000;
+    font-family: "Merriweather Sans";
+    font-size: 16px;
+    font-style: italic;
+    font-weight: 700;
+    line-height: 25px;
+    margin-bottom: 0;
+}
+
+.practice-banner .row {
+    align-items: center;
+}
+
+.practice-banner .row .col-6:nth-child(2) {
+    text-align: center;
+    position: relative;
+}
+
+.practice-banner .row .col-6:nth-child(2)::after {
+    content: "";
+    width: 385px;
+    height: 385px;
+    border: 60px solid #57CC99;
+    border-radius: 50%;
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: -2;
+    opacity: 0.3;
+}
+
+.need-tech-interview {
+    padding: 40px 0;
+    position: relative;
+    z-index: 1;
+}
+
+.need-tech-interview .tech-interview-bg {
+    top: 0;
+    position: absolute;
+    z-index: -1;
+    width: 100%;
+}
+
+.need-tech-interview .tech-interview-bg filter {
+    color-interpolation-filters: sRGB;
+}
+
+.need-tech-interview .tech-interview-bg feFlood:nth-child(1) {
+    flood-opacity: 0;
+}
+
+.need-tech-interview .heading {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.need-tech-interview .parts {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.need-tech-interview .parts .part {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 20px;
+    width: calc(33.33% - 20px);
+}
+
+.need-tech-interview .parts .part .number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    min-width: 60px;
+    min-height: 60px;
+    background: #BFE8FF;
+    border-radius: 50%;
+    color: #000;
+    text-align: center;
+    font-family: "Merriweather Sans";
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 25px;
+    /* 125% */
+}
+
+.need-tech-interview .parts .part:nth-child(even) .number {
+    background: #C5FFE6;
+}
+
+.need-tech-interview .parts .part .head {
+    color: #000;
+    font-family: "Merriweather Sans";
+    font-size: 20px;
+    font-style: italic;
+    font-weight: 700;
+    line-height: 25px;
+    /* 125% */
+    margin-bottom: 10px;
+}
+
+.need-tech-interview .parts .part p {
+    color: #787878;
+    font-family: "Merriweather Sans";
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 25px;
+    /* 156.25% */
+    margin-bottom: 0;
+}
+
+.practice-categories {
+    padding: 40px 0;
+    position: relative;
+    z-index: 1;
+}
+
+.practice-categories .heading-top {
+    justify-content: center;
+    margin-bottom: -30px;
+}
+
+.practice-categories .tabstrip,
+.practice-categories .tabstrip ul {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.practice-categories .tabstrip button {
+    outline: none;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+}
+
+.practice-categories .tabstrip ul {
+    justify-content: flex-start;
+    padding: 60px 50px;
+}
+
+.practice-categories .tabstrip ul li {
+    display: inline-flex;
+    padding: 15px 20px;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    border-radius: 10px;
+    background: #FFF;
+    box-shadow: 0 0px 5px 0 rgba(24, 39, 75, 0.10);
+    color: #535353;
+    font-family: "Merriweather Sans";
+    font-size: 15px;
+    font-style: normal;
+    font-weight: 800;
+    line-height: 30px;
+    /* 200% */
+    text-transform: capitalize;
+    cursor: pointer;
+}
+
+.practice-categories .tabstrip ul li.active {
+    background: #57CC99;
+    color: #FFF;
+}
+
+.practice-categories .tab-content {
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+.practice-categories .tab-content .part {
+    width: 33.33%;
+    min-height: 316px;
+}
+
+.practice-categories .tab-content .part:nth-child(1) img {
+    height: 316px;
+    object-fit: cover;
+}
+
+.practice-categories .tab-content .part:nth-child(2),
+.practice-categories .tab-content .part:nth-child(3) {
+    background: #57CC99;
+    padding: 30px;
+}
+
+.practice-categories .tab-content .part:nth-child(3) {
+    background: #074568;
+}
+
+.practice-categories .tab-content .part .head {
+    color: #FFF;
+    font-family: "Merriweather Sans";
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 800;
+    line-height: 30px;
+    /* 150% */
+    text-transform: capitalize;
+    margin-bottom: 10px;
+}
+
+.practice-categories .tab-content .part ul {
+    padding-left: 30px;
+}
+
+.practice-categories .tab-content .part p,
+.practice-categories .tab-content .part li {
+    color: #FFF;
+    font-family: "Merriweather Sans";
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 25px;
+    /* 156.25% */
+    text-transform: capitalize;
+    margin-bottom: 0;
+}
+
+.practice-categories .tab-content .part a {
+    display: inline-flex;
+    padding: 10px 30px;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    border-radius: 5px;
+    background: #57CC99;
+    color: #FFF;
+    font-family: "Merriweather Sans";
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 26px;
+    transition: all 0.3s;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    margin-top: 20px;
+}
+
+.practice-categories .tab-content .part a:hover {
+    color: #074568;
+}
+
+.practice-categories .tab-content .part a::before {
+    content: "";
+    height: 100%;
+    width: 0;
+    background: #fff;
+    position: absolute;
+    left: 0;
+    z-index: -1;
+    transition: ease 0.3s;
+}
+
+.practice-categories .tab-content .part a:hover::before {
+    width: 100%;
+}
+
+.featured-resources {
+    padding: 40px 0;
+}
+
+.featured-resources .heading-top {
+    justify-content: center;
+    margin-bottom: 30px;
+}
+
+.featured-resources .heading {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.featured-resources .parts {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+}
+
+.featured-resources .parts .part {
+    width: calc(33.33% - 30px);
+    min-height: 490px;
+    border-radius: 10px;
+    padding: 20px;
+    background: #FFF;
+    box-shadow: 0 12px 42px -4px rgba(24, 39, 75, 0.10);
+}
+
+.featured-resources .parts .part img {
+    border-radius: 10px;
+    width: 100%;
+    object-fit: cover;
+    line-height: 0;
+}
+
+.featured-resources .parts .part .head {
+    color: #000;
+    font-family: "Merriweather Sans";
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 800;
+    line-height: 30px;
+    /* 150% */
+    text-transform: capitalize;
+    margin-top: 30px;
+    margin-bottom: 20px;
+}
+
+.featured-resources .parts .part ul {
+    padding-left: 20px;
+}
+
+.featured-resources .parts .part ul li {
+    color: #787878;
+    font-family: "Merriweather Sans";
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 25px;
+    /* 156.25% */
+    text-transform: capitalize;
+}
+
+.career-tracks {
+    margin: 40px 0;
+    padding: 60px 0;
+    background: linear-gradient(270deg, #074568 50%, #57CC99 50%);
+}
+
+.career-tracks .parts {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 50px;
+}
+
+.career-tracks .parts .part:nth-child(1) {
+    width: 30%;
+}
+
+.career-tracks .parts .part:nth-child(2) {
+    width: 70%;
+}
+
+.career-tracks .parts .part .heading {
+    color: #FFF;
+    font-family: "Merriweather Sans";
+    font-size: 40px;
+    font-style: normal;
+    font-weight: 800;
+    line-height: 50px;
+    /* 125% */
+    text-transform: capitalize;
+    margin-bottom: 0;
+}
+
+.career-tracks .parts .part ul {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 20px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.career-tracks .parts .part ul li {
+    width: calc(50% - 20px);
+    padding: 14px 20px;
+    background: #FFF;
+    color: #555;
+    font-family: "Merriweather Sans";
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 25px;
+    text-transform: capitalize;
+}
+
+.career-tracks .parts .part ul li span {
+    display: block;
+    color: #000;
+    font-family: "Merriweather Sans";
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 25px;
+    /* 125% */
+    text-transform: capitalize;
+}
+
+.learning-paths {
+    padding: 40px 0;
+    position: relative;
+    z-index: 1;
+}
+
+.learning-paths .learning-paths-bg {
+    position: absolute;
+    z-index: -1;
+    bottom: 140px;
+    width: 100%;
+}
+
+.learning-paths .learning-paths-bg path {
+    stroke-width: 3;
+}
+
+.learning-paths .heading-top {
+    justify-content: center;
+    margin-bottom: 30px;
+}
+
+.learning-paths .heading {
+    text-align: center;
+    margin-bottom: 100px;
+}
+
+.learning-paths .parts {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 30px;
+}
+
+.learning-paths .parts .part {
+    width: calc(33.33% - 20px);
+    border-radius: 10px;
+    border: 1px solid #57CC99;
+    background: #57CC99;
+    box-shadow: 0 12px 42px -4px rgba(24, 39, 75, 0.10);
+    padding: 30px;
+    position: relative;
+}
+
+.learning-paths .parts .part:nth-child(even) {
+    border: 1px solid #074568;
+    background: #074568;
+    margin-top: 60px;
+}
+
+.learning-paths .parts .part .number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 74px;
+    height: 74px;
+    background: #57CC99;
+    border: 6px solid #FFF;
+    border-radius: 50%;
+    color: #FFF;
+    text-align: center;
+    font-family: "Merriweather Sans";
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 25px;
+    /* 125% */
+    text-transform: capitalize;
+    position: absolute;
+    top: -50px;
+}
+
+.learning-paths .parts .part .head {
+    color: #FFF;
+    font-family: "Merriweather Sans";
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 800;
+    line-height: 30px;
+    /* 150% */
+    text-transform: capitalize;
+    margin-bottom: 10px;
+    margin-top: 10px;
+}
+
+.learning-paths .parts .part ul {
+    padding-left: 30px;
+}
+
+.learning-paths .parts .part ul li {
+    color: #FFF;
+    font-family: "Merriweather Sans";
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 25px;
+    /* 156.25% */
+    text-transform: capitalize;
+}
+
+.code-sheet {
+    margin: 40px 0;
+    padding: 60px 0;
+    background: linear-gradient(270deg, #183C67 50%, #002147 50%);
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+}
+
+.code-sheet::after,
+.code-sheet::before {
+    content: "";
+    width: 300px;
+    height: 300px;
+    border: 60px solid #123054;
+    border-radius: 50%;
+    position: absolute;
+    z-index: -1;
+    bottom: -200px;
+    left: 0;
+}
+
+.code-sheet::before {
+    content: "";
+    left: auto;
+    right: 0;
+}
+
+.code-sheet .parts {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 180px;
+}
+
+.code-sheet .parts .part {
+    width: calc(50% - 90px);
+}
+
+.code-sheet .heading {
+    color: #FFF;
+    font-family: "Merriweather Sans";
+    font-size: 40px;
+    font-style: normal;
+    font-weight: 800;
+    line-height: 40px;
+    /* 100% */
+    text-transform: capitalize;
+    margin-bottom: 20px;
+}
+
+.code-sheet p {
+    margin-bottom: 10px;
+}
+
+.code-sheet ul {
+    padding-left: 30px;
+}
+
+.code-sheet p,
+.code-sheet li {
+    color: #FFF;
+    font-family: "Merriweather Sans";
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 25px;
+    /* 156.25% */
+}
+
+.code-sheet a {
+    display: inline-flex;
+    padding: 10px 30px;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    border-radius: 5px;
+    background: #57CC99;
+    color: #FFF;
+    font-family: "Merriweather Sans";
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 20px;
+    transition: all 0.3s;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    margin-top: 20px;
+}
+
+.code-sheet a:hover {
+    color: #002147;
+}
+
+.code-sheet a::before {
+    content: "";
+    height: 100%;
+    width: 0;
+    background: #fff;
+    position: absolute;
+    left: 0;
+    z-index: -1;
+    transition: ease 0.3s;
+}
+
+.code-sheet a:hover::before {
+    width: 100%;
+}
+
+.additional-learning {
+    padding: 40px 0;
+    margin-bottom: 40px;
+}
+
+.additional-learning .heading-top {
+    justify-content: center;
+    margin-bottom: 30px;
+}
+
+.additional-learning .parts {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+}
+
+.additional-learning .parts .part {
+    width: calc(50% - 30px);
+    border-radius: 10px;
+    background: #FFF;
+    box-shadow: 0 12px 42px -4px rgba(24, 39, 75, 0.10);
+    padding: 30px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 30px;
+}
+.additional-learning .parts .part .image-part{
+    width: 35%;
+    border-radius: 10px;
+    height: 100%;
+    overflow: hidden;
+    line-height: 0;
+}
+.additional-learning .parts .part .image-part img{
+    object-fit: cover;
+    min-height: 220px;
+}
+.additional-learning .parts .part .head{
+    color: #000;
+    font-family: "Merriweather Sans";
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 800;
+    line-height: 30px; /* 150% */
+    text-transform: capitalize;
+    margin-bottom: 20px;
+}
+.additional-learning .parts .part .tagline{
+    color: #000;
+    font-family: "Merriweather Sans";
+    font-size: 16px;
+    font-style: italic;
+    font-weight: 700;
+    line-height: 25px; /* 156.25% */
+    text-transform: capitalize;
+    margin-bottom: 10px;
+}
+.additional-learning .parts .part ul{
+    padding-left: 30px;
+}
+.additional-learning .parts .part li{
+    color: #000;
+    font-family: "Merriweather Sans";
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 30px;
+    text-transform: capitalize;
+}
+
+.get-start{
+    padding-top: 60px;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    background: #E6FFF4;
+}
+.get-start .bg-line{
+    position: absolute;
+    z-index: -1;
+    bottom: 0;
+    height: 100%;
+    width: 100%;
+}
+.get-start .bg-line svg:nth-child(1){
+    position: absolute;
+    bottom: 0;
+}
+.get-start .bg-line svg:nth-child(2){
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+.get-start .bg-line svg path{
+    stroke-width: 3px;
+}
+.get-start .parts{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 50px;
+}
+.get-start .parts .part{
+    width: calc(50% - 50px);
+    position: relative;
+    z-index: 2;
+}
+.get-start .parts .part:nth-child(1){
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    line-height: 0;
+}
+.get-start .parts .part:nth-child(1)::before{
+    content: "";
+    width: 493px;
+    height: 493px;
+    border-radius: 493px;
+    background: #C6FFE6;
+    position: absolute;
+    top: 0;
+    left: 10%;
+    z-index: -1;
+}
+.get-start .parts .part .heading{
+    margin-bottom: 20px;
+}
+.get-start .parts .part p{
+    color: #000;
+    font-family: "Merriweather Sans";
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 30px;
+    text-transform: capitalize;
+    margin-bottom: 25px;
+}
+@media (max-width: 1200px) {
+  .need-tech-interview .parts .part{
+    width: calc(50% - 20px);
+  }
+  .practice-categories .tab-content{
+    flex-wrap: wrap;
+  }
+  .practice-categories .tab-content .part{
+    width: 50%;
+    line-height: 0;
+  }
+  .practice-categories .tab-content .part:nth-child(3){
+    width: 100%;
+  }
+  .career-tracks .parts .part ul li{
+    min-height: 103px;
+  }
+}
+@media (max-width: 991px) {
+    .featured-resources .parts, .learning-paths .parts, .additional-learning .parts, .additional-learning .parts .part{
+        flex-wrap: wrap;
+    }
+  .featured-resources .parts .part, .learning-paths .parts .part {
+    width: calc(50% - 30px);
+  }
+  .career-tracks .parts .part ul li, .additional-learning .parts .part .image-part {
+    width: 100%;
+  }
+  .additional-learning .parts .part .image-part img{
+    width: 100%;
+  }
+  .get-start .parts {
+    align-items: flex-end;
+  }
+}
+@media (max-width: 767px) {
+    .career-tracks .parts, .code-sheet .parts, .get-start .parts{
+        flex-wrap: wrap;
+    }
+    .practice-banner .row .col-6, .need-tech-interview .parts .part, .practice-categories .tab-content .part, .featured-resources .parts .part, .career-tracks .parts .part, .career-tracks .parts .part:nth-child(1), .career-tracks .parts .part:nth-child(2), .learning-paths .parts .part, .code-sheet .parts .part, .additional-learning .parts .part, .get-start .parts .part{
+        width: 100%;
+    }
+    .practice-banner::after{
+        opacity: 0.2;
+    }
+    .career-tracks {
+        background: linear-gradient(0deg, #074568 50%, #57CC99 50%);
+    }
+    .learning-paths .parts .part:nth-child(even){
+        margin-top: 20px;
+    }
+    .learning-paths .parts .part{
+        margin-top: 20px;
+    }
+    .code-sheet .parts{
+        gap: 50px;
+    }
+    .code-sheet {
+        background: linear-gradient(0deg, #183C67 50%, #002147 50%);
+    }
+    .get-start .parts{
+        flex-direction: column-reverse;
+    }
+}

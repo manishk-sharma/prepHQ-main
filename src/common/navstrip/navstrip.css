@@ -1,0 +1,94 @@
+.navstrip {
+  width: 100%;
+  background: #52c99a;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  position: relative;
+  z-index: 998;
+}
+
+.navstrip .container {
+  width: 100%;
+}
+
+.navstrip-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 12px;
+}
+
+.navstrip-wrapper .scroll-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #074568;
+  border-radius: 50%;
+  border: none;
+  min-width: 22px;
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+  z-index: 2;
+  flex-shrink: 0;
+  padding: 0;
+  transition: transform 0.2s ease, background 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.navstrip-wrapper .scroll-btn:hover {
+  background: #05344f;
+  transform: scale(1.1);
+}
+
+.navstrip-list {
+  display: flex;
+  align-items: center;
+  list-style: none;
+  gap: 22px;
+  margin: 0;
+  padding: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  white-space: nowrap;
+  scroll-behavior: smooth;
+  flex: 1;
+}
+
+.navstrip-list::-webkit-scrollbar {
+  display: none;
+}
+
+.navstrip-list li {
+  display: inline-flex;
+  align-items: center;
+}
+
+.navstrip-link {
+  color: #ffffff !important;
+  font-family: "Merriweather Sans", sans-serif;
+  font-size: 14.5px;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+.navstrip-link:hover {
+  color: #074568 !important;
+}
+
+@media (max-width: 767px) {
+  .navstrip {
+    height: 38px;
+  }
+  .navstrip-list {
+    gap: 16px;
+  }
+  .navstrip-link {
+    font-size: 13.5px;
+  }
+}

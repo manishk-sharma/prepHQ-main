@@ -1,0 +1,581 @@
+.edit-profile-sec {
+    padding: 60px 0;
+}
+
+.edit-profile-sec .parts {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.edit-profile-sec .parts .left-side {
+    width: calc(33.33% - 30px);
+    padding: 0 26px;
+}
+
+.edit-profile-sec .parts .right-side {
+    width: calc(66.67% - 30px);
+    padding: 0 26px;
+}
+
+.edit-profile-sec .profile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.edit-profile-sec .profile .circular-progress {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transform: rotate(-50deg);
+}
+
+.edit-profile-sec .profile .circular-progress::before {
+    content: "";
+    position: absolute;
+    width: 90px;
+    height: 90px;
+    background: #fff;
+    border-radius: 50%;
+    z-index: 1;
+}
+
+.edit-profile-sec .profile .circular-progress img {
+    width: 80px;
+    height: 80px;
+    min-width: 80px;
+    min-height: 80px;
+    max-width: 80px;
+    max-height: 80px;
+    position: absolute;
+    z-index: 2;
+    transform: rotate(50deg);
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.edit-profile-sec .profile .circular-progress label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    background: #FEFEFE;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    border-radius: 50%;
+    border: 0;
+    outline: none;
+    position: absolute;
+    z-index: 2;
+    bottom: 0;
+    transform: rotate(50deg);
+    cursor: pointer;
+}
+
+.edit-profile-sec .profile .circular-progress label svg {
+    transition: ease 0.3s;
+}
+
+.edit-profile-sec .profile .circular-progress label:hover svg {
+    transform: scale(1.2);
+}
+
+.edit-profile-sec .full-name {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 5px;
+    color: #202020;
+    text-align: center;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: normal;
+    text-transform: capitalize;
+    margin-top: 16px;
+}
+
+.edit-profile-sec .full-name span {
+    text-transform: capitalize;
+}
+
+.edit-profile-sec .user-name {
+    color: #7E7E7E;
+    text-align: center;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: normal;
+    text-transform: capitalize;
+    margin-top: 6px;
+}
+
+.edit-profile-sec .user-type,
+.edit-profile-sec .user-type option {
+    display: flex;
+    max-width: 187px;
+    min-width: 187px;
+    padding: 5px;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    border-radius: 25px;
+    border: 1px solid #7E7E7E;
+    text-align: center;
+    color: #7E7E7E;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: normal;
+    text-transform: capitalize;
+    outline: none;
+    margin: auto;
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+.edit-profile-sec .reset-btn,
+.edit-profile-sec .save-profile-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.edit-profile-sec .reset-btn a,
+.edit-profile-sec .save-profile-btn button {
+    display: flex;
+    width: 226px;
+    padding: 8px 12px;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    border-radius: 40px;
+    background: #57CC99;
+    color: #FFF;
+    text-align: right;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: normal;
+    position: relative;
+}
+
+.edit-profile-sec .save-profile-btn button {
+    background: #074568;
+    color: #fff;
+    border: 1px solid #074568;
+    transition: ease 0.3s;
+}
+
+.edit-profile-sec .save-profile-btn button:hover {
+    color: #57CC99;
+    border: 1px solid #57CC99;
+    background: #E6FFF4;
+}
+
+.edit-profile-sec .logout-btn {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.edit-profile-sec .logout-btn a {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 12px;
+    min-width: 146px;
+    color: #F13E3E;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: normal;
+    padding: 8px 0;
+}
+
+.edit-profile-sec .logout-btn a svg path {
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+
+.edit-profile-sec .profile-details {
+    margin-top: 30px;
+}
+
+.edit-profile-sec .profile-details .head,
+.edit-profile-sec .edu-and-Pro-details .head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: auto;
+    margin-bottom: 30px;
+}
+
+.edit-profile-sec .profile-details .head span,
+.edit-profile-sec .edu-and-Pro-details .head span {
+    color: #535353;
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 20px;
+}
+
+.edit-profile-sec .profile-details .part {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    column-gap: 60px;
+    row-gap: 10px;
+}
+
+.edit-profile-sec .profile-details .part div {
+    width: calc(50% - 30px);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.edit-profile-sec .profile-details .part label {
+    color: #535353;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 20px;
+}
+
+.edit-profile-sec .profile-details input {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 15px 20px;
+    min-height: 51px;
+    border-radius: 10px;
+    border: 1px solid #ABABAB;
+    color: #535353;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 20px;
+    margin-bottom: 10px;
+    outline: none;
+    box-shadow: none;
+}
+
+.edit-profile-sec .profile-details input::placeholder {
+    color: #BDBDBD;
+}
+
+.edit-profile-sec .profile-details .phone {
+    width: 100% !important;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex-direction: row !important;
+    gap: 10px;
+}
+
+.edit-profile-sec .profile-details .phone select {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 15px 5px;
+    min-height: 51px;
+    border-radius: 10px;
+    border: 1px solid #ABABAB;
+    color: #535353;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 20px;
+    margin-bottom: 10px;
+    outline: none;
+    box-shadow: none;
+}
+
+.edit-profile-sec .profile-details .phone input {
+    width: 100%;
+    input-mode: numeric;
+}
+
+.edit-profile-sec .resume {
+    margin-top: 30px;
+    margin-bottom: 120px;
+}
+
+.edit-profile-sec .resume p {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    min-height: 50px;
+    padding: 6px 6px 6px 20px;
+    border-radius: 10px;
+    border: 1px solid #ABABAB;
+    color: #535353;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 20px;
+}
+
+.edit-profile-sec .resume p label {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.edit-profile-sec .resume p a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    width: 100%;
+    color: #57cc99;
+}
+
+.edit-profile-sec .resume p .icon {
+    line-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    width: 40px;
+    position: relative;
+    overflow: hidden;
+}
+
+.edit-profile-sec .resume p .icon input[type="file"] {
+    height: 40px;
+    width: 40px;
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.edit-profile-sec .resume .resume-date {
+    font-size: 14px;
+    line-height: 40px;
+    color: #1a9e65;
+    font-style: italic;
+    padding-left: 20px;
+}
+
+.edit-profile-sec .edu-and-Pro-details {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 60px;
+}
+
+.edit-profile-sec .edu-and-Pro-details .edu-details,
+.edit-profile-sec .edu-and-Pro-details .pro-details {
+    width: calc(50% - 30px);
+}
+
+.edit-profile-sec .edu-and-Pro-details .head a,
+.edit-profile-sec .edu-and-Pro-details .head button {
+    display: flex;
+    width: 24px;
+    height: 24px;
+    padding: 6px;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    border-radius: 50px;
+    border: 1px solid #9E9E9E;
+    outline: none;
+    box-shadow: none;
+    transition: ease 0.3s;
+    cursor: pointer;
+}
+
+.edit-profile-sec .edu-and-Pro-details .head a:hover,
+.edit-profile-sec .edu-and-Pro-details .head button:hover {
+    background: #57CC99;
+    border-color: #57CC99;
+}
+
+.edit-profile-sec .edu-and-Pro-details .head a svg path,
+.edit-profile-sec .edu-and-Pro-details .head button svg path {
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.edit-profile-sec .edu-and-Pro-details .head a:hover svg path,
+.edit-profile-sec .edu-and-Pro-details .head button:hover svg path {
+    stroke: #fff;
+}
+
+.edit-profile-sec .edu-and-Pro-details .edit-details-btn {
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 10px 20px;
+    color: #535353;
+    font-size: 13px;
+    transition: ease 0.3s;
+}
+
+.edit-profile-sec .edu-and-Pro-details .edit-details-btn:hover {
+    border: 1px solid #57CC99;
+    background: #E6FFF4;
+}
+
+.edit-profile-sec .edu-and-Pro-details .part {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 30px;
+}
+
+.edit-profile-sec .edu-and-Pro-details .part label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    color: #535353;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 20px;
+}
+
+.edit-profile-sec .edu-and-Pro-details .part label button {
+    display: flex;
+    width: 24px;
+    height: 24px;
+    padding: 6px;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    border-radius: 50px;
+    border: 1px solid #9E9E9E;
+    outline: none;
+    box-shadow: none;
+    transition: ease .3s;
+    cursor: pointer;
+}
+
+.edit-profile-sec .edu-and-Pro-details .part label button svg path{
+    fill-rule: evenodd;
+    clip-rule: evenodd;
+}
+
+.edit-profile-sec .edu-and-Pro-details .part input {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 15px 20px;
+    min-height: 50px;
+    border-radius: 10px;
+    border: 1px solid #ABABAB;
+    margin: 0;
+    color: #535353;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 20px;
+    outline: none;
+}
+
+.edit-profile-sec .edu-and-Pro-details .part p::placeholder {
+    color: #BDBDBD;
+}
+
+.edit-profile-sec .btn-group-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.edit-profile-sec .btn-group-bottom a,
+.edit-profile-sec .btn-group-bottom button {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    color: rgb(255, 255, 255);
+    font-family: "Merriweather Sans";
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 20px;
+    position: relative;
+    z-index: 1;
+    padding: 10px 20px;
+    gap: 10px;
+    border-radius: 5px;
+    background: rgb(7, 69, 104);
+    transition: 0.3s;
+    outline: none;
+    box-shadow: none;
+    border: none;
+    overflow: hidden;
+}
+
+.edit-profile-sec .btn-group-bottom a::before,
+.edit-profile-sec .btn-group-bottom button::before {
+    content: "";
+    height: 100%;
+    width: 0px;
+    position: absolute;
+    left: 0px;
+    z-index: -1;
+    background: rgb(87, 204, 153);
+    transition: 0.3s;
+}
+
+.edit-profile-sec .btn-group-bottom a:hover::before,
+.edit-profile-sec .btn-group-bottom button:hover::before {
+    width: 100%;
+}
+
+@media (max-width: 991px) {
+
+    .edit-profile-sec .parts .left-side,
+    .edit-profile-sec .parts .right-side {
+        width: 100%;
+    }
+}
+
+@media (max-width: 767px) {
+    .edit-profile-sec .edu-and-Pro-details {
+        flex-wrap: wrap;
+        gap: 30px;
+    }
+
+    .edit-profile-sec .edu-and-Pro-details .edu-details,
+    .edit-profile-sec .edu-and-Pro-details .pro-details {
+        width: 100%;
+    }
+
+    .edit-profile-sec .profile-details .part div {
+        width: 100%;
+    }
+}

@@ -1,0 +1,278 @@
+.dashboard-overview {
+  padding: 1rem;
+}
+
+.dashboard-overview .stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.dashboard-overview .stat-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: transform 0.2s;
+}
+
+.dashboard-overview .stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.dashboard-overview .stat-icon {
+  font-size: 2.5rem;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.dashboard-overview .stat-content {
+  flex: 1;
+}
+
+.dashboard-overview .stat-card h3 {
+  margin: 0 0 0.5rem 0;
+  color: #666;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: left;
+}
+
+.dashboard-overview .stat-number {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.dashboard-overview .stat-bar {
+  width: 100%;
+  height: 6px;
+  background: #e9ecef;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.dashboard-overview .stat-progress {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.dashboard-overview .stat-card.users .stat-icon {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.dashboard-overview .stat-card.users .stat-progress {
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+}
+
+.dashboard-overview .stat-card.subscribers .stat-icon {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.dashboard-overview .stat-card.subscribers .stat-progress {
+  background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
+}
+
+.dashboard-overview .stat-card.contacts .stat-icon {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.dashboard-overview .stat-card.contacts .stat-progress {
+  background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.dashboard-overview .stat-card.accounts .stat-icon {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.dashboard-overview .stat-card.accounts .stat-progress {
+  background: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.dashboard-overview .recent-data-section {
+  margin-top: 1rem;
+}
+
+.dashboard-overview .recent-tabs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.dashboard-overview .recent-tab {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.dashboard-overview .recent-tab h4 {
+  margin: 0 0 0.75rem 0;
+  color: #495057;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-bottom: 1px solid #dee2e6;
+  padding-bottom: 0.5rem;
+}
+
+.dashboard-overview .recent-section {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.dashboard-overview .recent-section h3 {
+  margin: 0 0 1rem 0;
+  color: #333;
+  font-size: 1rem;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.5rem;
+}
+
+.dashboard-overview .recent-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dashboard-overview .recent-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 0;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.dashboard-overview .recent-item span {
+  font-weight: 500;
+  color: #333;
+}
+
+.dashboard-overview .date-info {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.dashboard-overview .calendar-icon {
+  font-size: 0.9rem;
+}
+
+.dashboard-overview .recent-item small {
+  color: #666;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .dashboard-overview {
+    padding: 0.5rem;
+  }
+  
+  .dashboard-overview .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .dashboard-overview .stat-card {
+    padding: 1rem;
+    flex-direction: column;
+    text-align: center;
+    gap: 0.75rem;
+  }
+  
+  .dashboard-overview .stat-icon {
+    font-size: 2rem;
+    width: 50px;
+    height: 50px;
+  }
+  
+  .dashboard-overview .stat-number {
+    font-size: 1.5rem;
+  }
+  
+  .dashboard-overview .recent-tabs {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .dashboard-overview .recent-section {
+    padding: 1rem;
+  }
+  
+  .dashboard-overview .recent-tab {
+    padding: 0.75rem;
+  }
+  
+  .dashboard-overview .recent-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+  
+  .dashboard-overview .recent-item span {
+    font-size: 0.9rem;
+  }
+  
+  .dashboard-overview .recent-item small {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-overview .stats-grid {
+    gap: 0.5rem;
+  }
+  
+  .dashboard-overview .stat-card {
+    padding: 0.75rem;
+  }
+  
+  .dashboard-overview .stat-icon {
+    font-size: 1.5rem;
+    width: 40px;
+    height: 40px;
+  }
+  
+  .dashboard-overview .stat-number {
+    font-size: 1.25rem;
+  }
+  
+  .dashboard-overview .stat-card h3 {
+    font-size: 0.8rem;
+  }
+  
+  .dashboard-overview .recent-section h3 {
+    font-size: 0.9rem;
+  }
+  
+  .dashboard-overview .recent-tab h4 {
+    font-size: 0.8rem;
+  }
+  
+  .dashboard-overview .recent-item span {
+    font-size: 0.8rem;
+  }
+  
+  .dashboard-overview .recent-item small {
+    font-size: 0.7rem;
+  }
+}

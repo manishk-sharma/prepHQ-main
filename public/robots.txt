@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+
+Disallow: /wp-admin/
+Disallow: /wp-login.php
+Disallow: /blog/wp-json/
+Disallow: /login
+Disallow: /register
+Disallow: /profile
+Disallow: /admin
+Disallow: /search
+
+Sitemap: https://prephq.theiotacademy.co/sitemap.xml

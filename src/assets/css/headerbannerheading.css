@@ -1,0 +1,30 @@
+.headingcommon {
+  color: #000;
+  font-family: "Merriweather Sans";
+  font-size: 30px;
+  font-style: normal;
+  font-weight: 800;
+  line-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+@media(max-width:600px){
+  .headingcommon {
+    font-size: 24px;
+    line-height: 36px;
+  }
+
+}
+
+/* .headingcommon span {
+  position: relative;
+  color: #32c98d;
+}
+.headingcommon span svg{
+  position: absolute;
+  right: 0;
+  bottom: -7px;
+} */
