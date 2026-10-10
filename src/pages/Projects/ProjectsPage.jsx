@@ -613,7 +613,7 @@ const ProjectsPage = () => {
 
                         <div className="featured-card-footer">
                           <Link
-                            to={`/projects/${item.slug}`}
+                            to={`/projects-details/${item.slug}`}
                             state={{ id: item.id }}
                             className="btn-read-more"
                           >
@@ -745,7 +745,7 @@ const ProjectsPage = () => {
                         </div>
 
                         <Link
-                          to={`/projects/${item.slug}`}
+                          to={`/projects-details/${item.slug}`}
                           state={{ id: item.id }}
                           className="grid-card-btn-read-more"
                         >

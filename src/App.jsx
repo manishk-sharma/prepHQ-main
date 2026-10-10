@@ -51,6 +51,7 @@ import {
 import InterviewsPage from "./pages/Interview/InterviewsPage";
 import TutorialsPage from "./pages/Tutorials/TutorialsPage";
 import ProjectsPage from "./pages/Projects/ProjectsPage";
+import Projectsdetails from "./pages/Projects/Projectsdetails";
 import BlogsPage from "./pages/Blogs/BlogsPage";
 import PostDetailPage from "./pages/posts/PostDetailPage";
 import AddTutorial from "./pages/admin/NewAdminPage/Tutorials/AddTutorial";
@@ -174,6 +175,17 @@ const hideLayout =
         <Route path="/projects" element={<ProjectsPage />} />
         <Route path="/project" element={<ProjectsPage />} />
         <Route path="/projects-pages" element={<ProjectsPage />} />
+        <Route path="/projects-details" element={<Projectsdetails />} />
+        <Route path="/projects-details/:postSlug" element={<Projectsdetails />} />
+        <Route path="/projects-detail" element={<Projectsdetails />} />
+        <Route path="/projects-detail/:postSlug" element={<Projectsdetails />} />
+        <Route path="/projects/customer-churn-prediction-using-machine-learning" element={<Projectsdetails />} />
+        <Route path="/projects/customer-churn-prediction" element={<Projectsdetails />} />
+        <Route path="/projects/detail" element={<Projectsdetails />} />
+        <Route path="/projects/details" element={<Projectsdetails />} />
+        <Route path="/project-detail" element={<Projectsdetails />} />
+        <Route path="/project-details" element={<Projectsdetails />} />
+        <Route path="/projects/:postSlug" element={<Projectsdetails />} />
         <Route path="/blogs" element={<BlogsPage />} />
         <Route path="/:type/:postSlug" element={<PostDetailPage />} />
         <Route path="/:type/category/:slug" element={<CategoryPage />} />
