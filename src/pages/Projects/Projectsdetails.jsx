@@ -29,14 +29,14 @@ const ExternalLinkIcon = () => (
 // Navigation items matching Screenshot 1 exactly
 const NAV_ITEMS = [
     { id: "about-project", number: "01", label: "About the project" },
-    { id: "prerequisites", number: "02", label: "PREREQUISITES" },
-    { id: "project-objectives", number: "03", label: "PROJECT OBJECTIVES" },
-    { id: "project-architecture", number: "04", label: "PROJECT ARCHITECTURE" },
-    { id: "implementation-guide", number: "05", label: "IMPLEMENTATION" },
-    { id: "technologies", number: "06", label: "TOOLS" },
-    { id: "dataset-resources", number: "07", label: "DATA SOURCES" },
-    { id: "project-learnings", number: "08", label: "LEARNINGS" },
-    { id: "common-mistakes", number: "09", label: "COMMON MISTAKES" },
+    { id: "prerequisites", number: "02", label: "Prerequisites" },
+    { id: "project-objectives", number: "03", label: "Project objectives" },
+    { id: "project-architecture", number: "04", label: "Project architecture" },
+    { id: "implementation-guide", number: "05", label: "Implementation" },
+    { id: "technologies", number: "06", label: "Tools" },
+    { id: "dataset-resources", number: "07", label: "Data sources" },
+    { id: "project-learnings", number: "08", label: "Learnings" },
+    { id: "common-mistakes", number: "09", label: "Common mistakes" },
 ];
 
 // Section 03 Objectives Data matching Screenshot 3
@@ -237,21 +237,21 @@ const COMMON_MISTAKES = [
 
 // Right Sidebar Related Content matching Screenshots 1, 2, 3
 const RELATED_PROJECTS = [
-    { title: "Create Amazing Color Schemes Design", date: "05 Aug, 2025", link: "/projects-details/customer-segmentation-using-k-means" },
-    { title: "Create Amazing Color Schemes Design", date: "05 Aug, 2025", link: "/projects-details/credit-card-fraud-detection" },
-    { title: "Create Amazing Color Schemes Design", date: "05 Aug, 2025", link: "/projects-details/stock-price-prediction" },
+    { title: "Create Amazing Color Schemes Design", date: "01-Aug,-2025", link: "/projects-details/customer-segmentation-using-k-means" },
+    { title: "Create Amazing Color Schemes Design", date: "01-Aug,-2025", link: "/projects-details/credit-card-fraud-detection" },
+    { title: "Create Amazing Color Schemes Design", date: "01-Aug,-2025", link: "/projects-details/stock-price-prediction" },
 ];
 
 const TUTORIALS = [
-    { title: "Create Amazing Color Schemes Design", date: "05 Aug, 2025", link: "/tutorials" },
-    { title: "Create Amazing Color Schemes Design", date: "05 Aug, 2025", link: "/tutorials" },
-    { title: "Create Amazing Color Schemes Design", date: "05 Aug, 2025", link: "/tutorials" },
+    { title: "Create Amazing Color Schemes Design", date: "01-Aug,-2025", link: "/tutorials" },
+    { title: "Create Amazing Color Schemes Design", date: "01-Aug,-2025", link: "/tutorials" },
+    { title: "Create Amazing Color Schemes Design", date: "01-Aug,-2025", link: "/tutorials" },
 ];
 
 const MINI_GUIDES = [
-    { title: "Create Amazing Color Schemes Design", date: "05 Aug, 2025", link: "/guides" },
-    { title: "Create Amazing Color Schemes Design", date: "05 Aug, 2025", link: "/guides" },
-    { title: "Create Amazing Color Schemes Design", date: "05 Aug, 2025", link: "/guides" },
+    { title: "Create Amazing Color Schemes Design", date: "01-Aug,-2025", link: "/guides" },
+    { title: "Create Amazing Color Schemes Design", date: "01-Aug,-2025", link: "/guides" },
+    { title: "Create Amazing Color Schemes Design", date: "01-Aug,-2025", link: "/guides" },
 ];
 
 const Projectsdetails = () => {
@@ -441,10 +441,11 @@ const Projectsdetails = () => {
                                 <p className="section-subtitle">A quick checklist so you can start with confidence.</p>
                             </div>
 
-                            <div className="prereq-card-container">
+                            {/* 3 columns grid: Row 1 has Programming, Data, Statistics; Row 2 has Machine Learning */}
+                            <div className="prereq-cards-layout">
                                 {/* Programming */}
-                                <div className="prereq-category-block">
-                                    <h3 className="prereq-category-title">Programming</h3>
+                                <div className="prereq-card">
+                                    <h3 className="prereq-card-title">Programming</h3>
                                     <ul className="prereq-list">
                                         <li>Basic Python</li>
                                         <li>Functions</li>
@@ -453,8 +454,8 @@ const Projectsdetails = () => {
                                 </div>
 
                                 {/* Data */}
-                                <div className="prereq-category-block">
-                                    <h3 className="prereq-category-title">Data</h3>
+                                <div className="prereq-card">
+                                    <h3 className="prereq-card-title">Data</h3>
                                     <ul className="prereq-list">
                                         <li>Pandas</li>
                                         <li>NumPy</li>
@@ -462,13 +463,24 @@ const Projectsdetails = () => {
                                     </ul>
                                 </div>
 
-                                {/* Data */}
-                                <div className="prereq-category-block">
-                                    <h3 className="prereq-category-title">Data</h3>
+                                {/* Statistics */}
+                                <div className="prereq-card">
+                                    <h3 className="prereq-card-title">Statistics</h3>
                                     <ul className="prereq-list">
-                                        <li>Pandas</li>
-                                        <li>NumPy</li>
-                                        <li>Basic data cleaning</li>
+                                        <li>Mean</li>
+                                        <li>Median</li>
+                                        <li>Correlation</li>
+                                        <li>Basic distributions</li>
+                                    </ul>
+                                </div>
+
+                                {/* Machine Learning (Placed on next row under column 1) */}
+                                <div className="prereq-card prereq-card-ml">
+                                    <h3 className="prereq-card-title">Machine Learning</h3>
+                                    <ul className="prereq-list">
+                                        <li>Classification</li>
+                                        <li>Train/test split</li>
+                                        <li>Basic model evaluation</li>
                                     </ul>
                                 </div>
                             </div>
@@ -830,77 +842,10 @@ const Projectsdetails = () => {
                     </main>
 
                     {/* =========================================================
-              RIGHT COLUMN: Share & Related Content (Screenshot 1)
+              RIGHT COLUMN: Related Content & Image Banner Space
               ========================================================= */}
                     <aside className="project-right-sidebar" aria-label="Project actions and related resources">
                         <div className="right-sidebar-inner">
-
-                            {/* SHARE ACTIONS */}
-                            <div className="share-section" role="region" aria-label="Share actions">
-                                <span className="share-heading">Share:</span>
-                                <div className="share-buttons-row">
-                                    <a
-                                        href={`https://api.whatsapp.com/send?text=${encodeURIComponent(pageTitle + " " + pageUrl)}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="share-icon-btn whatsapp-btn"
-                                        title="Share on WhatsApp"
-                                        aria-label="Share on WhatsApp"
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                            <path d="M20.0005 9.41476V10.5892C19.9883 10.6586 19.9736 10.7281 19.9638 10.7981C19.9036 11.2165 19.8727 11.6407 19.7807 12.0518C19.1596 14.8253 17.6374 16.9774 15.2341 18.4855C13.2199 19.7495 11.0115 20.206 8.65422 19.909C7.37199 19.7501 6.13558 19.3317 5.02044 18.6793C4.96078 18.6422 4.89348 18.6192 4.82362 18.6119C4.75375 18.6046 4.68315 18.6132 4.61712 18.6372C3.5403 18.9607 2.46054 19.2768 1.38225 19.5948L0 20.001C0.0239838 19.9105 0.0386689 19.8488 0.0562896 19.7886C0.488487 18.3235 0.918233 16.8585 1.3563 15.3954C1.38192 15.323 1.39083 15.2458 1.38235 15.1696C1.37387 15.0933 1.34823 15.0199 1.30736 14.955C0.575621 13.6884 0.140521 12.2726 0.0347501 10.8138C-0.142436 8.51683 0.383249 6.38824 1.66907 4.47495C3.25249 2.11881 5.45214 0.670385 8.25237 0.155118C8.62191 0.0871004 8.99734 0.0508906 9.36982 0H10.5445L10.9684 0.0489333C12.6062 0.229986 14.1264 0.749657 15.493 1.67547C17.8522 3.2751 19.3196 5.47172 19.8458 8.28146C19.9143 8.65434 19.9491 9.03601 20.0005 9.41476ZM1.72977 18.2594C1.81248 18.2389 1.85067 18.2316 1.88738 18.2208C2.86631 17.9321 3.84523 17.6424 4.82416 17.3517C4.881 17.3317 4.94182 17.3257 5.00147 17.3342C5.06112 17.3428 5.11783 17.3656 5.16679 17.4007C7.2661 18.7253 9.53183 19.1324 11.9566 18.5956C16.2791 17.6385 19.2638 13.4752 18.7822 9.0781C18.5957 7.37424 17.9952 5.82355 16.8899 4.51067C14.5939 1.78264 11.6625 0.701212 8.15545 1.37502C5.83148 1.82178 4.0097 3.10971 2.68374 5.06508C1.41749 6.93188 0.965711 9.00519 1.25841 11.2351C1.42836 12.5236 1.88805 13.7569 2.60297 14.8424C2.6361 14.889 2.65731 14.9429 2.66473 14.9996C2.67215 15.0562 2.66557 15.1138 2.64556 15.1673C2.44977 15.801 2.26524 16.4396 2.07729 17.0733C1.96324 17.4564 1.85164 17.8406 1.72977 18.2594Z" fill="#57CC99" />
-                                            <path d="M13.2983 15.3861C10.6963 15.252 8.49515 14.2293 6.78838 12.224C5.63912 10.8725 4.97737 9.28802 4.76836 7.523C4.67537 6.73517 4.70131 5.95077 4.98617 5.19377C5.21377 4.58847 5.65233 4.14954 6.16578 3.80065C6.64595 3.47426 7.24554 3.57702 7.68312 4.00568C8.29838 4.60609 8.90678 5.21139 9.50687 5.82893C10.0301 6.36719 10.0179 7.08406 9.49806 7.62869C9.36297 7.77011 9.21906 7.90272 9.08495 8.04463C8.77169 8.37395 8.76043 8.77862 9.07271 9.10941C9.67573 9.74913 10.2846 10.3831 10.8994 11.0114C11.2166 11.3364 11.7095 11.3364 12.0423 11.0261C12.2283 10.8534 12.3991 10.6635 12.5929 10.5006C13.0599 10.1091 13.6972 10.1165 14.1705 10.5035C14.2216 10.5444 14.2706 10.5878 14.3173 10.6337C14.8982 11.2131 15.4785 11.7932 16.0583 12.3742C16.6232 12.9433 16.6256 13.6705 16.0686 14.245C15.7147 14.61 15.3687 14.9883 14.8587 15.1395C14.6357 15.21 14.408 15.2649 14.1773 15.3039C13.8959 15.3464 13.6091 15.3587 13.2983 15.3861ZM13.2885 14.2014C14.0418 14.2205 14.7299 14.0859 15.2228 13.4405C15.2938 13.347 15.3261 13.2937 15.2312 13.2002C14.648 12.6235 14.0679 12.0436 13.4906 11.4607C13.4059 11.3755 13.3438 11.3824 13.264 11.4656C13.1172 11.6207 12.9644 11.7743 12.8049 11.9177C12.055 12.5925 10.8593 12.6028 10.1383 11.8981C9.4447 11.2209 8.77707 10.5158 8.12511 9.79839C7.61753 9.24055 7.52258 8.36514 7.90338 7.72216C8.09182 7.4036 8.37376 7.13985 8.62094 6.85751C8.69338 6.77383 8.7438 6.71658 8.64297 6.61626C8.05561 6.03396 7.47412 5.44676 6.88579 4.86592C6.85152 4.83216 6.74727 4.81014 6.72524 4.83216C6.46044 5.0964 6.15012 5.32149 6.03999 5.71296C5.81973 6.47974 5.87259 7.24848 6.03363 8.01282C6.45408 10.0044 7.46629 11.6261 9.1383 12.8049C10.3525 13.6727 11.7979 14.159 13.2899 14.2014H13.2885Z" fill="#57CC99" />
-                                        </svg>
-                                        <span className="sr-only">Share on WhatsApp</span>
-                                    </a>
-                                    <a
-                                        href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(pageUrl)}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="share-icon-btn linkedin-btn"
-                                        title="Share on LinkedIn"
-                                        aria-label="Share on LinkedIn"
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40" fill="none">
-                                            <rect x="0.5" y="0.5" width="39" height="39" rx="4.5" fill="#E6FFF4" stroke="#57CC99" />
-                                            <path d="M15.4606 30.4354H9.5625V15.4595H15.4606V30.4354ZM10.5453 29.469H14.4774V16.426H10.5453V29.469Z" fill="#57CC99" />
-                                            <path d="M32.1712 30.4354H26.2731V22.2228C26.2731 21.4223 25.6128 20.7733 24.7985 20.7733C23.9841 20.7733 23.3238 21.4223 23.3238 22.2228V30.4354H17.4257V15.4595H23.3238V16.4319C24.2139 15.7992 25.2848 15.4591 26.3834 15.4595C29.5721 15.4595 32.1707 18.0019 32.1707 21.1298L32.1712 30.4354ZM27.2563 29.469H31.1884V21.1298C31.182 18.5275 29.0318 16.4223 26.3843 16.4255C25.174 16.4255 24.0376 16.9266 23.1895 17.8323L22.3415 18.7443V16.4255H18.4094V29.469H22.3415V22.2228C22.3415 20.8885 23.4419 19.8073 24.7989 19.8073C26.1559 19.8073 27.2563 20.8885 27.2563 22.2228V29.469Z" fill="#57CC99" />
-                                            <path d="M12.5113 14.4935C10.8826 14.4935 9.5625 13.1956 9.5625 11.5947C9.5625 9.99379 10.8826 8.69629 12.5113 8.69629C14.1401 8.69629 15.4601 9.99424 15.4601 11.5947C15.4569 13.1942 14.1387 14.4904 12.5113 14.4935ZM12.5113 9.66272C11.4256 9.66272 10.5453 10.528 10.5453 11.5951C10.5453 12.6623 11.4256 13.5276 12.5113 13.5276C13.597 13.5276 14.4774 12.6623 14.4774 11.5951C14.4774 10.528 13.597 9.66272 12.5113 9.66272Z" fill="#57CC99" />
-                                        </svg>
-                                        <span className="sr-only">Share on LinkedIn</span>
-                                    </a>
-                                    <a
-                                        href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pageUrl)}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="share-icon-btn facebook-btn"
-                                        title="Share on Facebook"
-                                        aria-label="Share on Facebook"
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40" fill="none">
-                                            <rect x="0.5" y="0.5" width="39" height="39" rx="4.5" fill="#E6FFF4" stroke="#57CC99" />
-                                            <path d="M21.0998 31.305H17.4197C16.8048 31.305 16.3047 30.8131 16.3047 30.2081V22.0416H14.1579C13.543 22.0416 13.043 21.5497 13.043 20.9447V17.4452C13.043 16.8403 13.543 16.3484 14.1579 16.3484H16.3052V14.5962C16.3052 12.8586 16.86 11.3806 17.9089 10.3217C18.9624 9.25842 20.4346 8.69629 22.1671 8.69629L24.9738 8.7007C25.5873 8.70159 26.0864 9.1935 26.0864 9.79758V13.0467C26.0864 13.6517 25.5864 14.1436 24.972 14.1436L23.0823 14.1445C22.506 14.1445 22.3592 14.2579 22.3278 14.2928C22.2762 14.3507 22.2147 14.5141 22.2147 14.9649V16.3492H24.8301C25.0272 16.3492 25.2179 16.3969 25.3818 16.487C25.7354 16.6813 25.9554 17.0491 25.9554 17.4461L25.954 20.9456C25.954 21.5501 25.454 22.042 24.8391 22.042H22.2147V30.2086C22.2147 30.8135 21.7147 31.305 21.0998 31.305ZM17.6522 29.9794H20.8673V21.4481C20.8673 21.0445 21.2012 20.716 21.6114 20.716H24.6066L24.6079 17.6744H21.6114C21.2012 17.6744 20.8673 17.3459 20.8673 16.9423V14.9645C20.8673 14.4465 20.9207 13.8579 21.3179 13.415C21.7982 12.8798 22.5545 12.818 23.0819 12.818L24.739 12.8171V10.0259L22.1658 10.0219C19.382 10.0219 17.6517 11.775 17.6517 14.5971V16.9427C17.6517 17.3463 17.3178 17.6749 16.9075 17.6749H14.3904V20.7164H16.908C17.3182 20.7164 17.6522 21.045 17.6522 21.4486V29.9794Z" fill="#57CC99" />
-                                        </svg>
-                                        <span className="sr-only">Share on Facebook</span>
-                                    </a>
-                                    <a
-                                        href={`https://www.instagram.com/`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="share-icon-btn instagram-btn"
-                                        title="Share on Instagram"
-                                        aria-label="Share on Instagram"
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40" fill="none">
-                                            <rect x="0.5" y="0.5" width="39" height="39" rx="4.5" fill="#E6FFF4" stroke="#57CC99" />
-                                            <path d="M25.303 9.56592H15.5611C12.2539 9.56592 9.5625 12.2574 9.5625 15.5649V25.3061C9.5625 28.6148 12.2539 31.305 15.5611 31.305H25.3017C28.6103 31.305 31.3016 28.6135 31.3016 25.3061V15.5649C31.3016 12.2574 28.6103 9.56592 25.3017 9.56592H25.303ZM29.3728 25.3073C29.3728 27.5526 27.5469 29.3774 25.3017 29.3774H15.5611C13.3173 29.3774 11.4913 27.5513 11.4913 25.3073V15.5649C11.4913 13.3209 13.3173 11.4949 15.5611 11.4949H25.3017C27.5456 11.4949 29.3728 13.3209 29.3728 15.5649V25.3073Z" fill="#57CC99" />
-                                            <path d="M20.4321 14.8345C17.3434 14.8345 14.8308 17.3473 14.8308 20.4361C14.8308 23.525 17.3434 26.0378 20.4321 26.0378C23.5208 26.0378 26.0334 23.525 26.0334 20.4361C26.0334 17.3473 23.5208 14.8345 20.4321 14.8345ZM20.4321 24.1088C18.4068 24.1088 16.7596 22.4615 16.7596 20.4361C16.7596 18.4107 18.4068 16.7634 20.4321 16.7634C22.4573 16.7634 24.1045 18.4107 24.1045 20.4361C24.1045 22.4615 22.4573 24.1088 20.4321 24.1088Z" fill="#57CC99" />
-                                            <path d="M26.2687 13.1988C25.8971 13.1988 25.5319 13.3492 25.2696 13.6128C25.0059 13.8752 24.8542 14.2404 24.8542 14.6133C24.8542 14.9862 25.0059 15.3502 25.2696 15.6138C25.5319 15.8761 25.8971 16.0279 26.2687 16.0279C26.6403 16.0279 27.0055 15.8761 27.2691 15.6138C27.5327 15.3502 27.6832 14.9849 27.6832 14.6133C27.6832 14.2417 27.5327 13.8752 27.2691 13.6128C27.0068 13.3492 26.6416 13.1988 26.2687 13.1988Z" fill="#57CC99" />
-                                        </svg>
-                                        <span className="sr-only">Share on Instagram</span>
-                                    </a>
-                                </div>
-                            </div>
 
                             {/* RELATED PROJECTS */}
                             <div className="sidebar-widget">
@@ -972,6 +917,11 @@ const Projectsdetails = () => {
                                         <div className="widget-scrollbar-thumb" />
                                     </div>
                                 </div>
+                            </div>
+
+                            {/* SIDEBAR BANNER PLACEHOLDER (Space for img banner) */}
+                            <div className="sidebar-banner-placeholder" role="region" aria-label="Advertisement Banner">
+                                {/* Space for img banner */}
                             </div>
 
                         </div>

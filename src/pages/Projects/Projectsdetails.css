@@ -329,32 +329,27 @@
 /* ==========================================================================
    SECTION 02: Prerequisites (Screenshot 2)
    ========================================================================== */
-.project-detail-page-wrapper .prereq-card-container {
-  background-color: #f7f9fa;
-  border-radius: 18px;
+.prereq-cards-layout {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.prereq-card {
+  background-color: #f9fafb;
+  border-radius: 16px;
   border: none;
-  padding: 28px 32px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
+  padding: 22px 24px;
 }
 
-.project-detail-page-wrapper .prereq-category-block {
-  display: flex;
-  flex-direction: column;
-}
-
-.project-detail-page-wrapper .prereq-category-title {
-  font-family: "Merriweather Sans", sans-serif;
+.prereq-card-title {
   font-size: 17px;
   font-weight: 700;
-  color: #000000;
-  margin: 0 0 10px 0;
-  letter-spacing: -0.1px;
-  line-height: 1.3;
+  color: #111827;
+  margin: 0 0 14px 0;
 }
 
-.project-detail-page-wrapper .prereq-list {
+.prereq-list {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -363,24 +358,23 @@
   gap: 8px;
 }
 
-.project-detail-page-wrapper .prereq-list li {
+.prereq-list li {
   position: relative;
-  padding-left: 18px;
-  font-family: "Merriweather Sans", sans-serif;
+  padding-left: 16px;
   font-size: 16px;
   font-weight: 300;
   color: #1f2937;
-  line-height: 1.5;
+  line-height: 1.45;
 }
 
-.project-detail-page-wrapper .prereq-list li::before {
+.prereq-list li::before {
   content: "•";
   position: absolute;
   left: 0;
   color: #111827;
   font-weight: bold;
   font-size: 16px;
-  line-height: 1.5;
+  line-height: 1;
 }
 
 /* ==========================================================================
@@ -720,11 +714,6 @@
 }
 
 @media (max-width: 640px) {
-  .project-detail-page-wrapper .prereq-card-container {
-    padding: 20px 18px;
-    gap: 20px;
-  }
-
   .project-detail-page-wrapper .arch-details-card {
     padding: 20px 18px;
   }
@@ -953,19 +942,20 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-bottom: 20px;
+  margin-bottom: 0;
 }
 
 .widget-title {
-  font-size: 15px;
+  font-size: 14.5px;
   font-weight: 700;
-  color: #374151;
+  color: #1e293b;
   margin: 0;
   letter-spacing: -0.2px;
 }
 
 .widget-mint-box {
-  background-color: #eefbf4;
+  background-color: #f2fbf6;
+  border: 1.5px solid #a3e7cb;
   border-radius: 12px;
   padding: 8px;
   display: flex;
@@ -983,13 +973,13 @@
 
 .widget-item-card {
   background-color: #ffffff;
-  border: 1.5px solid #a7f3d0;
-  border-radius: 10px;
-  padding: 10px 12px;
+  border: 1.5px solid #a3e7cb;
+  border-radius: 8px;
+  padding: 8px 10px;
   text-decoration: none;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   transition: all 0.2s ease;
 }
 
@@ -1000,7 +990,7 @@
 }
 
 .widget-item-title {
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 700;
   color: #111827;
   line-height: 1.35;
@@ -1016,7 +1006,7 @@
 .widget-item-meta {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   font-size: 11px;
   color: #6b7280;
 }
@@ -1035,8 +1025,8 @@
 
 /* Custom Navy Pill Track with Mint Thumb */
 .widget-scrollbar-track {
-  width: 12px;
-  background-color: #1e3a5f;
+  width: 10px;
+  background-color: #074568;
   border-radius: 9999px;
   position: relative;
   display: flex;
@@ -1048,9 +1038,31 @@
 .widget-scrollbar-thumb {
   width: 100%;
   height: 38px;
-  background-color: #6ee7b7;
+  background-color: #52c496;
   border-radius: 9999px;
   flex-shrink: 0;
+}
+
+/* SIDEBAR BANNER PLACEHOLDER (Space for img banner) */
+.sidebar-banner-placeholder {
+  width: 100%;
+  height: 320px;
+  background-color: #c4c4c4;
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: opacity 0.2s ease;
+}
+
+.sidebar-banner-placeholder img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 14px;
+  display: block;
 }
 
 /* BOTTOM SHARE CARD */
