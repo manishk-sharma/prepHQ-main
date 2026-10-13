@@ -6,12 +6,25 @@ import {
     FiDownload,
     FiChevronDown,
     FiChevronUp,
-    FiCalendar,
-    FiExternalLink,
     FiLayers,
 } from "react-icons/fi";
 import { FolderGit2 } from "lucide-react";
 import "./Projectsdetails.css";
+
+// Custom SVG Icons
+const CalendarIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="17" height="15" viewBox="0 0 17 15" fill="none" className="meta-icon">
+        <path d="M17 14.6288C16.867 14.9181 16.6395 15.0004 16.3317 15C12.1039 14.9932 7.87605 14.9915 3.64824 14.9951C3.19279 14.9951 3.02028 14.8211 3.02028 14.3609V12.9959H3.22649C6.61288 12.9959 9.99913 12.997 13.3852 12.9991C13.8788 12.9991 14.2868 12.8393 14.6398 12.4961C15.6079 11.5549 16.3135 10.4369 16.8625 9.21124C16.9069 9.11644 16.9512 9.02387 16.9982 8.93041L17 14.6288Z" fill="#37AB79" />
+        <path d="M17 2.99834H3.0358C3.02918 2.95931 3.02474 2.91993 3.0225 2.8804C3.0225 2.43046 3.02028 1.98096 3.0225 1.53101C3.0225 1.20479 3.22649 1.00051 3.55112 0.999624C4.30503 0.999624 5.05539 0.999624 5.80797 0.999624H6.0102C6.0102 0.83629 6.0102 0.683194 6.0102 0.530097C6.0133 0.218562 6.21952 4.25311e-05 6.50734 4.25311e-05C6.79515 4.25311e-05 7.00093 0.218117 7.00536 0.529651C7.00536 0.679188 7.00536 0.82828 7.00536 0.988497H9.49548C9.49548 0.832285 9.49548 0.676963 9.49548 0.524756C9.49947 0.215891 9.70924 -0.00262777 9.9975 4.25311e-05C10.2858 0.00271283 10.4853 0.217227 10.4902 0.51808C10.4933 0.672513 10.4902 0.826945 10.4902 0.990278H13.0158C13.0158 0.842076 13.0158 0.68898 13.0158 0.536328C13.0189 0.222122 13.2198 0.00226778 13.5067 4.25311e-05C13.8016 -0.00351787 14.0083 0.216781 14.0114 0.539887C14.0114 0.684083 14.0114 0.82828 14.0114 0.999624H14.1888C14.9081 0.999624 15.6274 1.00941 16.3463 0.994728C16.6519 0.988497 16.8714 1.08374 16.9982 1.3659L17 2.99834Z" fill="#37AB79" />
+        <path d="M16.9778 4.01039C16.9516 5.14276 16.7786 6.26689 16.4634 7.35449C16.0102 8.90193 15.2993 10.3118 14.2083 11.5135C14.2042 11.5174 14.2004 11.5216 14.1968 11.5259C13.9249 11.882 13.5866 12.011 13.1231 12.0088C8.94646 11.9901 4.76979 11.9972 0.592684 11.9995C0.370946 11.9995 0.187347 11.947 0.0698252 11.7471C0.0117753 11.651 -0.0111218 11.5375 0.00506168 11.4263C0.0212452 11.315 0.0755006 11.2129 0.158521 11.1374C1.62199 9.69589 2.40739 7.90724 2.78612 5.92054C2.89655 5.3393 2.92803 4.74338 2.99589 4.15414C3.00076 4.10963 3.00476 4.06513 3.01052 4.01217L16.9778 4.01039Z" fill="#37AB79" />
+    </svg>
+);
+
+const ExternalLinkIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none" className="widget-open-icon">
+        <path d="M20 2.08333V8.33333H17.5V4.2675L7.9675 13.8L6.2 12.0325L15.7325 2.5H11.6667V0H17.9167C19.065 0 20 0.935 20 2.08333ZM13.3333 17.5H2.5V7.08333C2.5 6.85333 2.68667 6.66667 2.91667 6.66667H9.16667L11.6667 4.16667H2.91667C1.30833 4.16667 0 5.475 0 7.08333V20H15.8333V8.33333L13.3333 10.8333V17.5Z" fill="#37AB79" />
+    </svg>
+);
 
 // Navigation items matching Screenshot 1 exactly
 const NAV_ITEMS = [
@@ -911,10 +924,10 @@ const Projectsdetails = () => {
                                                 <span className="widget-item-title">{proj.title}</span>
                                                 <div className="widget-item-footer">
                                                     <div className="widget-item-meta">
-                                                        <FiCalendar className="meta-icon" />
+                                                        <CalendarIcon />
                                                         <span>{proj.date}</span>
                                                     </div>
-                                                    <FiExternalLink className="widget-open-icon" />
+                                                    <ExternalLinkIcon />
                                                 </div>
                                             </Link>
                                         ))}
@@ -935,10 +948,10 @@ const Projectsdetails = () => {
                                                 <span className="widget-item-title">{tut.title}</span>
                                                 <div className="widget-item-footer">
                                                     <div className="widget-item-meta">
-                                                        <FiCalendar className="meta-icon" />
+                                                        <CalendarIcon />
                                                         <span>{tut.date}</span>
                                                     </div>
-                                                    <FiExternalLink className="widget-open-icon" />
+                                                    <ExternalLinkIcon />
                                                 </div>
                                             </Link>
                                         ))}
@@ -959,10 +972,10 @@ const Projectsdetails = () => {
                                                 <span className="widget-item-title">{guide.title}</span>
                                                 <div className="widget-item-footer">
                                                     <div className="widget-item-meta">
-                                                        <FiCalendar className="meta-icon" />
+                                                        <CalendarIcon />
                                                         <span>{guide.date}</span>
                                                     </div>
-                                                    <FiExternalLink className="widget-open-icon" />
+                                                    <ExternalLinkIcon />
                                                 </div>
                                             </Link>
                                         ))}
