@@ -11,7 +11,16 @@ const queryClient = new QueryClient();
 export function AppProvidersWrapper({ children }) {
   return (
     <Provider store={store}>
-      <PersistGate loading={null} persistor={persistor}>
+      <PersistGate
+        loading={
+          <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#ffffff" }}>
+            <div className="spinner-border text-success" role="status" style={{ width: "2.5rem", height: "2.5rem" }}>
+              <span className="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        }
+        persistor={persistor}
+      >
         <HelmetProvider>
           <NotificationProvider>
             <LoaderProvider>

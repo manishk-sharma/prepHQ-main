@@ -18,6 +18,7 @@ const getAllProjects = async () => {
         }
     } catch (error) {
         console.log(error, "error");
+        throw error;
     }
 
 };
@@ -35,6 +36,7 @@ const getProject = async ({ queryKey }) => {
         }
     } catch (error) {
         console.log(error, "error");
+        throw error;
     }
 };
 
@@ -51,6 +53,7 @@ const getProjectByCategory = async ({ queryKey }) => {
         }
     } catch (error) {
         console.log(error, "error");
+        throw error;
     }
 }
 
