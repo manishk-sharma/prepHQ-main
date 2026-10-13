@@ -10,6 +10,7 @@ import {
     FiExternalLink,
     FiLayers,
 } from "react-icons/fi";
+import { FolderGit2 } from "lucide-react";
 import { FaLinkedinIn, FaWhatsapp, FaFacebookF, FaInstagram } from "react-icons/fa";
 import "./Projectsdetails.css";
 
@@ -533,7 +534,7 @@ const Projectsdetails = () => {
                             <div className="arch-details-card">
                                 <div className="arch-details-header">
                                     <div className="arch-icon-box">
-                                        <FiLayers className="arch-details-icon" />
+                                        <FolderGit2 className="arch-details-icon" size={20} strokeWidth={2.2} />
                                     </div>
                                     <h3 className="arch-details-title">View Architecture Details</h3>
                                 </div>

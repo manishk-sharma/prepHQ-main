@@ -188,6 +188,8 @@ const hideLayout =
         <Route path="/project-details/:postSlug" element={<Projectsdetails />} />
         <Route path="/project/:postSlug" element={<Projectsdetails />} />
         <Route path="/projects/:postSlug" element={<Projectsdetails />} />
+        <Route path="/projects-details" element={<Projectsdetails />} />
+        <Route path="/project-details" element={<Projectsdetails />} />
         <Route path="/projects details" element={<Projectsdetails />} />
         <Route path="/projects%20details" element={<Projectsdetails />} />
         <Route path="/project details" element={<Projectsdetails />} />
