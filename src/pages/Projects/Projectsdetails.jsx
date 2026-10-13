@@ -28,7 +28,7 @@ const ExternalLinkIcon = () => (
 
 // Navigation items matching Screenshot 1 exactly
 const NAV_ITEMS = [
-    { id: "about-project", number: "01", label: "About The Project" },
+    { id: "about-project", number: "01", label: "About the project" },
     { id: "prerequisites", number: "02", label: "PREREQUISITES" },
     { id: "project-objectives", number: "03", label: "PROJECT OBJECTIVES" },
     { id: "project-architecture", number: "04", label: "PROJECT ARCHITECTURE" },
@@ -441,11 +441,10 @@ const Projectsdetails = () => {
                                 <p className="section-subtitle">A quick checklist so you can start with confidence.</p>
                             </div>
 
-                            {/* 3 columns grid: Row 1 has Programming, Data, Statistics; Row 2 has Machine Learning */}
-                            <div className="prereq-cards-layout">
+                            <div className="prereq-card-container">
                                 {/* Programming */}
-                                <div className="prereq-card">
-                                    <h3 className="prereq-card-title">Programming</h3>
+                                <div className="prereq-category-block">
+                                    <h3 className="prereq-category-title">Programming</h3>
                                     <ul className="prereq-list">
                                         <li>Basic Python</li>
                                         <li>Functions</li>
@@ -454,8 +453,8 @@ const Projectsdetails = () => {
                                 </div>
 
                                 {/* Data */}
-                                <div className="prereq-card">
-                                    <h3 className="prereq-card-title">Data</h3>
+                                <div className="prereq-category-block">
+                                    <h3 className="prereq-category-title">Data</h3>
                                     <ul className="prereq-list">
                                         <li>Pandas</li>
                                         <li>NumPy</li>
@@ -463,24 +462,13 @@ const Projectsdetails = () => {
                                     </ul>
                                 </div>
 
-                                {/* Statistics */}
-                                <div className="prereq-card">
-                                    <h3 className="prereq-card-title">Statistics</h3>
+                                {/* Data */}
+                                <div className="prereq-category-block">
+                                    <h3 className="prereq-category-title">Data</h3>
                                     <ul className="prereq-list">
-                                        <li>Mean</li>
-                                        <li>Median</li>
-                                        <li>Correlation</li>
-                                        <li>Basic distributions</li>
-                                    </ul>
-                                </div>
-
-                                {/* Machine Learning (Placed on next row under column 1) */}
-                                <div className="prereq-card prereq-card-ml">
-                                    <h3 className="prereq-card-title">Machine Learning</h3>
-                                    <ul className="prereq-list">
-                                        <li>Classification</li>
-                                        <li>Train/test split</li>
-                                        <li>Basic model evaluation</li>
+                                        <li>Pandas</li>
+                                        <li>NumPy</li>
+                                        <li>Basic data cleaning</li>
                                     </ul>
                                 </div>
                             </div>
