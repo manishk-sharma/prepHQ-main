@@ -486,6 +486,57 @@ const Projectsdetails = () => {
                             </div>
                         </section>
 
+                        {/* SECTION 02 (Layout 2): What You Should Know Before Starting - Single Container Layout */}
+                        <section id="prerequisites-single" className="content-section">
+                            <div className="section-pill-header">
+                                <span className="section-badge">02 · What You Should Know Before Starting</span>
+                                <p className="section-subtitle">A quick checklist so you can start with confidence.</p>
+                            </div>
+
+                            <div className="prereq-single-container">
+                                {/* 1. Programming */}
+                                <div className="prereq-single-category">
+                                    <h3 className="prereq-category-title">Programming</h3>
+                                    <ul className="prereq-list">
+                                        <li>Basic Python</li>
+                                        <li>Functions</li>
+                                        <li>Lists and dictionaries</li>
+                                    </ul>
+                                </div>
+
+                                {/* 2. Data */}
+                                <div className="prereq-single-category">
+                                    <h3 className="prereq-category-title">Data</h3>
+                                    <ul className="prereq-list">
+                                        <li>Pandas</li>
+                                        <li>NumPy</li>
+                                        <li>Basic data cleaning</li>
+                                    </ul>
+                                </div>
+
+                                {/* 3. Statistics */}
+                                <div className="prereq-single-category">
+                                    <h3 className="prereq-category-title">Statistics</h3>
+                                    <ul className="prereq-list">
+                                        <li>Mean</li>
+                                        <li>Median</li>
+                                        <li>Correlation</li>
+                                        <li>Basic distributions</li>
+                                    </ul>
+                                </div>
+
+                                {/* 4. Machine Learning */}
+                                <div className="prereq-single-category">
+                                    <h3 className="prereq-category-title">Machine Learning</h3>
+                                    <ul className="prereq-list">
+                                        <li>Classification</li>
+                                        <li>Train/test split</li>
+                                        <li>Basic model evaluation</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </section>
+
                         {/* SECTION 03: Project Objectives (Screenshot 3) */}
                         <section id="project-objectives" className="content-section">
                             <div className="section-pill-header">
@@ -772,7 +823,7 @@ const Projectsdetails = () => {
                             </div>
                         </section>
 
-                        {/* BOTTOM SHARE CARD */}
+                        {/* BOTTOM SHARE CARD
                         <div className="bottom-share-card" role="region" aria-label="Share this learning guide">
                             <span className="bottom-share-heading">Share:</span>
                             <div className="share-buttons-row">
@@ -837,7 +888,7 @@ const Projectsdetails = () => {
                                     <span className="sr-only">Share on Instagram</span>
                                 </a>
                             </div>
-                        </div>
+                        </div> */}
 
                     </main>
 
