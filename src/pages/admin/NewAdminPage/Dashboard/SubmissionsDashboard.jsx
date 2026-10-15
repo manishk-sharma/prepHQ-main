@@ -63,14 +63,13 @@ function ChartTooltip({ active, payload, label, P }) {
 /* ── CARD WRAPPER ──────────────────────────────────────────────────────────── */
 function DashCard({ children, style = {} }) {
   return (
-    <div style={{
-      background: "rgba(255,255,255,0.04)",
-      backdropFilter: "blur(14px)",
-      border: "1px solid rgba(255,255,255,0.08)",
-      borderRadius: 18,
-      padding: "20px",
-      ...style,
-    }}>
+    <div
+      className="admin-card"
+      style={{
+        padding: "20px",
+        ...style,
+      }}
+    >
       {children}
     </div>
   );
@@ -139,7 +138,7 @@ function StatusBadge({ status, P }) {
 
 /* ════════════════════════════════════════════════════════════════════════════ */
 export default function SubmissionsDashboard() {
-  const themeMode = localStorage.getItem("themeMode") || "dark";
+  const themeMode = localStorage.getItem("themeMode") || "light";
   const P = THEMES[themeMode];
 
   /* sync CSS vars so dash-card hover still works */

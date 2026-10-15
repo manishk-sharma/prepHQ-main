@@ -17,22 +17,12 @@ import { PreviewModal } from "../PreviewModal";
 import { useNotification } from "../../../../../context/useNotificationContext";
 
 /**
- * EditForm — reusable form UI for Edit flows (EditTutorial / EditBlog / EditProject)
- *
- * Props:
- *  - pageTitle        : string   — "Edit Tutorial"
- *  - submitLabel      : string   — "Update Tutorial"
- *  - isLoading        : boolean
- *  - onSubmit         : function — handleSubmit wrapped handler
- *  - formMethods      : object   — { register, control, setValue, watch, getValues, errors }
- *  - existingImageUrl : string   — current image URL from API
- *  - previewOpen      : boolean
- *  - setPreviewOpen   : function
+ * EditForm — Reusable form UI for Edit flows (EditTutorial / EditBlog / EditProject / EditInterview)
  */
 const EditForm = ({
-  pageTitle,
-  submitLabel = "Update",
-  isLoading,
+  pageTitle = "Edit Post",
+  submitLabel = "Update Post",
+  isLoading = false,
   onSubmit,
   formMethods,
   existingImageUrl = null,
@@ -83,348 +73,511 @@ const EditForm = ({
     useDropzone(dropzoneConfig);
 
   return (
-    <div className="container-fluid">
+    <div style={{ maxWidth: "1280px", margin: "0 auto" }}>
+      {/* ── Page Header & Top Actions ── */}
+      <div className="admin-page-header">
+        <div>
+          <h1 className="admin-page-title">{pageTitle}</h1>
+          <p className="admin-page-desc">
+            Update and manage existing publication content and settings.
+          </p>
+        </div>
 
-      {/* ── Header ── */}
-      <div className="d-flex justify-content-between align-items-center my-4">
-        <h4 className="fw-semibold mb-0">{pageTitle}</h4>
         <Button
-          variant="outlined"
+          type="button"
+          variant="contained"
           startIcon={<PreviewIcon />}
           onClick={() => setPreviewOpen(true)}
           sx={{
-            borderColor: "#17a2b8", color: "#17a2b8",
-            textTransform: "none", fontWeight: 500,
-            "&:hover": { borderColor: "#138496", backgroundColor: "#e0f7fa" },
+            backgroundColor: "var(--admin-accent, #35B779) !important",
+            color: "#FFFFFF !important",
+            textTransform: "none",
+            fontWeight: 600,
+            borderRadius: "10px",
+            padding: "8px 18px",
+            boxShadow: "0 2px 4px rgba(53, 183, 121, 0.25)",
+            "&:hover": {
+              backgroundColor: "var(--admin-accent-hover, #2da169) !important",
+            },
           }}
         >
           Preview
         </Button>
       </div>
 
-      {/* ── Form ── */}
+      {/* ── Main Form ── */}
       <form onSubmit={onSubmit}>
-        <div className="row g-3">
+        <div className="d-flex flex-column gap-4">
 
-          {/* Post Title */}
-          <div className="col-md-6">
-            <TextField
-              label="Post Title" fullWidth
-              {...register("post_title")}
-              error={!!errors.post_title}
-              helperText={errors.post_title?.message}
-              InputLabelProps={{ shrink: !!watch("post_title") }}
-            />
+          {/* ── Card 1: Core Information ── */}
+          <div className="admin-card">
+            <div className="admin-card-header">
+              <div>
+                <h3 className="admin-card-title">General Information</h3>
+                <div style={{ fontSize: "12px", color: "var(--admin-text-secondary)" }}>
+                  Basic identity and classification for this content item.
+                </div>
+              </div>
+            </div>
+
+            <div className="admin-card-body">
+              <div className="row g-3">
+                {/* Row 1: Post Title */}
+                <div className="col-12 col-md-6">
+                  <TextField
+                    label="Post Title"
+                    fullWidth
+                    {...register("post_title")}
+                    error={!!errors.post_title}
+                    helperText={errors.post_title?.message}
+                    InputLabelProps={{ shrink: !!watch("post_title") }}
+                  />
+                </div>
+
+                {/* Row 1: Post Slug */}
+                <div className="col-12 col-md-6">
+                  <TextField
+                    label="Post Slug (post_name)"
+                    fullWidth
+                    inputProps={{
+                      onKeyDown: (e) => {
+                        if (e.key === " ") {
+                          e.preventDefault();
+                          const { selectionStart: s, selectionEnd: en, value } = e.target;
+                          if (value[s - 1] === "-") return;
+                          const next = value.slice(0, s) + "-" + value.slice(en);
+                          e.target.value = next;
+                          e.target.setSelectionRange(s + 1, s + 1);
+                          setValue("post_name", next, { shouldValidate: true });
+                        }
+                      },
+                      onChange: (e) => {
+                        const formatted = formatSlug(e.target.value);
+                        e.target.value = formatted;
+                        setValue("post_name", formatted, { shouldValidate: true });
+                      },
+                    }}
+                    {...register("post_name")}
+                    error={!!errors.post_name}
+                    helperText={errors.post_name?.message || "URL path identifier for the post"}
+                    InputLabelProps={{ shrink: !!watch("post_name") }}
+                  />
+                </div>
+
+                {/* Row 2: Category Name */}
+                <div className="col-12 col-md-6">
+                  <Controller
+                    name="category_name"
+                    control={control}
+                    render={({ field }) => (
+                      <Autocomplete
+                        freeSolo
+                        options={categoryList}
+                        value={field.value || ""}
+                        onChange={(_, v) => {
+                          field.onChange(v || "");
+                          setValue("category_slug", formatSlug(v || ""));
+                        }}
+                        onInputChange={(_, v) => {
+                          field.onChange(v);
+                          setValue("category_slug", formatSlug(v));
+                        }}
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            label="Category Name"
+                            error={!!errors.category_name}
+                            helperText={errors.category_name?.message}
+                            InputLabelProps={{ shrink: !!field.value }}
+                          />
+                        )}
+                      />
+                    )}
+                  />
+                  <input type="hidden" {...register("category_slug")} />
+                </div>
+
+                {/* Row 2: Author */}
+                <div className="col-12 col-md-6">
+                  <Controller
+                    name="author_id"
+                    control={control}
+                    defaultValue={null}
+                    render={({ field }) => (
+                      <Autocomplete
+                        options={AUTHORS}
+                        getOptionLabel={(o) => o.name}
+                        value={AUTHORS.find((a) => a.id === field.value) || null}
+                        onChange={(_, v) => field.onChange(v?.id || null)}
+                        renderOption={(props, option) => (
+                          <Box component="li" {...props} display="flex" alignItems="center" gap={1.5} py={1}>
+                            <Avatar src={option.image} alt={option.name} sx={{ width: 30, height: 30 }} />
+                            <div>
+                              <div style={{ fontSize: "13px", fontWeight: 600 }}>{option.name}</div>
+                              <div style={{ fontSize: "11px", color: "#64748B" }}>Author / Mentor</div>
+                            </div>
+                          </Box>
+                        )}
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            label="Select Author"
+                            error={!!errors?.author_id}
+                            helperText={errors?.author_id?.message}
+                            InputLabelProps={{ shrink: !!field.value }}
+                          />
+                        )}
+                      />
+                    )}
+                  />
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Post Slug */}
-          <div className="col-md-6">
-            <TextField
-              label="Post Slug (post_name)" fullWidth
-              inputProps={{
-                onKeyDown: (e) => {
-                  if (e.key === " ") {
-                    e.preventDefault();
-                    const { selectionStart: s, selectionEnd: en, value } = e.target;
-                    if (value[s - 1] === "-") return;
-                    const next = value.slice(0, s) + "-" + value.slice(en);
-                    e.target.value = next;
-                    e.target.setSelectionRange(s + 1, s + 1);
-                    setValue("post_name", next, { shouldValidate: true });
-                  }
-                },
-                onChange: (e) => {
-                  const formatted = formatSlug(e.target.value);
-                  e.target.value = formatted;
-                  setValue("post_name", formatted, { shouldValidate: true });
-                },
-              }}
-              {...register("post_name")}
-              error={!!errors.post_name}
-              helperText={errors.post_name?.message}
-              InputLabelProps={{ shrink: !!watch("post_name") }}
-            />
-          </div>
+          {/* ── Card 2: Feature Image Upload (3-State) ── */}
+          <div className="admin-card">
+            <div className="admin-card-header">
+              <div>
+                <h3 className="admin-card-title">Feature Image</h3>
+                <div style={{ fontSize: "12px", color: "var(--admin-text-secondary)" }}>
+                  Card thumbnail and banner image (WebP, PNG, or JPG recommended).
+                </div>
+              </div>
+            </div>
 
-          {/* Category */}
-          <div className="col-md-6">
-            <Controller
-              name="category_name" control={control}
-              render={({ field }) => (
-                <Autocomplete
-                  freeSolo options={categoryList}
-                  value={field.value || ""}
-                  onChange={(_, v) => {
-                    field.onChange(v || "");
-                    setValue("category_slug", formatSlug(v || ""));
-                  }}
-                  onInputChange={(_, v) => {
-                    field.onChange(v);
-                    setValue("category_slug", formatSlug(v));
-                  }}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params} label="Category Name"
-                      error={!!errors.category_name}
-                      helperText={errors.category_name?.message}
-                      InputLabelProps={{ shrink: !!field.value }}
-                    />
-                  )}
-                />
-              )}
-            />
-          </div>
-          <input type="hidden" {...register("category_slug")} />
-
-          {/* ── Feature Image — 3-state ── */}
-          <div className="col-12">
-            <label className="form-label fw-medium">Feature Image</label>
-
-            {/* State 1: Naya file select hua */}
-            {showNewPreview && (
-              <div className="upload-dropzone" style={{ cursor: "default", padding: "16px" }}>
-                <div style={{ textAlign: "center" }}>
+            <div className="admin-card-body">
+              {/* State 1: New File Selected */}
+              {showNewPreview && (
+                <div className="admin-upload-preview-box">
                   <img
                     src={URL.createObjectURL(featureImage)}
                     alt="New preview"
-                    style={{ maxHeight: 220, maxWidth: "100%", borderRadius: 8, objectFit: "cover", display: "block", margin: "0 auto 12px" }}
+                    className="admin-upload-preview-img"
                     onLoad={(e) => URL.revokeObjectURL(e.target.src)}
                   />
-                  <p style={{ margin: "8px 0 12px", fontSize: 13, color: "#555" }}>
-                    {featureImage.name}
+                  <p style={{ margin: "12px 0 10px", fontSize: "13px", fontWeight: 500, color: "var(--admin-text)" }}>
+                    {featureImage.name} (New Image)
                   </p>
-                  <div style={{ display: "flex", justifyContent: "center", gap: 12 }}>
+                  <div className="d-flex align-items-center gap-2">
                     <div {...getReplaceProps()} style={{ display: "inline-block" }}>
                       <input {...getReplaceInputProps()} />
-                      <Button type="button" variant="outlined" size="small"
+                      <Button
+                        type="button"
+                        variant="outlined"
+                        size="small"
                         startIcon={<CachedIcon />}
-                        sx={{ borderColor: "#074568", color: "#074568", textTransform: "none" }}>
+                        className="admin-btn-secondary"
+                      >
                         Replace
                       </Button>
                     </div>
-                    <Button type="button" variant="outlined" size="small" color="error"
+                    <Button
+                      type="button"
+                      variant="outlined"
+                      size="small"
+                      color="error"
                       startIcon={<DeleteOutlineIcon />}
-                      onClick={() => setValue("feature_image", null, { shouldValidate: true })}>
+                      onClick={() => setValue("feature_image", null, { shouldValidate: true })}
+                      sx={{ textTransform: "none", borderRadius: "8px" }}
+                    >
                       Remove
                     </Button>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* State 2: API se existing image */}
-            {showExistingPreview && (
-              <div className="upload-dropzone" style={{ cursor: "default", padding: "16px" }}>
-                <div style={{ textAlign: "center" }}>
+              {/* State 2: Existing Image From Server */}
+              {showExistingPreview && (
+                <div className="admin-upload-preview-box">
                   <img
                     src={existingImageUrl}
                     alt="Current feature"
-                    style={{ maxHeight: 220, maxWidth: "100%", borderRadius: 8, objectFit: "cover", display: "block", margin: "0 auto 12px" }}
+                    className="admin-upload-preview-img"
                   />
-                  <p style={{ margin: "8px 0 12px", fontSize: 13, color: "#888" }}>
-                    Current image — upload new to replace
+                  <p style={{ margin: "12px 0 10px", fontSize: "13px", color: "var(--admin-text-secondary)" }}>
+                    Current image — upload new file to replace
                   </p>
-                  <div style={{ display: "flex", justifyContent: "center" }}>
-                    <div {...getReplaceProps()} style={{ display: "inline-block" }}>
-                      <input {...getReplaceInputProps()} />
-                      <Button type="button" variant="outlined" size="small"
-                        startIcon={<CachedIcon />}
-                        sx={{ borderColor: "#074568", color: "#074568", textTransform: "none" }}>
-                        Replace Image
-                      </Button>
-                    </div>
+                  <div {...getReplaceProps()} style={{ display: "inline-block" }}>
+                    <input {...getReplaceInputProps()} />
+                    <Button
+                      type="button"
+                      variant="outlined"
+                      size="small"
+                      startIcon={<CachedIcon />}
+                      className="admin-btn-secondary"
+                    >
+                      Replace Image
+                    </Button>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* State 3: Koi image nahi — dropzone */}
-            {!showNewPreview && !showExistingPreview && (
-              <div
-                {...getRootProps()}
-                className={`upload-dropzone ${isDragActive ? "active" : ""} ${errors.feature_image ? "error" : ""}`}
-              >
-                <input {...getInputProps()} />
-                <div className="upload-inner">
-                  <IoCloudUploadOutline className="upload-icon" size={50} />
-                  <div className="upload-text">
-                    <span>Drag and Drop here</span>
-                    <span className="or-text">or</span>
-                    <button type="button" className="browse-btn">Browse files</button>
+              {/* State 3: Empty Dropzone */}
+              {!showNewPreview && !showExistingPreview && (
+                <div
+                  {...getRootProps()}
+                  className={`admin-upload-card ${isDragActive ? "active" : ""} ${
+                    errors.feature_image ? "error" : ""
+                  }`}
+                >
+                  <input {...getInputProps()} />
+                  <div className="admin-upload-icon-wrap">
+                    <IoCloudUploadOutline size={30} />
                   </div>
+                  <div className="admin-upload-primary-text">Upload feature image</div>
+                  <div className="admin-upload-subtext">
+                    Drag and drop an image here, or click to browse files
+                  </div>
+                  <button type="button" className="admin-upload-browse-btn">
+                    Browse Files
+                  </button>
                 </div>
-              </div>
-            )}
+              )}
 
-            {errors.feature_image && (
-              <div className="text-danger small mt-1">{errors.feature_image.message}</div>
-            )}
+              {errors.feature_image && (
+                <div className="text-danger small mt-2">{errors.feature_image.message}</div>
+              )}
+            </div>
           </div>
 
-          {/* Post Content */}
-          <div className="col-12">
-            <label className="form-label fw-medium">Post Content</label>
-            <Controller
-              name="post_content" control={control}
-              render={({ field }) => (
-                <Box className={errors.post_content ? "border border-danger rounded" : ""}>
-                  <Editor
-                    apiKey="9upr0hixy7g4w8g9mazmhkqgyl0m4kjvz623rjwvekg4l86k"
-                    value={field.value}
-                    onEditorChange={(content) => field.onChange(content)}
-                    init={{
-                      height: 450, menubar: true, language: "en",
-                      plugins: ["advlist","autolink","lists","link","image","charmap","preview","anchor","searchreplace","visualblocks","code","fullscreen","insertdatetime","media","table","help","wordcount","emoticons","codesample"],
-                      automatic_uploads: false,
-                      file_picker_types: "image",
-                      file_picker_callback: (cb, _value, meta) => {
-                        if (meta.filetype !== "image") return;
-                        const input = document.createElement("input");
-                        input.setAttribute("type", "file");
-                        input.setAttribute("accept", "image/*");
-                        input.addEventListener("change", (e) => {
-                          const file = e.target.files[0];
-                          const reader = new FileReader();
-                          reader.addEventListener("load", () => cb(reader.result, { title: file.name }));
-                          reader.readAsDataURL(file);
-                        });
-                        input.click();
-                      },
-                      toolbar:
-                        "undo redo | blocks | bold italic underline strikethrough | forecolor backcolor | " +
-                        "alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | " +
-                        "table tableprops tablecellprops tablerowprops | link image media table codesample | " +
-                        "removeformat code fullscreen | help",
-                      table_toolbar:
-                        "tableprops tabledelete | tableinsertrowbefore tableinsertrowafter tabledeleterow | " +
-                        "tableinsertcolbefore tableinsertcolafter tabledeletecol | " +
-                        "tablecellprops tablerowprops tablemergecells tablesplitcells",
-                      table_appearance_options: true, table_advtab: true,
-                      table_default_attributes: { border: "1" },
-                      table_header_type: "section",
-                      table_style_by_css: true, table_resize_bars: true,
-                      table_cell_advtab: true, image_advtab: true, image_caption: true,
-                      media_live_embeds: true,
-                      codesample_languages: [
-                        { text: "HTML/XML", value: "markup" },
-                        { text: "JavaScript", value: "javascript" },
-                        { text: "CSS", value: "css" },
-                        { text: "Python", value: "python" },
-                        { text: "Java", value: "java" },
-                        { text: "C/C++", value: "c" },
-                        { text: "PHP", value: "php" },
-                        { text: "SQL", value: "sql" },
-                        { text: "Bash", value: "bash" },
-                      ],
-                      content_style: `
-                        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 15px; line-height: 1.7; color: #333; padding: 12px; }
-                        table { border-collapse: collapse; width: 100%; border: 1px solid #333; }
-                        table td, table th { border: 1px solid #333; padding: 8px 12px; }
-                        table th { background-color: #113563; color: #fff; font-weight: 600; }
-                        pre { background: #1e1e1e; color: #d4d4d4; padding: 12px; border-radius: 4px; overflow-x: auto; }
-                      `,
+          {/* ── Card 3: Post Content Editor ── */}
+          <div className="admin-card">
+            <div className="admin-card-header">
+              <div>
+                <h3 className="admin-card-title">Post Content</h3>
+                <div style={{ fontSize: "12px", color: "var(--admin-text-secondary)" }}>
+                  Write and format article content with code blocks, tables, and media.
+                </div>
+              </div>
+            </div>
+
+            <div className="admin-card-body p-2 p-sm-3">
+              <Controller
+                name="post_content"
+                control={control}
+                render={({ field }) => (
+                  <Box
+                    sx={{
+                      borderRadius: "10px",
+                      overflow: "hidden",
+                      border: errors.post_content
+                        ? "1px solid #EF4444"
+                        : "1px solid var(--admin-border, #E2E8F0)",
                     }}
+                  >
+                    <Editor
+                      apiKey="9upr0hixy7g4w8g9mazmhkqgyl0m4kjvz623rjwvekg4l86k"
+                      value={field.value}
+                      onEditorChange={(content) => field.onChange(content)}
+                      init={{
+                        height: 480,
+                        menubar: true,
+                        language: "en",
+                        plugins: [
+                          "advlist",
+                          "autolink",
+                          "lists",
+                          "link",
+                          "image",
+                          "charmap",
+                          "preview",
+                          "anchor",
+                          "searchreplace",
+                          "visualblocks",
+                          "code",
+                          "fullscreen",
+                          "insertdatetime",
+                          "media",
+                          "table",
+                          "help",
+                          "wordcount",
+                          "emoticons",
+                          "codesample",
+                        ],
+                        automatic_uploads: false,
+                        file_picker_types: "image",
+                        file_picker_callback: (cb, _value, meta) => {
+                          if (meta.filetype !== "image") return;
+                          const input = document.createElement("input");
+                          input.setAttribute("type", "file");
+                          input.setAttribute("accept", "image/*");
+                          input.addEventListener("change", (e) => {
+                            const file = e.target.files[0];
+                            const reader = new FileReader();
+                            reader.addEventListener("load", () =>
+                              cb(reader.result, { title: file.name })
+                            );
+                            reader.readAsDataURL(file);
+                          });
+                          input.click();
+                        },
+                        toolbar:
+                          "undo redo | blocks | bold italic underline strikethrough | forecolor backcolor | " +
+                          "alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | " +
+                          "table tableprops tablecellprops tablerowprops | link image media table codesample | " +
+                          "removeformat code fullscreen | help",
+                        table_toolbar:
+                          "tableprops tabledelete | tableinsertrowbefore tableinsertrowafter tabledeleterow | " +
+                          "tableinsertcolbefore tableinsertcolafter tabledeletecol | " +
+                          "tablecellprops tablerowprops tablemergecells tablesplitcells",
+                        table_appearance_options: true,
+                        table_advtab: true,
+                        table_default_attributes: { border: "1" },
+                        table_header_type: "section",
+                        table_style_by_css: true,
+                        table_resize_bars: true,
+                        table_cell_advtab: true,
+                        image_advtab: true,
+                        image_caption: true,
+                        media_live_embeds: true,
+                        codesample_languages: [
+                          { text: "HTML/XML", value: "markup" },
+                          { text: "JavaScript", value: "javascript" },
+                          { text: "CSS", value: "css" },
+                          { text: "Python", value: "python" },
+                          { text: "Java", value: "java" },
+                          { text: "C/C++", value: "c" },
+                          { text: "PHP", value: "php" },
+                          { text: "SQL", value: "sql" },
+                          { text: "Bash", value: "bash" },
+                        ],
+                        content_style: `
+                          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 15px; line-height: 1.7; color: #172B3A; padding: 16px; }
+                          table { border-collapse: collapse; width: 100%; border: 1px solid #E2E8F0; }
+                          table td, table th { border: 1px solid #E2E8F0; padding: 8px 12px; }
+                          table th { background-color: #0B4565; color: #fff; font-weight: 600; }
+                          pre { background: #0F172A; color: #E2E8F0; padding: 12px; border-radius: 6px; overflow-x: auto; }
+                        `,
+                      }}
+                    />
+                  </Box>
+                )}
+              />
+              {errors.post_content && (
+                <div className="text-danger small mt-2">{errors.post_content.message}</div>
+              )}
+            </div>
+          </div>
+
+          {/* ── Card 4: SEO Optimization ── */}
+          <div className="admin-card">
+            <div className="admin-card-header">
+              <div>
+                <h3 className="admin-card-title">Search Engine Optimization (SEO)</h3>
+                <div style={{ fontSize: "12px", color: "var(--admin-text-secondary)" }}>
+                  Configure metadata tags, search titles, and keywords for ranking.
+                </div>
+              </div>
+            </div>
+
+            <div className="admin-card-body">
+              <div className="row g-3">
+                {/* SEO Title */}
+                <div className="col-12 col-md-6">
+                  <TextField
+                    label="SEO Title"
+                    fullWidth
+                    {...register("seo_title")}
+                    error={!!errors.seo_title}
+                    helperText={
+                      errors.seo_title?.message || `${watch("seo_title")?.length || 0}/60 characters`
+                    }
+                    inputProps={{ maxLength: 60 }}
+                    InputLabelProps={{ shrink: !!watch("seo_title") }}
                   />
-                </Box>
-              )}
-            />
-            {errors.post_content && (
-              <div className="text-danger small mt-1">{errors.post_content.message}</div>
-            )}
+                </div>
+
+                {/* SEO Focus Keyword */}
+                <div className="col-12 col-md-6">
+                  <TextField
+                    label="SEO Focus Keyword"
+                    fullWidth
+                    {...register("seo_focus_keyword")}
+                    error={!!errors.seo_focus_keyword}
+                    helperText={errors.seo_focus_keyword?.message || "Primary target search keyword"}
+                    InputLabelProps={{ shrink: !!watch("seo_focus_keyword") }}
+                  />
+                </div>
+
+                {/* SEO Tags */}
+                <div className="col-12 col-md-6">
+                  <Controller
+                    name="seo_tags"
+                    control={control}
+                    render={({ field }) => (
+                      <Autocomplete
+                        multiple
+                        freeSolo
+                        options={[]}
+                        value={field.value || []}
+                        onChange={(_, v) => field.onChange(v)}
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            label="SEO Tags"
+                            placeholder="Add tag and press Enter"
+                            InputLabelProps={{ shrink: !!field.value?.length }}
+                          />
+                        )}
+                      />
+                    )}
+                  />
+                </div>
+
+                {/* SEO Description */}
+                <div className="col-12 col-md-6">
+                  <TextField
+                    label="SEO Description"
+                    fullWidth
+                    multiline
+                    rows={3}
+                    {...register("seo_desc")}
+                    error={!!errors.seo_desc}
+                    helperText={
+                      errors.seo_desc?.message || `${watch("seo_desc")?.length || 0}/160 characters`
+                    }
+                    inputProps={{ maxLength: 160 }}
+                    InputLabelProps={{ shrink: !!watch("seo_desc") }}
+                  />
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Author */}
-          <div className="col-md-6">
-            <Controller
-              name="author_id" control={control} defaultValue={null}
-              render={({ field }) => (
-                <Autocomplete
-                  options={AUTHORS} getOptionLabel={(o) => o.name}
-                  value={AUTHORS.find((a) => a.id === field.value) || null}
-                  onChange={(_, v) => field.onChange(v?.id || null)}
-                  renderOption={(props, option) => (
-                    <Box component="li" {...props} display="flex" alignItems="center" gap={1}>
-                      <Avatar src={option.image} alt={option.name} sx={{ width: 28, height: 28 }} />
-                      {option.name}
-                    </Box>
-                  )}
-                  renderInput={(params) => (
-                    <TextField {...params} label="Select Author"
-                      error={!!errors?.author_id} helperText={errors?.author_id?.message}
-                      InputLabelProps={{ shrink: !!field.value }}
-                    />
-                  )}
-                />
-              )}
-            />
-          </div>
-
-          {/* SEO Title */}
-          <div className="col-md-6">
-            <TextField label="SEO Title" fullWidth
-              {...register("seo_title")} error={!!errors.seo_title}
-              helperText={errors.seo_title?.message || `${watch("seo_title")?.length || 0}/60`}
-              inputProps={{ maxLength: 60 }}
-              InputLabelProps={{ shrink: !!watch("seo_title") }}
-            />
-          </div>
-
-          {/* SEO Focus Keyword */}
-          <div className="col-md-6">
-            <TextField label="SEO Focus Keyword" fullWidth
-              {...register("seo_focus_keyword")} error={!!errors.seo_focus_keyword}
-              helperText={errors.seo_focus_keyword?.message}
-              InputLabelProps={{ shrink: !!watch("seo_focus_keyword") }}
-            />
-          </div>
-
-          {/* SEO Tags */}
-          <div className="col-md-6">
-            <Controller
-              name="seo_tags" control={control}
-              render={({ field }) => (
-                <Autocomplete multiple freeSolo options={[]}
-                  value={field.value}
-                  onChange={(_, v) => field.onChange(v)}
-                  renderInput={(params) => (
-                    <TextField {...params} label="SEO Tags"
-                      placeholder="Add tag (press enter to add multiple)"
-                      InputLabelProps={{ shrink: !!field.value?.length }}
-                    />
-                  )}
-                />
-              )}
-            />
-          </div>
-
-          {/* SEO Description */}
-          <div className="col-md-6">
-            <TextField label="SEO Description" fullWidth multiline rows={3}
-              {...register("seo_desc")} error={!!errors.seo_desc}
-              helperText={errors.seo_desc?.message || `${watch("seo_desc")?.length || 0}/160`}
-              inputProps={{ maxLength: 160 }}
-              InputLabelProps={{ shrink: !!watch("seo_desc") }}
-            />
-          </div>
-
-          {/* Submit */}
-          <div className="col-12">
+          {/* ── Bottom Form Action Bar ── */}
+          <div
+            className="admin-card p-3 d-flex align-items-center justify-content-between flex-wrap gap-3"
+            style={{ position: "sticky", bottom: 16, zIndex: 100 }}
+          >
             <Button
-              type="submit" variant="contained" size="large"
-              startIcon={isLoading ? <CircularProgress size={18} color="inherit" /> : <PublishIcon />}
-              sx={{
-                backgroundColor: "#074568", textTransform: "none", fontWeight: 600,
-                "&:hover": { backgroundColor: "#05364f" },
-              }}
+              type="submit"
+              variant="contained"
+              size="large"
+              disabled={isLoading}
+              startIcon={
+                isLoading ? <CircularProgress size={18} color="inherit" /> : <PublishIcon />
+              }
+              className="admin-btn-primary"
             >
               {submitLabel}
+            </Button>
+
+            <Button
+              type="button"
+              variant="text"
+              startIcon={<PreviewIcon />}
+              onClick={() => setPreviewOpen(true)}
+              sx={{ color: "var(--admin-text-secondary)", textTransform: "none" }}
+            >
+              Preview Content
             </Button>
           </div>
 
         </div>
       </form>
 
-      {/* Preview Modal */}
+      {/* ── Preview Modal ── */}
       <PreviewModal
         open={previewOpen}
         onClose={() => setPreviewOpen(false)}
@@ -433,7 +586,7 @@ const EditForm = ({
           featured_image:
             featureImage instanceof File
               ? URL.createObjectURL(featureImage)
-              : existingImageUrl,   // ← Edit mein existing URL use hoga preview mein
+              : (existingImageUrl ?? null),
           post_date: new Date().toISOString(),
           author_id: getValues().author_id,
         }}

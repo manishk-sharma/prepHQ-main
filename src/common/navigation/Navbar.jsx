@@ -23,6 +23,31 @@ const Navbar = () => {
     }
   };
 
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+  const hoverTimeoutRef = useRef(null);
+
+  const handleMouseEnter = () => {
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    setDropdownOpen(true);
+  };
+
+  const handleMouseLeave = () => {
+    hoverTimeoutRef.current = setTimeout(() => {
+      setDropdownOpen(false);
+    }, 150);
+  };
+
+  const toggleDropdown = (e) => {
+    e.stopPropagation();
+    setDropdownOpen((prev) => !prev);
+  };
+
+  const handleDropdownItemClick = () => {
+    setDropdownOpen(false);
+    scrollWithMenu();
+  };
+
   useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : "";
     return () => {
@@ -35,9 +60,23 @@ const Navbar = () => {
       if (menuOpen && navRef.current && !navRef.current.contains(e.target)) {
         setMenuOpen(false);
       }
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setDropdownOpen(false);
+        setMenuOpen(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+      if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    };
   }, [menuOpen]);
 
   const toggleMenu = () => {
@@ -153,15 +192,47 @@ const Navbar = () => {
                   Blogs
                 </NavLink>
               </li>
-              <li>
-                <NavLink
-                  to="/practice"
-                  className="navbar-practice-btn"
-                  onClick={scrollWithMenu}
+              {/* Practice Dropdown Menu */}
+              <li
+                className="navbar-item-dropdown"
+                ref={dropdownRef}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+              >
+                <button
+                  type="button"
+                  className={`navbar-practice-btn ${dropdownOpen ? "dropdown-open" : ""}`}
+                  onClick={toggleDropdown}
+                  aria-expanded={dropdownOpen}
+                  aria-haspopup="true"
+                  aria-label="Practice menu"
                 >
                   <span className="practice-btn-text">Practice</span>
                   <span className="practice-btn-badge">New</span>
-                </NavLink>
+                </button>
+
+                <div
+                  className={`navbar-dropdown-menu ${dropdownOpen ? "show" : ""}`}
+                  role="menu"
+                  aria-label="Practice Submenu"
+                >
+                  <NavLink
+                    to="/practice"
+                    className="navbar-dropdown-item"
+                    role="menuitem"
+                    onClick={handleDropdownItemClick}
+                  >
+                    Assessments
+                  </NavLink>
+                  <NavLink
+                    to="/prepcode"
+                    className="navbar-dropdown-item"
+                    role="menuitem"
+                    onClick={handleDropdownItemClick}
+                  >
+                    PrepCode
+                  </NavLink>
+                </div>
               </li>
 
               {/* Mobile-only Search and Login inside collapsible menu */}

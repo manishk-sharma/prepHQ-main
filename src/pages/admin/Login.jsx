@@ -22,19 +22,67 @@ const Login = ({ onLogin }) => {
     setShowPassword((prev) => !prev);
   };
 
-  const handleSubmit = async(e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
-    const response = await loginAdmin(credentials);
-    console.log("Login response in component:", response);
-    if (response.status === true && response?.token) {
-      dispatch(adminLoginSuccess(response));
-      toast.success(response.message || 'Login successful');
-      onLogin(true);
-      setLoading(false);
-    } else {
-      toast.error(response.message || 'Invalid credentials');
+    try {
+      let response = await loginAdmin(credentials);
+      console.log("Login response in component:", response);
+
+      // In local dev, allow fallback for admin / admin or if backend rejects
+      if ((!response?.token || response?.status !== true) && import.meta.env.DEV) {
+        if (
+          credentials.adminname === 'admin' &&
+          (credentials.password === 'admin' || credentials.password === 'password' || credentials.password === 'admin123')
+        ) {
+          response = {
+            status: true,
+            token: "dev-admin-token-" + Date.now(),
+            message: "Local development login successful",
+            user: { username: credentials.adminname, role: "admin" }
+          };
+        }
+      }
+
+      if (response?.status === true && response?.token) {
+        dispatch(adminLoginSuccess(response));
+        localStorage.setItem("adminToken", response.token);
+        localStorage.setItem("adminLoggedIn", "true");
+        toast.success(response.message || 'Login successful');
+        onLogin(true);
+      } else {
+        toast.error(response?.message || response?.error || 'Invalid credentials');
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      // In local dev, if network/server is unreachable and credentials are admin/admin, still allow dev login
+      if (
+        import.meta.env.DEV &&
+        credentials.adminname === 'admin' &&
+        (credentials.password === 'admin' || credentials.password === 'password' || credentials.password === 'admin123')
+      ) {
+        const devResponse = {
+          status: true,
+          token: "dev-admin-token-" + Date.now(),
+          message: "Local development login successful",
+          user: { username: credentials.adminname, role: "admin" }
+        };
+        dispatch(adminLoginSuccess(devResponse));
+        localStorage.setItem("adminToken", devResponse.token);
+        localStorage.setItem("adminLoggedIn", "true");
+        toast.success(devResponse.message);
+        onLogin(true);
+        return;
+      }
+
+      const errMsg =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.message ||
+        'Login failed. Please check your connection.';
+      toast.error(errMsg);
+    } finally {
       setLoading(false);
     }
   };
@@ -133,8 +181,13 @@ const Login = ({ onLogin }) => {
                   </div>
                 </div>
                 <div className="btn-group">
-                  <button type="submit" disabled={loading}>{loading ? "Loging In ..." : "Login"}</button>
+                  <button type="submit" disabled={loading}>{loading ? "Logging In..." : "Login"}</button>
                 </div>
+                {import.meta.env.DEV && (
+                  <p style={{ marginTop: "14px", fontSize: "12px", color: "#6c757d", textAlign: "center" }}>
+                    Local dev mode: Use your admin credentials or <code>admin</code> / <code>admin</code>
+                  </p>
+                )}
               </form>
             </div>
           </div>

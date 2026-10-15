@@ -1,8 +1,11 @@
 import store from "../redux/store/store";
 import axios from "axios";
 
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "https://backend.prephq.theiotacademy.co";
+
 const adminApi = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: API_BASE_URL,
 });
 
 // Reads admin token from Redux store, falls back to persist:auth in localStorage

@@ -77,6 +77,7 @@ import EditCodingQuestion from "./pages/admin/NewAdminPage/CodingQuestions/EditC
 import AdminDashboard from "./pages/admin/NewAdminPage/Dashboard/AdminDashboard";
 import SubmissionsDashboard from "./pages/admin/NewAdminPage/Dashboard/SubmissionsDashboard";
 import CategoryPage from "./pages/Category/CategoryPage";
+import BrochureConfirmation from "./pages/BrochureConfirmation/BrochureConfirmation";
 
 /* Coding Pages */
 import CodingLayout from "./pages/coding/layout/CodingLayout";
@@ -117,7 +118,10 @@ function App() {
 const hideLayout =
   location.pathname.startsWith("/admin") ||
   location.pathname.startsWith("/user") ||
-  location.pathname.startsWith("/prepcode/problems/");
+  location.pathname.startsWith("/prepcode/problems/") ||
+  location.pathname.startsWith("/brochure-download") ||
+  location.pathname.startsWith("/brochure-confirmation") ||
+  location.pathname.startsWith("/thank-you-brochure");
 
   return (
     <>
@@ -131,6 +135,10 @@ const hideLayout =
         <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/practice" element={<Practice />} />
+        <Route path="/assessments" element={<Practice />} />
+        <Route path="/brochure-download" element={<BrochureConfirmation />} />
+        <Route path="/brochure-confirmation" element={<BrochureConfirmation />} />
+        <Route path="/thank-you-brochure" element={<BrochureConfirmation />} />
 
             {/* Domain Pages */}
         <Route path="/data-science" element={<Domain data={dSData} />} />
@@ -260,8 +268,8 @@ const hideLayout =
           }
         >
           {/* Dashboard */}
-          <Route index element={<AddTutorial />} />
-          {/* <Route path="dashboard" element={<AdminDashboard />} /> */}
+          <Route index element={<AdminDashboard />} />
+          <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="submissions-dashboard" element={<SubmissionsDashboard />} />
 
           {/* Tutorial */}

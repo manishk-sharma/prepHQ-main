@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-
+import { useNavigate, Link } from "react-router-dom";
+import { useDeleteProject, useProjectList } from "../../../../services/projectsServices";
 
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
@@ -10,16 +10,16 @@ import Button from "@mui/material/Button";
 import Pagination from "@mui/material/Pagination";
 import PaginationItem from "@mui/material/PaginationItem";
 import Tooltip from "@mui/material/Tooltip";
-import IconButton from "@mui/material/IconButton";
 
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import AddIcon from "@mui/icons-material/Add";
+import SearchIcon from "@mui/icons-material/Search";
+import WorkIcon from "@mui/icons-material/Work";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useDeleteProject, useProjectList } from "../../../../services/projectsServices";
 
-const GREEN = "#58C99A";
 const ListProject = () => {
   const navigate = useNavigate();
 
@@ -38,25 +38,41 @@ const ListProject = () => {
 
   if (isLoading) {
     return (
-      <div className="container-fluid mt-4">
-        {[...Array(6)].map((_, i) => (
-          <div key={i} style={{ marginBottom: 12 }}>
-            <div className="d-flex gap-3">
-              <div className="skeleton-box" style={{ width: 60, height: 20 }} />
-              <div className="skeleton-box" style={{ width: 200, height: 20 }} />
-              <div className="skeleton-box" style={{ width: 160, height: 20 }} />
-              <div className="skeleton-box" style={{ width: 120, height: 20 }} />
-            </div>
+      <div style={{ maxWidth: "1280px", margin: "0 auto" }}>
+        <div className="admin-page-header">
+          <div>
+            <div className="skeleton-box" style={{ width: 160, height: 28, marginBottom: 8 }} />
+            <div className="skeleton-box" style={{ width: 260, height: 16 }} />
           </div>
-        ))}
+        </div>
+        <div className="admin-card p-4">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="d-flex gap-3 mb-3">
+              <div className="skeleton-box" style={{ width: 60, height: 22 }} />
+              <div className="skeleton-box" style={{ width: 220, height: 22 }} />
+              <div className="skeleton-box" style={{ width: 140, height: 22 }} />
+              <div className="skeleton-box" style={{ width: 100, height: 22 }} />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
 
-  if (error) return <p>Error loading projects</p>;
+  if (error) {
+    return (
+      <div className="admin-card p-4 text-center">
+        <p className="text-danger mb-2">Error loading projects.</p>
+        <p style={{ fontSize: "13px", color: "var(--admin-text-secondary)" }}>
+          {error?.message || "Please check your network or try again."}
+        </p>
+      </div>
+    );
+  }
 
   const filtered = projects.filter((item) =>
-    item.post_title.toLowerCase().includes(search.toLowerCase())
+    (item.post_title || "").toLowerCase().includes(search.toLowerCase()) ||
+    (item.category_name || "").toLowerCase().includes(search.toLowerCase())
   );
 
   const start = (page - 1) * itemsPerPage;
@@ -76,11 +92,9 @@ const ListProject = () => {
   const handleConfirmDelete = () => {
     if (!deleteId) return;
 
-    // Start animation
     setRemovingIds((prev) => new Set(prev).add(deleteId));
     setDeleteLoadingId(deleteId);
 
-    // Delete after animation
     setTimeout(() => {
       deleteProject(deleteId, {
         onSettled: () => {
@@ -98,208 +112,291 @@ const ListProject = () => {
   };
 
   return (
-    <>
-      <div className="container-fluid mt-4">
-        <h3>Project List</h3>
-
-        {/* Search */}
-        <input
-          type="text"
-          placeholder="Search Project..."
-          className="form-control mb-3"
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
-        />
-
-        {/* Table */}
-        <table className="table table-bordered">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Title</th>
-              <th>Category</th>
-              <th>Date</th>
-              <th width="220">Actions</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            <AnimatePresence>
-              {paginated.map((item) => (
-                <motion.tr
-                  key={item.ID}
-                  initial={{ opacity: 1, x: 0 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{
-                    opacity: 0,
-                    x: -80,
-                    backgroundColor: "#ffdddd",
-                    transition: { duration: 0.35, ease: "easeInOut" },
-                  }}
-                  layout
-                  style={{
-                    backgroundColor: removingIds.has(item.ID)
-                      ? "#ffdddd"
-                      : "#fff",
-                    color: removingIds.has(item.ID) ? "#b30000" : "inherit",
-                    pointerEvents: removingIds.has(item.ID)
-                      ? "none"
-                      : "auto",
-                    transition: "all 0.3s ease",
-                  }}
-                >
-                  <td>{item.ID}</td>
-                  <td>{item.post_title}</td>
-                  <td>{item.category_name}</td>
-                  <td>
-                    {new Date(item.post_date).toLocaleDateString()}
-                  </td>
-
-                  <td className="d-flex align-items-center gap-1">
-                    {/* View */}
-                    <Tooltip title="View Project" arrow>
-                      <IconButton
-                        size="small"
-                        sx={{
-                          color: "#0ea5e9",
-                          "&:hover": { backgroundColor: "#e0f2fe" },
-                        }}
-                        onClick={() =>
-                          window.open(
-                            `https://prephq.theiotacademy.co/projects/${item.post_name}`,
-                            "_blank"
-                          )
-                        }
-                      >
-                        <VisibilityIcon />
-                      </IconButton>
-                    </Tooltip>
-
-                    {/* Edit */}
-                    <Tooltip title="Edit Project" arrow>
-                      <IconButton
-                        size="small"
-                        sx={{
-                          color: "#f59e0b",
-                          "&:hover": { backgroundColor: "#fef3c7" },
-                        }}
-                        onClick={() =>
-                          navigate(`/admin/projects/edit/${item.ID}`)
-                        }
-                      >
-                        <EditIcon />
-                      </IconButton>
-                    </Tooltip>
-
-                    {/* Delete */}
-                    <Tooltip title="Delete Project" arrow>
-                      <IconButton
-                        size="small"
-                        sx={{
-                          color: "#ef4444",
-                          "&:hover": { backgroundColor: "#fee2e2" },
-                        }}
-                        onClick={() => handleOpenDelete(item.ID)}
-                        disabled={deleteLoadingId === item.ID}
-                      >
-                        {deleteLoadingId === item.ID ? (
-                          <span className="spinner-border spinner-border-sm" />
-                        ) : (
-                          <DeleteIcon />
-                        )}
-                      </IconButton>
-                    </Tooltip>
-                  </td>
-                </motion.tr>
-              ))}
-            </AnimatePresence>
-
-            {paginated.length === 0 && (
-              <tr>
-                <td colSpan="5" className="text-center">
-                  No projects found
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-
-        {/* Pagination */}
-        <div className="d-flex justify-content-center mt-4 mt-lg-5">
-          <Pagination
-            count={Math.max(totalPages, 1)}
-            page={page}
-            onChange={(e, value) => setPage(value)}
-            renderItem={(item) => (
-              <PaginationItem
-                {...item}
-                slots={{
-                  previous: () => <span>&laquo;</span>,
-                  next: () => <span>&raquo;</span>,
-                }}
-                sx={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: "50%",
-                  fontWeight: 600,
-                  border: "1px solid #dcdcdc",
-                  color: "#222",
-
-                  "&.Mui-selected": {
-                    backgroundColor: GREEN,
-                    color: "#fff",
-                    border: `1px solid ${GREEN}`,
-                  },
-
-                  "&.Mui-selected:hover": {
-                    backgroundColor: GREEN,
-                  },
-
-                  "&.MuiPaginationItem-previousNext": {
-                    border: `1px solid ${GREEN}`,
-                    color: GREEN,
-                    fontSize: "20px",
-                  },
-
-                  "&.MuiPaginationItem-previousNext:hover": {
-                    backgroundColor: "transparent",
-                  },
-                }}
-              />
-            )}
-          />
+    <div style={{ maxWidth: "1280px", margin: "0 auto" }}>
+      {/* ── Page Header ── */}
+      <div className="admin-page-header">
+        <div>
+          <h1 className="admin-page-title">Projects</h1>
+          <p className="admin-page-desc">
+            Organize, showcase, and publish engineering projects and codebases.
+          </p>
         </div>
+
+        <Link
+          to="/admin/projects/add"
+          className="admin-btn-primary d-inline-flex align-items-center gap-1"
+          style={{ textDecoration: "none" }}
+        >
+          <AddIcon sx={{ fontSize: 18 }} />
+          <span>Add Project</span>
+        </Link>
       </div>
 
-      {/* Delete Modal */}
-      <Dialog open={openDelete} onClose={handleCloseDelete} maxWidth="xs" fullWidth>
-        <DialogTitle sx={{ fontWeight: 600 }}>
-          Delete Project
+      {/* ── Table Container Card ── */}
+      <div className="admin-card">
+        {/* Card Toolbar: Search and Filter Info */}
+        <div className="admin-card-header flex-wrap gap-3">
+          <div className="d-flex align-items-center gap-2" style={{ flex: 1, minWidth: 240, maxWidth: 420 }}>
+            <div
+              style={{
+                position: "relative",
+                width: "100%",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <SearchIcon
+                sx={{
+                  position: "absolute",
+                  left: 12,
+                  fontSize: 18,
+                  color: "var(--admin-text-secondary, #64748B)",
+                }}
+              />
+              <input
+                type="text"
+                placeholder="Search projects by title or category..."
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
+                style={{
+                  width: "100%",
+                  height: 40,
+                  paddingLeft: 38,
+                  paddingRight: 14,
+                  fontSize: "13.5px",
+                  borderRadius: "10px",
+                  border: "1px solid var(--admin-border, #E2E8F0)",
+                  backgroundColor: "#FAFBFD",
+                  color: "var(--admin-text, #172B3A)",
+                  outline: "none",
+                  transition: "var(--admin-transition)",
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = "var(--admin-accent, #35B779)";
+                  e.target.style.backgroundColor = "#FFFFFF";
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = "var(--admin-border, #E2E8F0)";
+                  e.target.style.backgroundColor = "#FAFBFD";
+                }}
+              />
+            </div>
+          </div>
+
+          <div style={{ fontSize: "13px", color: "var(--admin-text-secondary, #64748B)" }}>
+            Showing <strong>{filtered.length ? start + 1 : 0}–{Math.min(start + itemsPerPage, filtered.length)}</strong> of <strong>{filtered.length}</strong> projects
+          </div>
+        </div>
+
+        {/* ── Table Content ── */}
+        <div className="admin-table-wrap">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th style={{ width: 70 }}>ID</th>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Published</th>
+                <th style={{ width: 140, textAlign: "right" }}>Actions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <AnimatePresence>
+                {paginated.map((item) => (
+                  <motion.tr
+                    key={item.ID}
+                    initial={{ opacity: 1, x: 0 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{
+                      opacity: 0,
+                      x: -60,
+                      backgroundColor: "#FEE2E2",
+                      transition: { duration: 0.35, ease: "easeInOut" },
+                    }}
+                    layout
+                    style={{
+                      backgroundColor: removingIds.has(item.ID) ? "#FEE2E2" : undefined,
+                      color: removingIds.has(item.ID) ? "#DC2626" : "inherit",
+                      pointerEvents: removingIds.has(item.ID) ? "none" : "auto",
+                    }}
+                  >
+                    <td style={{ color: "var(--admin-text-secondary)", fontSize: "12.5px" }}>
+                      #{item.ID}
+                    </td>
+
+                    <td style={{ fontWeight: 600 }}>
+                      <div
+                        style={{
+                          maxWidth: 420,
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                        title={item.post_title}
+                      >
+                        {item.post_title}
+                      </div>
+                    </td>
+
+                    <td>
+                      <span
+                        style={{
+                          fontSize: "12px",
+                          fontWeight: 500,
+                          padding: "3px 10px",
+                          borderRadius: "14px",
+                          backgroundColor: "#EBF3F7",
+                          color: "var(--admin-primary, #0B4565)",
+                        }}
+                      >
+                        {item.category_name || "Engineering"}
+                      </span>
+                    </td>
+
+                    <td style={{ fontSize: "12.5px", color: "var(--admin-text-secondary)" }}>
+                      {item.post_date
+                        ? new Date(item.post_date).toLocaleDateString()
+                        : "N/A"}
+                    </td>
+
+                    <td>
+                      <div className="d-flex align-items-center justify-content-end gap-1">
+                        {/* View live project */}
+                        <Tooltip title="View Project" arrow>
+                          <button
+                            type="button"
+                            className="admin-action-btn"
+                            onClick={() =>
+                              window.open(
+                                `https://prephq.theiotacademy.co/projects/${item.post_name}`,
+                                "_blank"
+                              )
+                            }
+                            aria-label="View project"
+                          >
+                            <VisibilityIcon sx={{ fontSize: 16 }} />
+                          </button>
+                        </Tooltip>
+
+                        {/* Edit project */}
+                        <Tooltip title="Edit Project" arrow>
+                          <button
+                            type="button"
+                            className="admin-action-btn edit"
+                            onClick={() =>
+                              navigate(`/admin/projects/edit/${item.ID}`)
+                            }
+                            aria-label="Edit project"
+                          >
+                            <EditIcon sx={{ fontSize: 16 }} />
+                          </button>
+                        </Tooltip>
+
+                        {/* Delete project */}
+                        <Tooltip title="Delete Project" arrow>
+                          <button
+                            type="button"
+                            className="admin-action-btn delete"
+                            onClick={() => handleOpenDelete(item.ID)}
+                            disabled={deleteLoadingId === item.ID}
+                            aria-label="Delete project"
+                          >
+                            {deleteLoadingId === item.ID ? (
+                              <span className="spinner-border spinner-border-sm" style={{ width: 14, height: 14 }} />
+                            ) : (
+                              <DeleteIcon sx={{ fontSize: 16 }} />
+                            )}
+                          </button>
+                        </Tooltip>
+                      </div>
+                    </td>
+                  </motion.tr>
+                ))}
+              </AnimatePresence>
+
+              {paginated.length === 0 && (
+                <tr>
+                  <td colSpan="5" className="text-center py-5">
+                    <WorkIcon sx={{ fontSize: 44, color: "#CBD5E1", mb: 1 }} />
+                    <div style={{ fontWeight: 600, color: "var(--admin-text)" }}>
+                      No projects found
+                    </div>
+                    <div style={{ fontSize: "13px", color: "var(--admin-text-secondary)" }}>
+                      {search ? "Try searching for a different keyword or category" : "Click 'Add Project' above to create your first project"}
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* ── Table Footer & Pagination ── */}
+        {totalPages > 1 && (
+          <div className="d-flex justify-content-center p-3 border-top">
+            <Pagination
+              count={totalPages}
+              page={page}
+              onChange={(e, value) => setPage(value)}
+              renderItem={(item) => (
+                <PaginationItem
+                  {...item}
+                  sx={{
+                    borderRadius: "8px",
+                    "&.Mui-selected": {
+                      backgroundColor: "var(--admin-accent, #35B779) !important",
+                      color: "#FFFFFF !important",
+                      fontWeight: 600,
+                    },
+                  }}
+                />
+              )}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* ── Delete Confirmation Dialog ── */}
+      <Dialog
+        open={openDelete}
+        onClose={handleCloseDelete}
+        PaperProps={{
+          sx: {
+            borderRadius: "14px",
+            padding: "8px",
+            maxWidth: 420,
+          },
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 700, fontSize: "17px", color: "var(--admin-text, #172B3A)" }}>
+          Confirm Delete Project
         </DialogTitle>
-
-        <DialogContent>
-          Are you sure you want to delete this project?
+        <DialogContent sx={{ fontSize: "14px", color: "var(--admin-text-secondary, #64748B)" }}>
+          Are you sure you want to delete this project? This action cannot be undone.
         </DialogContent>
-
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={handleCloseDelete} color="inherit">
+        <DialogActions sx={{ p: 2 }}>
+          <Button
+            onClick={handleCloseDelete}
+            sx={{ textTransform: "none", color: "var(--admin-text-secondary)", fontWeight: 500 }}
+          >
             Cancel
           </Button>
-
           <Button
             onClick={handleConfirmDelete}
             variant="contained"
             color="error"
             disabled={deleting}
+            sx={{ textTransform: "none", fontWeight: 600, borderRadius: "8px" }}
           >
-            Delete
+            {deleting ? "Deleting..." : "Delete Project"}
           </Button>
         </DialogActions>
       </Dialog>
-    </>
+    </div>
   );
 };
 

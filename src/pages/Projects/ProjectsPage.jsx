@@ -469,24 +469,40 @@ const LEVEL_FILTERS = [
   { label: "Advanced", count: "100+", value: "Advanced" },
 ];
 
-const PaginationPrevArrow = () => (
+const PaginationPrevArrow = ({ isGreen = false }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="47" height="47" viewBox="0 0 47 47" fill="none">
-    <rect x="0.5" y="0.5" width="46" height="46" rx="9.5" fill="#FFFFFF" stroke="#3FAE68" />
+    <rect
+      x="0.5"
+      y="0.5"
+      width="46"
+      height="46"
+      rx="9.5"
+      fill={isGreen ? "#3FAE68" : "#FFFFFF"}
+      stroke="#3FAE68"
+    />
     <g transform="rotate(180 23.5 24.5)">
       <path
         d="M31 24.501C31 23.7613 30.7287 23.0217 30.1874 22.4563L26.2596 18.3799C25.7708 17.8729 24.9795 17.8729 24.4907 18.3825C24.0032 18.8907 24.0044 19.7123 24.492 20.2205L27.3634 23.1998L17.2501 23.1998C16.56 23.1998 16 23.7821 16 24.4997C16 25.2172 16.56 25.7995 17.2501 25.7995L27.3634 25.7995L24.492 28.7788C24.0032 29.2858 24.0019 30.1086 24.4907 30.6182C24.9782 31.1264 25.7696 31.1277 26.2596 30.6195L30.1887 26.5418C30.73 25.9789 31 25.2406 31 24.4997L31 24.501Z"
-        fill="#3FAE68"
+        fill={isGreen ? "white" : "#3FAE68"}
       />
     </g>
   </svg>
 );
 
-const PaginationNextArrow = () => (
+const PaginationNextArrow = ({ isGreen = true }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="47" height="47" viewBox="0 0 47 47" fill="none">
-    <rect x="0.5" y="0.5" width="46" height="46" rx="9.5" fill="#3FAE68" stroke="#3FAE68" />
+    <rect
+      x="0.5"
+      y="0.5"
+      width="46"
+      height="46"
+      rx="9.5"
+      fill={isGreen ? "#3FAE68" : "#FFFFFF"}
+      stroke="#3FAE68"
+    />
     <path
       d="M31 24.501C31 23.7613 30.7287 23.0217 30.1874 22.4563L26.2596 18.3799C25.7708 17.8729 24.9795 17.8729 24.4907 18.3825C24.0032 18.8907 24.0044 19.7123 24.492 20.2205L27.3634 23.1998L17.2501 23.1998C16.56 23.1998 16 23.7821 16 24.4997C16 25.2172 16.56 25.7995 17.2501 25.7995L27.3634 25.7995L24.492 28.7788C24.0032 29.2858 24.0019 30.1086 24.4907 30.6182C24.9782 31.1264 25.7696 31.1277 26.2596 30.6195L30.1887 26.5418C30.73 25.9789 31 25.2406 31 24.4997L31 24.501Z"
-      fill="white"
+      fill={isGreen ? "white" : "#3FAE68"}
     />
   </svg>
 );
@@ -842,12 +858,12 @@ const ProjectsPage = () => {
               <div className="projects-pagination">
                 <button
                   type="button"
-                  className={`page-btn page-arrow ${featuredPage <= 1 ? "disabled" : ""}`}
+                  className={`page-btn page-arrow ${featuredPage <= 1 ? "disabled" : ""} ${featuredPage >= totalFeaturedPages ? "active" : ""}`}
                   onClick={() => setFeaturedPage((prev) => Math.max(1, prev - 1))}
                   disabled={featuredPage <= 1}
                   aria-label="Previous Featured Page"
                 >
-                  <PaginationPrevArrow />
+                  <PaginationPrevArrow isGreen={featuredPage >= totalFeaturedPages} />
                 </button>
 
                 {[...Array(Math.min(totalFeaturedPages, 4))].map((_, idx) => {
@@ -866,15 +882,14 @@ const ProjectsPage = () => {
 
                 <button
                   type="button"
-                  className={`page-btn page-arrow ${featuredPage >= totalFeaturedPages ? "disabled" : ""
-                    }`}
+                  className={`page-btn page-arrow ${featuredPage >= totalFeaturedPages ? "disabled" : "active"}`}
                   onClick={() =>
                     setFeaturedPage((prev) => Math.min(totalFeaturedPages, prev + 1))
                   }
                   disabled={featuredPage >= totalFeaturedPages}
                   aria-label="Next Featured Page"
                 >
-                  <PaginationNextArrow />
+                  <PaginationNextArrow isGreen={featuredPage < totalFeaturedPages} />
                 </button>
               </div>
 
@@ -954,12 +969,12 @@ const ProjectsPage = () => {
               <div className="projects-pagination">
                 <button
                   type="button"
-                  className={`page-btn page-arrow ${allProjectsPage <= 1 ? "disabled" : ""}`}
+                  className={`page-btn page-arrow ${allProjectsPage <= 1 ? "disabled" : ""} ${allProjectsPage >= totalAllPages ? "active" : ""}`}
                   onClick={() => setAllProjectsPage((prev) => Math.max(1, prev - 1))}
                   disabled={allProjectsPage <= 1}
                   aria-label="Previous All Projects Page"
                 >
-                  <PaginationPrevArrow />
+                  <PaginationPrevArrow isGreen={allProjectsPage >= totalAllPages} />
                 </button>
 
                 {[...Array(Math.min(totalAllPages, 4))].map((_, idx) => {
@@ -978,15 +993,14 @@ const ProjectsPage = () => {
 
                 <button
                   type="button"
-                  className={`page-btn page-arrow ${allProjectsPage >= totalAllPages ? "disabled" : ""
-                    }`}
+                  className={`page-btn page-arrow ${allProjectsPage >= totalAllPages ? "disabled" : "active"}`}
                   onClick={() =>
                     setAllProjectsPage((prev) => Math.min(totalAllPages, prev + 1))
                   }
                   disabled={allProjectsPage >= totalAllPages}
                   aria-label="Next All Projects Page"
                 >
-                  <PaginationNextArrow />
+                  <PaginationNextArrow isGreen={allProjectsPage < totalAllPages} />
                 </button>
               </div>
             </div>

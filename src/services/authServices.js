@@ -14,9 +14,11 @@ export const loginAdmin = async (credentials) => {
     if (response?.status === 200) {
       return response?.data;
     } else {
-      throw new Error(response.data.error || "Failed to fetch admin data.");
+      throw new Error(response?.data?.error || "Failed to fetch admin data.");
     }
   } catch (error) {
+    const data = error?.response?.data;
+    if (data) return data;
     throw error;
   }
 };
