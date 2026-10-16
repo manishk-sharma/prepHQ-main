@@ -6,6 +6,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "backend": "npm start --prefix backend",
+    "backend:dev": "node --watch backend/server.js",
     "build": "vite build",
     "postbuild": "node scripts/generate-sitemap.js",
     "lint": "eslint .",

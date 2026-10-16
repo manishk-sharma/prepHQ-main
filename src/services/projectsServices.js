@@ -259,3 +259,120 @@ export const useDeleteProject = () => {
         },
     });
 };
+
+// ── Project Details (Curriculum & Guide) Services ───────────────────────────
+
+const getProjectDetails = async ({ queryKey }) => {
+    const [_key, slugOrId] = queryKey;
+    try {
+        const response = await publicApi.get(`/project-details/${slugOrId}`);
+        if (response?.status === 200 && response?.data?.status === 1) {
+            return response?.data?.data;
+        }
+        throw new Error(response?.data?.error || "Failed to fetch project details.");
+    } catch (error) {
+        console.error("getProjectDetails error:", error);
+        throw error;
+    }
+};
+
+const getAllProjectDetails = async () => {
+    try {
+        const response = await publicApi.get("/project-details");
+        if (response?.status === 200 && response?.data?.status === 1) {
+            return response?.data?.data || [];
+        }
+        return [];
+    } catch (error) {
+        console.error("getAllProjectDetails error:", error);
+        return [];
+    }
+};
+
+const saveProjectDetails = async ({ slugOrId, data }) => {
+    try {
+        const response = await adminApi.put(`/project-details/${slugOrId}`, data, {
+            headers: { "Content-Type": "application/json" },
+        });
+        if (response?.status === 200 && response?.data?.status === 1) {
+            return response?.data;
+        }
+        throw new Error(response?.data?.message || "Failed to update project details.");
+    } catch (error) {
+        console.error("saveProjectDetails error:", error);
+        throw error;
+    }
+};
+
+const createProjectDetails = async (data) => {
+    try {
+        const response = await adminApi.post("/project-details", data, {
+            headers: { "Content-Type": "application/json" },
+        });
+        if (response?.status === 201 && response?.data?.status === 1) {
+            return response?.data;
+        }
+        throw new Error(response?.data?.message || "Failed to create project details.");
+    } catch (error) {
+        console.error("createProjectDetails error:", error);
+        throw error;
+    }
+};
+
+export const useProjectDetails = (slugOrId) => {
+    return useQuery({
+        queryKey: ["projectDetails", slugOrId],
+        queryFn: getProjectDetails,
+        enabled: !!slugOrId,
+        staleTime: 5 * 60 * 1000,
+        gcTime: 10 * 60 * 1000,
+    });
+};
+
+export const useProjectDetailsList = () => {
+    return useQuery({
+        queryKey: ["projectDetailsList"],
+        queryFn: getAllProjectDetails,
+        staleTime: 5 * 60 * 1000,
+        gcTime: 10 * 60 * 1000,
+    });
+};
+
+export const useUpdateProjectDetails = () => {
+    const queryClient = useQueryClient();
+    const { showNotification } = useNotification();
+
+    return useMutation({
+        mutationFn: saveProjectDetails,
+        onSuccess: (data, variables) => {
+            queryClient.invalidateQueries({
+                queryKey: ["projectDetails", variables.slugOrId],
+            });
+            queryClient.invalidateQueries({
+                queryKey: ["projectDetailsList"],
+            });
+            showNotification(data?.message || "Project details updated successfully!", "success");
+        },
+        onError: (error) => {
+            showNotification(error?.message || "Failed to save project details", "danger");
+        },
+    });
+};
+
+export const useCreateProjectDetails = () => {
+    const queryClient = useQueryClient();
+    const { showNotification } = useNotification();
+
+    return useMutation({
+        mutationFn: createProjectDetails,
+        onSuccess: (data) => {
+            queryClient.invalidateQueries({
+                queryKey: ["projectDetailsList"],
+            });
+            showNotification(data?.message || "Project details created successfully!", "success");
+        },
+        onError: (error) => {
+            showNotification(error?.message || "Failed to create project details", "danger");
+        },
+    });
+};

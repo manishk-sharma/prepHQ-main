@@ -60,6 +60,7 @@ import EditTutorial from "./pages/admin/NewAdminPage/Tutorials/EditTutorial";
 import AddProject from "./pages/admin/NewAdminPage/Projects/AddProject";
 import ListProject from "./pages/admin/NewAdminPage/Projects/ListProject";
 import EditProject from "./pages/admin/NewAdminPage/Projects/EditProject";
+import AdminProjectDetails from "./pages/admin/NewAdminPage/Projects/AdminProjectDetails";
 import AddInterview from "./pages/admin/NewAdminPage/Interviews/AddInterview";
 import ListInterview from "./pages/admin/NewAdminPage/Interviews/ListInterview";
 import EditInterview from "./pages/admin/NewAdminPage/Interviews/EditInterview";
@@ -280,6 +281,8 @@ const hideLayout =
           {/* Projects */}
           <Route path="projects/add" element={<AddProject />} />
           <Route path="projects/list" element={<ListProject />} />
+          <Route path="projects/details" element={<AdminProjectDetails />} />
+          <Route path="projects/details/:idOrSlug" element={<AdminProjectDetails />} />
           {/* <Route path="projects/edit" element={<EditProject />} /> */}
 
           {/* Interview */}

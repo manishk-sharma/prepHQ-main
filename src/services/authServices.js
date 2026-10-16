@@ -5,7 +5,7 @@ import publicApi from "./publicApi";
 import { userLoginSuccess, userLogout, adminLogout } from "../redux/slices/authSlice";
 
 
-const RESEND_CODE_URL = "https://prephq.theiotacademy.co/api/resend-code";
+const RESEND_CODE_URL = "/resend-code";
 
 
 export const loginAdmin = async (credentials) => {

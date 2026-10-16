@@ -49,6 +49,7 @@ const menuConfig = [
     children: [
       { key: "projects-add", label: "Add Project", to: "/admin/projects/add" },
       { key: "projects-list", label: "All Projects", to: "/admin/projects/list" },
+      { key: "projects-details", label: "Project Details Page", to: "/admin/projects/details" },
     ],
   },
   {
@@ -143,6 +144,9 @@ export default function AdminLayout({ onLogout }) {
     }
     if (path.includes("/projects/add")) {
       return { section: "Projects", current: "Add Project" };
+    }
+    if (path.includes("/projects/details")) {
+      return { section: "Projects", current: "Project Details Editor" };
     }
     if (path.includes("/projects/list")) {
       return { section: "Projects", current: "All Projects" };

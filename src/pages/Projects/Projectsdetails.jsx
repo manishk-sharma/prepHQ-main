@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
+import { useProjectDetails } from "../../services/projectsServices";
 import {
     FiCopy,
     FiCheck,
@@ -37,6 +38,26 @@ const NAV_ITEMS = [
     { id: "dataset-resources", number: "07", label: "Data sources" },
     { id: "project-learnings", number: "08", label: "Learnings" },
     { id: "common-mistakes", number: "09", label: "Common mistakes" },
+];
+
+// Default Prerequisites Data matching Screenshot 2
+const DEFAULT_PREREQUISITES = [
+    {
+        category: "Programming",
+        items: ["Basic Python", "Functions", "Lists and dictionaries"],
+    },
+    {
+        category: "Data",
+        items: ["Pandas", "NumPy", "Basic data cleaning"],
+    },
+    {
+        category: "Statistics",
+        items: ["Mean", "Median", "Correlation", "Basic distributions"],
+    },
+    {
+        category: "Machine Learning",
+        items: ["Classification", "Train/test split", "Basic model evaluation"],
+    },
 ];
 
 // Section 03 Objectives Data matching Screenshot 3
@@ -255,6 +276,77 @@ const MINI_GUIDES = [
 ];
 
 const Projectsdetails = () => {
+    const { postSlug } = useParams();
+    const activeSlug = postSlug || "customer-churn-prediction-using-machine-learning";
+    const { data: dbData } = useProjectDetails(activeSlug);
+
+    const projectTitle = dbData?.title || "Customer Churn Prediction Using Machine Learning";
+    const projectDesc = dbData?.subtitle || dbData?.description || "Build an end-to-end machine learning project to identify customers who are likely to churn using real-world customer data.";
+    const projectLevel = dbData?.level || "Intermediate";
+    const projectDuration = dbData?.duration || "8–12 Hours";
+    const projectDomain = dbData?.domain || "Data Science";
+    const projectType = dbData?.project_type || "Machine Learning";
+
+    const aboutP1 = dbData?.about_text_1 || dbData?.about_p1 || "Customer churn is when a customer stops using a company's service. In subscription businesses such as telecom, losing customers is far more expensive than keeping them, so knowing who is about to leave is highly valuable.";
+    const aboutP2 = dbData?.about_text_2 || dbData?.about_p2 || "In this project you'll work with a real telecom dataset to find the patterns behind churn, then train classification models that flag at-risk customers before they leave.";
+    const aboutP3 = dbData?.about_text_3 || dbData?.about_p3 || "By the end you'll have built a complete workflow: cleaned data, insightful visualizations, a tuned and evaluated model, and a working prediction pipeline.";
+
+    let prerequisites = DEFAULT_PREREQUISITES;
+    if (dbData?.prerequisites) {
+        if (Array.isArray(dbData.prerequisites) && dbData.prerequisites.length > 0) {
+            prerequisites = dbData.prerequisites;
+        } else if (typeof dbData.prerequisites === "object") {
+            const pObj = dbData.prerequisites;
+            const converted = [
+                { category: "Programming", items: pObj.programming || [] },
+                { category: "Data", items: pObj.data || [] },
+                { category: "Statistics", items: pObj.statistics || [] },
+                { category: "Machine Learning", items: pObj.machineLearning || [] },
+            ].filter((c) => c.items && c.items.length > 0);
+            if (converted.length > 0) {
+                prerequisites = converted;
+            }
+        }
+    }
+
+    const objectives = (dbData?.objectives && Array.isArray(dbData.objectives) && dbData.objectives.length > 0)
+        ? dbData.objectives
+        : OBJECTIVES_DATA;
+
+    const archSteps = (dbData?.architecture_steps && Array.isArray(dbData.architecture_steps) && dbData.architecture_steps.length > 0)
+        ? dbData.architecture_steps
+        : ARCHITECTURE_STEPS;
+
+    const archDetails = (dbData?.architecture_details && Array.isArray(dbData.architecture_details) && dbData.architecture_details.length > 0)
+        ? dbData.architecture_details
+        : ARCHITECTURE_DETAILS;
+
+    const implSteps = (dbData?.implementation_steps && Array.isArray(dbData.implementation_steps) && dbData.implementation_steps.length > 0)
+        ? dbData.implementation_steps
+        : IMPLEMENTATION_STEPS;
+
+    const techData = (dbData?.technologies && Array.isArray(dbData.technologies) && dbData.technologies.length > 0)
+        ? dbData.technologies
+        : TECHNOLOGIES_DATA;
+
+    const datasets = (dbData?.dataset_resources && Array.isArray(dbData.dataset_resources) && dbData.dataset_resources.length > 0)
+        ? dbData.dataset_resources
+        : ((dbData?.datasets && Array.isArray(dbData.datasets) && dbData.datasets.length > 0)
+            ? dbData.datasets
+            : DATASET_RESOURCES);
+
+    const technicalLearnings = (dbData?.technical_learnings && Array.isArray(dbData.technical_learnings) && dbData.technical_learnings.length > 0)
+        ? dbData.technical_learnings
+        : TECHNICAL_LEARNINGS;
+
+    const practicalLearnings = (dbData?.practical_learnings && Array.isArray(dbData.practical_learnings) && dbData.practical_learnings.length > 0)
+        ? dbData.practical_learnings
+        : PRACTICAL_LEARNINGS;
+
+    const commonMistakes = (dbData?.common_mistakes && Array.isArray(dbData.common_mistakes) && dbData.common_mistakes.length > 0)
+        ? dbData.common_mistakes
+        : COMMON_MISTAKES;
+
     const [activeSection, setActiveSection] = useState("about-project");
 
     // Accordion independent state groups
@@ -297,7 +389,7 @@ const Projectsdetails = () => {
 
     // Share actions
     const pageUrl = window.location.href;
-    const pageTitle = "Customer Churn Prediction Using Machine Learning | PrepHQ";
+    const pageTitle = `${projectTitle} | PrepHQ`;
 
     const handleCopyLink = () => {
         if (navigator.clipboard) {
@@ -331,7 +423,7 @@ const Projectsdetails = () => {
                         <span className="breadcrumb-separator">/</span>
                         <Link to="/projects" className="breadcrumb-link">Projects</Link>
                         <span className="breadcrumb-separator">/</span>
-                        <span className="breadcrumb-current">Customer Churn Prediction</span>
+                        <span className="breadcrumb-current">{projectTitle}</span>
                     </div>
                 </div>
             </div>
@@ -385,29 +477,29 @@ const Projectsdetails = () => {
                         {/* PROJECT HEADER (Screenshot 1) */}
                         <div className="project-header-section">
                             <h1 className="project-main-title">
-                                Customer Churn Prediction Using Machine Learning
+                                {projectTitle}
                             </h1>
 
                             <p className="project-main-desc">
-                                Build an end-to-end machine learning project to identify customers who are likely to churn using real-world customer data.
+                                {projectDesc}
                             </p>
 
                             <div className="project-meta-chips">
                                 <div className="meta-chip">
                                     <span className="meta-label">Level :</span>
-                                    <span className="meta-val">Intermediate</span>
+                                    <span className="meta-val">{projectLevel}</span>
                                 </div>
                                 <div className="meta-chip">
                                     <span className="meta-label">Duration :</span>
-                                    <span className="meta-val">8–12 Hours</span>
+                                    <span className="meta-val">{projectDuration}</span>
                                 </div>
                                 <div className="meta-chip">
                                     <span className="meta-label">Domain :</span>
-                                    <span className="meta-val">Data Science</span>
+                                    <span className="meta-val">{projectDomain}</span>
                                 </div>
                                 <div className="meta-chip">
                                     <span className="meta-label">Project Type :</span>
-                                    <span className="meta-val">Machine Learning</span>
+                                    <span className="meta-val">{projectType}</span>
                                 </div>
                             </div>
 
@@ -422,15 +514,9 @@ const Projectsdetails = () => {
                             </div>
 
                             <div className="about-project-card">
-                                <p className="about-card-text">
-                                    Customer churn is when a customer stops using a company's service. In subscription businesses such as telecom, losing customers is far more expensive than keeping them, so knowing who is about to leave is highly valuable.
-                                </p>
-                                <p className="about-card-text">
-                                    In this project you'll work with a real telecom dataset to find the patterns behind churn, then train classification models that flag at-risk customers before they leave.
-                                </p>
-                                <p className="about-card-text">
-                                    By the end you'll have built a complete workflow: cleaned data, insightful visualizations, a tuned and evaluated model, and a working prediction pipeline.
-                                </p>
+                                {aboutP1 && <p className="about-card-text">{aboutP1}</p>}
+                                {aboutP2 && <p className="about-card-text">{aboutP2}</p>}
+                                {aboutP3 && <p className="about-card-text">{aboutP3}</p>}
                             </div>
                         </section>
 
@@ -443,46 +529,19 @@ const Projectsdetails = () => {
 
                             {/* 3 columns grid: Row 1 has Programming, Data, Statistics; Row 2 has Machine Learning */}
                             <div className="prereq-cards-layout">
-                                {/* Programming */}
-                                <div className="prereq-card">
-                                    <h3 className="prereq-card-title">Programming</h3>
-                                    <ul className="prereq-list">
-                                        <li>Basic Python</li>
-                                        <li>Functions</li>
-                                        <li>Lists and dictionaries</li>
-                                    </ul>
-                                </div>
-
-                                {/* Data */}
-                                <div className="prereq-card">
-                                    <h3 className="prereq-card-title">Data</h3>
-                                    <ul className="prereq-list">
-                                        <li>Pandas</li>
-                                        <li>NumPy</li>
-                                        <li>Basic data cleaning</li>
-                                    </ul>
-                                </div>
-
-                                {/* Statistics */}
-                                <div className="prereq-card">
-                                    <h3 className="prereq-card-title">Statistics</h3>
-                                    <ul className="prereq-list">
-                                        <li>Mean</li>
-                                        <li>Median</li>
-                                        <li>Correlation</li>
-                                        <li>Basic distributions</li>
-                                    </ul>
-                                </div>
-
-                                {/* Machine Learning (Placed on next row under column 1) */}
-                                <div className="prereq-card prereq-card-ml">
-                                    <h3 className="prereq-card-title">Machine Learning</h3>
-                                    <ul className="prereq-list">
-                                        <li>Classification</li>
-                                        <li>Train/test split</li>
-                                        <li>Basic model evaluation</li>
-                                    </ul>
-                                </div>
+                                {prerequisites.map((p, idx) => (
+                                    <div
+                                        key={idx}
+                                        className={`prereq-card ${p.category?.toLowerCase().includes("machine") ? "prereq-card-ml" : ""}`}
+                                    >
+                                        <h3 className="prereq-card-title">{p.category}</h3>
+                                        <ul className="prereq-list">
+                                            {(p.items || []).map((item, i) => (
+                                                <li key={i}>{item}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                ))}
                             </div>
                         </section>
 
@@ -494,46 +553,16 @@ const Projectsdetails = () => {
                             </div>
 
                             <div className="prereq-single-container">
-                                {/* 1. Programming */}
-                                <div className="prereq-single-category">
-                                    <h3 className="prereq-category-title">Programming</h3>
-                                    <ul className="prereq-list">
-                                        <li>Basic Python</li>
-                                        <li>Functions</li>
-                                        <li>Lists and dictionaries</li>
-                                    </ul>
-                                </div>
-
-                                {/* 2. Data */}
-                                <div className="prereq-single-category">
-                                    <h3 className="prereq-category-title">Data</h3>
-                                    <ul className="prereq-list">
-                                        <li>Pandas</li>
-                                        <li>NumPy</li>
-                                        <li>Basic data cleaning</li>
-                                    </ul>
-                                </div>
-
-                                {/* 3. Statistics */}
-                                <div className="prereq-single-category">
-                                    <h3 className="prereq-category-title">Statistics</h3>
-                                    <ul className="prereq-list">
-                                        <li>Mean</li>
-                                        <li>Median</li>
-                                        <li>Correlation</li>
-                                        <li>Basic distributions</li>
-                                    </ul>
-                                </div>
-
-                                {/* 4. Machine Learning */}
-                                <div className="prereq-single-category">
-                                    <h3 className="prereq-category-title">Machine Learning</h3>
-                                    <ul className="prereq-list">
-                                        <li>Classification</li>
-                                        <li>Train/test split</li>
-                                        <li>Basic model evaluation</li>
-                                    </ul>
-                                </div>
+                                {prerequisites.map((p, idx) => (
+                                    <div key={idx} className="prereq-single-category">
+                                        <h3 className="prereq-category-title">{p.category}</h3>
+                                        <ul className="prereq-list">
+                                            {(p.items || []).map((item, i) => (
+                                                <li key={i}>{item}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                ))}
                             </div>
                         </section>
 
@@ -545,19 +574,21 @@ const Projectsdetails = () => {
                             </div>
 
                             <div className="accordion-group">
-                                {OBJECTIVES_DATA.map((obj) => {
-                                    const isOpen = openObjective === obj.id;
+                                {objectives.map((obj, idx) => {
+                                    const objKey = obj.id || `obj-${idx + 1}`;
+                                    const isOpen = openObjective === objKey;
+                                    const displayNum = obj.num || (idx + 1 < 10 ? `0${idx + 1}` : `${idx + 1}`);
                                     return (
-                                        <div key={obj.id} className={`accordion-card ${isOpen ? "open" : ""}`}>
+                                        <div key={objKey} className={`accordion-card ${isOpen ? "open" : ""}`}>
                                             <button
                                                 type="button"
                                                 className="accordion-header"
-                                                onClick={() => setOpenObjective(isOpen ? null : obj.id)}
+                                                onClick={() => setOpenObjective(isOpen ? null : objKey)}
                                                 aria-expanded={isOpen}
-                                                aria-controls={`obj-panel-${obj.id}`}
+                                                aria-controls={`obj-panel-${objKey}`}
                                             >
                                                 <span className={`accordion-badge ${isOpen ? "active-badge" : "default-badge"}`}>
-                                                    {obj.num}
+                                                    {displayNum}
                                                 </span>
                                                 <span className="accordion-title">{obj.title}</span>
                                                 <span className="accordion-chevron">
@@ -566,7 +597,7 @@ const Projectsdetails = () => {
                                             </button>
 
                                             {isOpen && (
-                                                <div id={`obj-panel-${obj.id}`} className="accordion-body">
+                                                <div id={`obj-panel-${objKey}`} className="accordion-body">
                                                     <p className="accordion-desc">{obj.content}</p>
                                                 </div>
                                             )}
@@ -583,36 +614,42 @@ const Projectsdetails = () => {
                                 <p className="section-subtitle">How data flows from raw records to predictions.</p>
                             </div>
 
-                            {/* 10 Architecture Steps Grid (5 columns x 2 rows) */}
+                            {/* Architecture Steps Grid */}
                             <div className="arch-steps-grid">
-                                {ARCHITECTURE_STEPS.map((step) => (
-                                    <div key={step.id} className="arch-step-card">
-                                        <div className="arch-step-circle">{step.num}</div>
-                                        <span className="arch-step-title">{step.title}</span>
-                                    </div>
-                                ))}
+                                {archSteps.map((step, idx) => {
+                                    const stepKey = step.id || `arch-${idx + 1}`;
+                                    const displayNum = step.num || (idx + 1 < 10 ? `0${idx + 1}` : `${idx + 1}`);
+                                    return (
+                                        <div key={stepKey} className="arch-step-card">
+                                            <div className="arch-step-circle">{displayNum}</div>
+                                            <span className="arch-step-title" style={{ whiteSpace: "pre-line" }}>{step.title}</span>
+                                        </div>
+                                    );
+                                })}
                             </div>
 
                             {/* View Architecture Details Card */}
-                            <div className="arch-details-card">
-                                <div className="arch-details-header">
-                                    <div className="arch-icon-box">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                            <path d="M16.25 3.33333H6.66667V2.5C6.66667 1.12167 5.545 0 4.16667 0H3.33333C1.495 0 0 1.495 0 3.33333V16.6667C0 18.505 1.495 20 3.33333 20H7.91667C8.6075 20 9.16667 19.4408 9.16667 18.75C9.16667 18.0592 8.6075 17.5 7.91667 17.5H3.33333C2.87417 17.5 2.5 17.1258 2.5 16.6667C2.5 16.2075 2.87417 15.8333 3.33333 15.8333H4.16667C5.545 15.8333 6.66667 14.7117 6.66667 13.3333V5.83333H16.25C16.9392 5.83333 17.5 6.39417 17.5 7.08333V8.33333C17.5 9.02417 18.0592 9.58333 18.75 9.58333C19.4408 9.58333 20 9.02417 20 8.33333V7.08333C20 5.01583 18.3175 3.33333 16.25 3.33333ZM4.16667 13.3333H3.33333C3.04583 13.3333 2.76667 13.37 2.5 13.4383V3.33333C2.5 2.87417 2.87417 2.5 3.33333 2.5H4.16667V13.3333ZM19.2008 13.2325L16.7008 11.2758C15.9467 10.6858 14.8875 10.6858 14.1333 11.2758L11.6333 13.2325C11.1292 13.6275 10.8342 14.2325 10.8342 14.8733V17.9167C10.8342 19.0675 11.7667 20 12.9175 20H17.9175C19.0683 20 20.0008 19.0675 20.0008 17.9167V14.8733C20.0008 14.2325 19.705 13.6275 19.2008 13.2325ZM16.6667 16.6667C16.6667 17.1267 16.2933 17.5 15.8333 17.5H15C14.54 17.5 14.1667 17.1267 14.1667 16.6667V15.8333C14.1667 15.3733 14.54 15 15 15H15.8333C16.2933 15 16.6667 15.3733 16.6667 15.8333V16.6667ZM10.4167 12.0833C9.72583 12.0833 9.16667 11.5242 9.16667 10.8333V8.75C9.16667 8.05917 9.72583 7.5 10.4167 7.5H13.75C14.4408 7.5 15 8.05917 15 8.75C15 9.44083 14.4408 10 13.75 10H11.6667V10.8333C11.6667 11.5242 11.1075 12.0833 10.4167 12.0833Z" fill="white" />
-                                        </svg>
-                                    </div>
-                                    <h3 className="arch-details-title">View Architecture Details</h3>
-                                </div>
-
-                                <div className="arch-details-list">
-                                    {ARCHITECTURE_DETAILS.map((detail, idx) => (
-                                        <div key={idx} className="arch-detail-row">
-                                            <strong className="arch-detail-num">{detail.step}</strong>
-                                            <p className="arch-detail-desc">{detail.desc}</p>
+                            {archDetails.length > 0 && (
+                                <div className="arch-details-card">
+                                    <div className="arch-details-header">
+                                        <div className="arch-icon-box">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                <path d="M16.25 3.33333H6.66667V2.5C6.66667 1.12167 5.545 0 4.16667 0H3.33333C1.495 0 0 1.495 0 3.33333V16.6667C0 18.505 1.495 20 3.33333 20H7.91667C8.6075 20 9.16667 19.4408 9.16667 18.75C9.16667 18.0592 8.6075 17.5 7.91667 17.5H3.33333C2.87417 17.5 2.5 17.1258 2.5 16.6667C2.5 16.2075 2.87417 15.8333 3.33333 15.8333H4.16667C5.545 15.8333 6.66667 14.7117 6.66667 13.3333V5.83333H16.25C16.9392 5.83333 17.5 6.39417 17.5 7.08333V8.33333C17.5 9.02417 18.0592 9.58333 18.75 9.58333C19.4408 9.58333 20 9.02417 20 8.33333V7.08333C20 5.01583 18.3175 3.33333 16.25 3.33333ZM4.16667 13.3333H3.33333C3.04583 13.3333 2.76667 13.37 2.5 13.4383V3.33333C2.5 2.87417 2.87417 2.5 3.33333 2.5H4.16667V13.3333ZM19.2008 13.2325L16.7008 11.2758C15.9467 10.6858 14.8875 10.6858 14.1333 11.2758L11.6333 13.2325C11.1292 13.6275 10.8342 14.2325 10.8342 14.8733V17.9167C10.8342 19.0675 11.7667 20 12.9175 20H17.9175C19.0683 20 20.0008 19.0675 20.0008 17.9167V14.8733C20.0008 14.2325 19.705 13.6275 19.2008 13.2325ZM16.6667 16.6667C16.6667 17.1267 16.2933 17.5 15.8333 17.5H15C14.54 17.5 14.1667 17.1267 14.1667 16.6667V15.8333C14.1667 15.3733 14.54 15 15 15H15.8333C16.2933 15 16.6667 15.3733 16.6667 15.8333V16.6667ZM10.4167 12.0833C9.72583 12.0833 9.16667 11.5242 9.16667 10.8333V8.75C9.16667 8.05917 9.72583 7.5 10.4167 7.5H13.75C14.4408 7.5 15 8.05917 15 8.75C15 9.44083 14.4408 10 13.75 10H11.6667V10.8333C11.6667 11.5242 11.1075 12.0833 10.4167 12.0833Z" fill="white" />
+                                            </svg>
                                         </div>
-                                    ))}
+                                        <h3 className="arch-details-title">View Architecture Details</h3>
+                                    </div>
+
+                                    <div className="arch-details-list">
+                                        {archDetails.map((detail, idx) => (
+                                            <div key={idx} className="arch-detail-row">
+                                                <strong className="arch-detail-num">{detail.step}</strong>
+                                                <p className="arch-detail-desc">{detail.desc}</p>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </section>
 
                         {/* SECTION 05: Step-by-Step Implementation (Screenshot 5) */}
@@ -623,19 +660,21 @@ const Projectsdetails = () => {
                             </div>
 
                             <div className="accordion-group">
-                                {IMPLEMENTATION_STEPS.map((step) => {
-                                    const isOpen = openStep === step.id;
+                                {implSteps.map((step, idx) => {
+                                    const stepKey = step.id || `step-${idx + 1}`;
+                                    const isOpen = openStep === stepKey;
+                                    const displayNum = step.num || (idx + 1 < 10 ? `0${idx + 1}` : `${idx + 1}`);
                                     return (
-                                        <div key={step.id} className={`accordion-card ${isOpen ? "open" : ""}`}>
+                                        <div key={stepKey} className={`accordion-card ${isOpen ? "open" : ""}`}>
                                             <button
                                                 type="button"
                                                 className="accordion-header implementation-accordion-header"
-                                                onClick={() => setOpenStep(isOpen ? null : step.id)}
+                                                onClick={() => setOpenStep(isOpen ? null : stepKey)}
                                                 aria-expanded={isOpen}
-                                                aria-controls={`step-panel-${step.id}`}
+                                                aria-controls={`step-panel-${stepKey}`}
                                             >
                                                 <span className={`accordion-badge ${isOpen ? "active-badge" : "default-badge"}`}>
-                                                    {step.num}
+                                                    {displayNum}
                                                 </span>
                                                 <div className="accordion-title-block">
                                                     <span className="accordion-title">{step.title}</span>
@@ -647,30 +686,38 @@ const Projectsdetails = () => {
                                             </button>
 
                                             {isOpen && (
-                                                <div id={`step-panel-${step.id}`} className="accordion-body step-body">
-                                                    <div className="step-field">
-                                                        <span className="step-field-label">What you'll do</span>
-                                                        <p className="step-field-text">{step.whatYouDo}</p>
-                                                    </div>
-
-                                                    <div className="step-field">
-                                                        <span className="step-field-label">Why it matters</span>
-                                                        <p className="step-field-text">{step.matters}</p>
-                                                    </div>
-
-                                                    <div className="step-field">
-                                                        <span className="step-field-label">Expected output</span>
-                                                        <p className="step-field-text">{step.output}</p>
-                                                    </div>
-
-                                                    <div className="step-field">
-                                                        <span className="step-field-label">Tools used</span>
-                                                        <div className="step-tools-list">
-                                                            {step.tools.map((tool, tIdx) => (
-                                                                <span key={tIdx} className="step-tool-badge">{tool}</span>
-                                                            ))}
+                                                <div id={`step-panel-${stepKey}`} className="accordion-body step-body">
+                                                    {step.whatYouDo && (
+                                                        <div className="step-field">
+                                                            <span className="step-field-label">What you'll do</span>
+                                                            <p className="step-field-text">{step.whatYouDo}</p>
                                                         </div>
-                                                    </div>
+                                                    )}
+
+                                                    {step.matters && (
+                                                        <div className="step-field">
+                                                            <span className="step-field-label">Why it matters</span>
+                                                            <p className="step-field-text">{step.matters}</p>
+                                                        </div>
+                                                    )}
+
+                                                    {step.output && (
+                                                        <div className="step-field">
+                                                            <span className="step-field-label">Expected output</span>
+                                                            <p className="step-field-text">{step.output}</p>
+                                                        </div>
+                                                    )}
+
+                                                    {step.tools && step.tools.length > 0 && (
+                                                        <div className="step-field">
+                                                            <span className="step-field-label">Tools used</span>
+                                                            <div className="step-tools-list">
+                                                                {step.tools.map((tool, tIdx) => (
+                                                                    <span key={tIdx} className="step-tool-badge">{tool}</span>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
 
                                                     {step.command && (
                                                         <div className="step-code-wrapper">
@@ -702,7 +749,7 @@ const Projectsdetails = () => {
                             </div>
 
                             <div className="tech-badges-grid">
-                                {TECHNOLOGIES_DATA.map((tech, idx) => (
+                                {techData.map((tech, idx) => (
                                     <div key={idx} className="tech-badge-card">
                                         <span className="tech-name">{tech.name}</span>
                                         <span className="tech-sub">{tech.desc}</span>
@@ -719,7 +766,7 @@ const Projectsdetails = () => {
                             </div>
 
                             <div className="dataset-cards-grid">
-                                {DATASET_RESOURCES.map((ds, idx) => (
+                                {datasets.map((ds, idx) => (
                                     <div key={idx} className="dataset-resource-card">
                                         <h3 className="dataset-source-title">{ds.title}</h3>
                                         <p className="dataset-source-desc">{ds.desc}</p>
@@ -749,7 +796,7 @@ const Projectsdetails = () => {
                                 <div className="learning-card">
                                     <h3 className="learning-card-title">Technical Learnings</h3>
                                     <ul className="learning-list">
-                                        {TECHNICAL_LEARNINGS.map((item, idx) => (
+                                        {technicalLearnings.map((item, idx) => (
                                             <li key={idx}>
                                                 <span className="check-bullet-circle"><FiCheck /></span>
                                                 <span>{item}</span>
@@ -762,7 +809,7 @@ const Projectsdetails = () => {
                                 <div className="learning-card">
                                     <h3 className="learning-card-title">Practical Learnings</h3>
                                     <ul className="learning-list">
-                                        {PRACTICAL_LEARNINGS.map((item, idx) => (
+                                        {practicalLearnings.map((item, idx) => (
                                             <li key={idx}>
                                                 <span className="check-bullet-circle"><FiCheck /></span>
                                                 <span>{item}</span>
@@ -781,19 +828,21 @@ const Projectsdetails = () => {
                             </div>
 
                             <div className="accordion-group">
-                                {COMMON_MISTAKES.map((mistake) => {
-                                    const isOpen = openMistake === mistake.id;
+                                {commonMistakes.map((mistake, idx) => {
+                                    const mistakeKey = mistake.id || `mistake-${idx + 1}`;
+                                    const isOpen = openMistake === mistakeKey;
+                                    const displayNum = mistake.num || (idx + 1 < 10 ? `0${idx + 1}` : `${idx + 1}`);
                                     return (
-                                        <div key={mistake.id} className={`accordion-card ${isOpen ? "open" : ""}`}>
+                                        <div key={mistakeKey} className={`accordion-card ${isOpen ? "open" : ""}`}>
                                             <button
                                                 type="button"
                                                 className="accordion-header"
-                                                onClick={() => setOpenMistake(isOpen ? null : mistake.id)}
+                                                onClick={() => setOpenMistake(isOpen ? null : mistakeKey)}
                                                 aria-expanded={isOpen}
-                                                aria-controls={`mistake-panel-${mistake.id}`}
+                                                aria-controls={`mistake-panel-${mistakeKey}`}
                                             >
                                                 <span className={`accordion-badge ${isOpen ? "active-badge" : "default-badge"}`}>
-                                                    {mistake.num}
+                                                    {displayNum}
                                                 </span>
                                                 <span className="accordion-title">{mistake.title}</span>
                                                 <span className="accordion-chevron">
@@ -802,19 +851,25 @@ const Projectsdetails = () => {
                                             </button>
 
                                             {isOpen && (
-                                                <div id={`mistake-panel-${mistake.id}`} className="accordion-body mistake-body">
-                                                    <div className="mistake-field">
-                                                        <span className="mistake-label">The mistake</span>
-                                                        <p className="mistake-text">{mistake.mistake}</p>
-                                                    </div>
-                                                    <div className="mistake-field">
-                                                        <span className="mistake-label">Why it happens</span>
-                                                        <p className="mistake-text">{mistake.why}</p>
-                                                    </div>
-                                                    <div className="mistake-field">
-                                                        <span className="mistake-label">How to avoid it</span>
-                                                        <p className="mistake-text">{mistake.avoid}</p>
-                                                    </div>
+                                                <div id={`mistake-panel-${mistakeKey}`} className="accordion-body mistake-body">
+                                                    {mistake.mistake && (
+                                                        <div className="mistake-field">
+                                                            <span className="mistake-label">The mistake</span>
+                                                            <p className="mistake-text">{mistake.mistake}</p>
+                                                        </div>
+                                                    )}
+                                                    {mistake.why && (
+                                                        <div className="mistake-field">
+                                                            <span className="mistake-label">Why it happens</span>
+                                                            <p className="mistake-text">{mistake.why}</p>
+                                                        </div>
+                                                    )}
+                                                    {mistake.avoid && (
+                                                        <div className="mistake-field">
+                                                            <span className="mistake-label">How to avoid it</span>
+                                                            <p className="mistake-text">{mistake.avoid}</p>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             )}
                                         </div>

@@ -17,6 +17,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import SearchIcon from "@mui/icons-material/Search";
 import WorkIcon from "@mui/icons-material/Work";
+import MenuBookIcon from "@mui/icons-material/MenuBook";
 
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -122,14 +123,24 @@ const ListProject = () => {
           </p>
         </div>
 
-        <Link
-          to="/admin/projects/add"
-          className="admin-btn-primary d-inline-flex align-items-center gap-1"
-          style={{ textDecoration: "none" }}
-        >
-          <AddIcon sx={{ fontSize: 18 }} />
-          <span>Add Project</span>
-        </Link>
+        <div className="d-flex align-items-center gap-2">
+          <Link
+            to="/admin/projects/details"
+            className="admin-btn-secondary d-inline-flex align-items-center gap-1"
+            style={{ textDecoration: "none" }}
+          >
+            <MenuBookIcon sx={{ fontSize: 18 }} />
+            <span>Project Details Page</span>
+          </Link>
+          <Link
+            to="/admin/projects/add"
+            className="admin-btn-primary d-inline-flex align-items-center gap-1"
+            style={{ textDecoration: "none" }}
+          >
+            <AddIcon sx={{ fontSize: 18 }} />
+            <span>Add Project</span>
+          </Link>
+        </div>
       </div>
 
       {/* ── Table Container Card ── */}
@@ -200,7 +211,7 @@ const ListProject = () => {
                 <th>Title</th>
                 <th>Category</th>
                 <th>Published</th>
-                <th style={{ width: 140, textAlign: "right" }}>Actions</th>
+                <th style={{ width: 175, textAlign: "right" }}>Actions</th>
               </tr>
             </thead>
 
@@ -272,13 +283,28 @@ const ListProject = () => {
                             className="admin-action-btn"
                             onClick={() =>
                               window.open(
-                                `https://prephq.theiotacademy.co/projects/${item.post_name}`,
+                                `/projects-details/${item.post_name || "customer-churn-prediction-using-machine-learning"}`,
                                 "_blank"
                               )
                             }
                             aria-label="View project"
                           >
                             <VisibilityIcon sx={{ fontSize: 16 }} />
+                          </button>
+                        </Tooltip>
+
+                        {/* Edit curriculum details */}
+                        <Tooltip title="Edit Curriculum & Details" arrow>
+                          <button
+                            type="button"
+                            className="admin-action-btn"
+                            style={{ color: "#0B4565", backgroundColor: "#EBF3F7" }}
+                            onClick={() =>
+                              navigate(`/admin/projects/details/${item.post_name || item.ID}`)
+                            }
+                            aria-label="Edit project details"
+                          >
+                            <MenuBookIcon sx={{ fontSize: 16 }} />
                           </button>
                         </Tooltip>
 

@@ -1,0 +1,1157 @@
+/* =========================================================
+   BROCHURE CONFIRMATION PAGE STYLING
+   Pixel-accurate recreation matching reference design
+   ========================================================= */
+
+:root {
+  --tia-orange: #f37021;
+  --tia-orange-hover: #e05e10;
+  --tia-navy: #0b2545;
+  --tia-navy-dark: #071c36;
+  --tia-navy-light: #163863;
+  --tia-page-bg: #ebf0f7;
+  --tia-text-dark: #0f172a;
+  --tia-text-muted: #475569;
+  --tia-card-border: #e2e8f0;
+  --tia-viewer-bg: #2d3748;
+}
+
+.tia-brochure-page-wrapper {
+  min-height: 100vh;
+  background-color: var(--tia-page-bg);
+  font-family: Arial, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: var(--tia-text-dark);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* =========================================================
+   1. TOP ANNOUNCEMENT BAR
+   ========================================================= */
+.tia-announcement-bar {
+  display: flex;
+  align-items: center;
+  min-height: 38px;
+  background-color: var(--tia-navy);
+  color: #ffffff;
+  font-size: 13px;
+  z-index: 50;
+  width: 100%;
+}
+
+.tia-announcement-left {
+  background-color: var(--tia-orange);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px 0 24px;
+  height: 38px;
+  flex-shrink: 0;
+}
+
+.tia-follow-label {
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+
+.tia-social-icons {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.tia-social-circle {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: var(--tia-navy);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.tia-social-circle:hover {
+  transform: translateY(-1px) scale(1.08);
+  background-color: #000000;
+  color: #ffffff;
+}
+
+.tia-announcement-right {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  gap: 16px;
+  overflow: hidden;
+}
+
+.tia-promo-message {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tia-promo-text {
+  font-weight: 500;
+  color: #f1f5f9;
+  font-size: 12.5px;
+}
+
+.tia-register-pill-btn {
+  background-color: #ffffff;
+  color: #0f172a;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 3px 12px;
+  border-radius: 9999px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  white-space: nowrap;
+}
+
+.tia-register-pill-btn:hover {
+  background-color: #fef3c7;
+  color: #0f172a;
+  transform: scale(1.02);
+}
+
+.tia-scholarship-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #f8fafc;
+  white-space: nowrap;
+}
+
+.tia-trophy-emoji {
+  font-size: 13px;
+}
+
+/* =========================================================
+   2. MAIN NAVIGATION BAR
+   ========================================================= */
+.tia-brochure-navbar {
+  background-color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  width: 100%;
+}
+
+.tia-navbar-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tia-nav-brand-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.tia-logo-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.tia-brand-logo {
+  height: 44px;
+  width: auto;
+  object-fit: contain;
+}
+
+.tia-forbes-award {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-left: 6px;
+}
+
+.tia-award-trophy {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+}
+
+.tia-award-badge {
+  height: 30px;
+  width: auto;
+  object-fit: contain;
+}
+
+.tia-mobile-toggle-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: #0f172a;
+  cursor: pointer;
+  padding: 6px;
+}
+
+.tia-nav-menu {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+.tia-nav-links {
+  display: flex;
+  align-items: center;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 22px;
+}
+
+.tia-nav-item {
+  position: relative;
+}
+
+.tia-nav-link {
+  color: #334155;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.15s ease;
+  background: none;
+  border: none;
+  padding: 6px 0;
+  cursor: pointer;
+}
+
+.tia-nav-link:hover {
+  color: var(--tia-orange);
+}
+
+.tia-chevron-icon {
+  transition: transform 0.2s ease;
+}
+
+.tia-chevron-rotate {
+  transform: rotate(180deg);
+}
+
+.tia-new-badge {
+  background-color: #fee2e2;
+  color: #ef4444;
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 9999px;
+  margin-left: 4px;
+  line-height: 1.2;
+}
+
+.tia-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  padding: 8px 0;
+  min-width: 260px;
+  list-style: none;
+  margin: 6px 0 0 0;
+  z-index: 100;
+}
+
+.tia-dropdown-item a {
+  display: block;
+  padding: 8px 16px;
+  font-size: 13.5px;
+  color: #334155;
+  text-decoration: none;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.tia-dropdown-item a:hover {
+  background-color: #fff7ed;
+  color: var(--tia-orange);
+}
+
+.tia-nav-actions {
+  display: flex;
+  align-items: center;
+}
+
+.tia-login-pill-btn {
+  background-color: var(--tia-orange);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 24px;
+  border-radius: 9999px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 6px rgba(243, 112, 33, 0.25);
+}
+
+.tia-login-pill-btn:hover {
+  background-color: var(--tia-orange-hover);
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(243, 112, 33, 0.35);
+}
+
+.tia-login-icon {
+  color: #ffffff;
+}
+
+/* =========================================================
+   3. MAIN CONTENT CONTAINER
+   ========================================================= */
+.tia-confirmation-main {
+  flex: 1;
+  padding: 30px 16px 40px 16px;
+  display: flex;
+  justify-content: center;
+}
+
+.tia-confirmation-container {
+  width: 100%;
+  max-width: 830px;
+  margin: 0 auto;
+}
+
+/* Heading */
+.tia-confirmation-header {
+  margin-bottom: 24px;
+}
+
+.tia-main-title {
+  font-size: 25px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.3px;
+  margin: 0 0 8px 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tia-checkmark-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+}
+
+.tia-checkmark-svg {
+  width: 24px;
+  height: 24px;
+}
+
+.tia-subtitle {
+  font-size: 14.5px;
+  color: var(--tia-text-muted);
+  margin: 0;
+  line-height: 1.45;
+}
+
+/* Two-column layout */
+.tia-two-column-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.tia-column-heading {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 10px 0;
+  letter-spacing: -0.2px;
+}
+
+/* =========================================================
+   4. LEFT COLUMN: WHAT'S NEXT? CARD
+   ========================================================= */
+.tia-details-column {
+  flex: 0 0 280px;
+  width: 280px;
+}
+
+.tia-brochure-card {
+  background-color: #ffffff;
+  border-radius: 14px;
+  border: 1px solid var(--tia-card-border);
+  box-shadow: 0 3px 14px rgba(0, 0, 0, 0.05);
+  padding: 22px 18px 20px 18px;
+  display: flex;
+  flex-direction: column;
+}
+
+.tia-program-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.35;
+  margin: 0 0 14px 0;
+}
+
+.tia-metadata-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 22px;
+}
+
+.tia-metadata-item {
+  font-size: 13.5px;
+  color: #334155;
+  margin: 0;
+}
+
+.tia-metadata-item strong {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.tia-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.tia-btn {
+  width: 100%;
+  height: 42px;
+  border-radius: 9999px;
+  font-size: 14px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: none;
+  outline: none;
+  user-select: none;
+  text-decoration: none;
+}
+
+.tia-btn:focus-visible {
+  outline: 2px solid var(--tia-orange);
+  outline-offset: 2px;
+}
+
+.tia-btn-download {
+  background: linear-gradient(135deg, #f37021 0%, #e65c00 100%);
+  color: #ffffff;
+  gap: 8px;
+  box-shadow: 0 3px 8px rgba(243, 112, 33, 0.28);
+}
+
+.tia-btn-download:hover {
+  background: linear-gradient(135deg, #f57c32 0%, #eb6408 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 12px rgba(243, 112, 33, 0.38);
+}
+
+.tia-btn-icon {
+  stroke-width: 2.2;
+}
+
+.tia-btn-return-home {
+  background-color: var(--tia-navy);
+  color: #ffffff;
+}
+
+.tia-btn-return-home:hover {
+  background-color: var(--tia-navy-light);
+  transform: translateY(-1px);
+}
+
+.tia-btn-view-programs {
+  background-color: #ffffff;
+  color: var(--tia-navy);
+  border: 1.5px solid var(--tia-navy);
+}
+
+.tia-btn-view-programs:hover {
+  background-color: #f1f5f9;
+  transform: translateY(-1px);
+}
+
+/* =========================================================
+   5. RIGHT COLUMN: BROCHURE PREVIEW
+   ========================================================= */
+.tia-preview-column {
+  flex: 1;
+  min-width: 0;
+}
+
+.tia-pdf-preview-card {
+  background-color: #ffffff;
+  border-radius: 14px;
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 3px 14px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Toolbar */
+.tia-pdf-toolbar {
+  height: 42px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  font-size: 13px;
+  user-select: none;
+}
+
+.tia-toolbar-title {
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 13.5px;
+}
+
+.tia-pdf-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tia-toolbar-action {
+  background: none;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #334155;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.tia-toolbar-action:hover {
+  color: var(--tia-orange);
+  background-color: #f8fafc;
+}
+
+.tia-toolbar-icon {
+  stroke-width: 1.8;
+}
+
+.tia-toolbar-separator {
+  width: 1px;
+  height: 14px;
+  background-color: #cbd5e1;
+  margin: 0 2px;
+}
+
+.tia-page-indicator {
+  font-size: 12.5px;
+  color: #475569;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Viewport */
+.tia-pdf-viewport {
+  background-color: var(--tia-viewer-bg);
+  height: 235px;
+  padding: 12px;
+  overflow-y: auto;
+  overflow-x: auto;
+  position: relative;
+  scroll-behavior: smooth;
+}
+
+/* Custom Scrollbar */
+.tia-pdf-viewport::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+.tia-pdf-viewport::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.tia-pdf-viewport::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.28);
+  border-radius: 4px;
+}
+
+.tia-pdf-viewport::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.45);
+}
+
+/* 2-Page Spread */
+.tia-pdf-spread-container {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+  justify-content: center;
+  min-width: 480px;
+}
+
+.tia-mock-pdf-page {
+  flex: 1;
+  min-width: 225px;
+  max-width: 250px;
+  background-color: #ffffff;
+  border-radius: 3px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-size: 7.5px;
+  line-height: 1.25;
+  color: #1e293b;
+}
+
+/* Page 1 (Left) */
+.tia-pdf-page-left {
+  padding: 10px 10px 8px 10px;
+}
+
+.tia-page-header-logos {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  margin-bottom: 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.tia-page-iot-logo {
+  height: 18px;
+  width: auto;
+}
+
+.tia-page-trophy {
+  height: 16px;
+  width: auto;
+}
+
+.tia-page-eict-wrap {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.tia-page-eict-logo {
+  height: 14px;
+  width: auto;
+}
+
+.tia-page-eict-text {
+  font-size: 5.5px;
+  font-weight: 700;
+  color: var(--tia-navy);
+  line-height: 1.1;
+}
+
+.tia-page-intro-text {
+  font-size: 6.5px;
+  color: #475569;
+  line-height: 1.25;
+  margin: 0 0 6px 0;
+}
+
+.tia-page-badge-orange {
+  display: inline-block;
+  align-self: flex-start;
+  background-color: #f59e0b;
+  color: #ffffff;
+  font-size: 6.8px;
+  font-weight: 700;
+  padding: 1.5px 6px;
+  border-radius: 3px;
+  margin-bottom: 5px;
+  text-transform: capitalize;
+}
+
+.tia-modules-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+  margin-bottom: 6px;
+}
+
+.tia-module-box {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 3px;
+  padding: 4px 5px;
+}
+
+.tia-module-box h4 {
+  font-size: 6.8px;
+  font-weight: 700;
+  color: var(--tia-navy);
+  margin: 0 0 3px 0;
+}
+
+.tia-module-box ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tia-module-box li {
+  font-size: 5.8px;
+  color: #475569;
+  margin-bottom: 1.5px;
+  position: relative;
+  padding-left: 6px;
+  line-height: 1.2;
+}
+
+.tia-module-box li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: #94a3b8;
+}
+
+.tia-page-footer-bar {
+  margin-top: auto;
+  background-color: var(--tia-navy);
+  color: #ffffff;
+  border-radius: 2px;
+  padding: 3px 5px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 5.5px;
+}
+
+.tia-doc-tag {
+  white-space: nowrap;
+}
+
+/* Page 2 (Right) */
+.tia-pdf-page-right {
+  padding: 0 0 8px 0;
+}
+
+.tia-page-navy-banner {
+  background-color: var(--tia-navy);
+  color: #ffffff;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+}
+
+.tia-banner-logos {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.tia-brand-name-pill {
+  background: rgba(255, 255, 255, 0.15);
+  padding: 1.5px 5px;
+  border-radius: 2px;
+  font-size: 5.5px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.tia-banner-eict {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 5.5px;
+  font-weight: 600;
+  line-height: 1.1;
+  color: #e2e8f0;
+}
+
+.tia-banner-eict-logo {
+  height: 12px;
+  width: auto;
+  filter: brightness(0) invert(1);
+}
+
+.tia-banner-title {
+  font-size: 8.5px;
+  font-weight: 800;
+  color: #fbbf24;
+  line-height: 1.2;
+  margin: 0 0 3px 0;
+}
+
+.tia-banner-sub {
+  font-size: 5.8px;
+  color: #cbd5e1;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.tia-pdf-page-right .tia-page-badge-orange {
+  margin-left: 10px;
+}
+
+.tia-features-bullet-list {
+  list-style: none;
+  margin: 0 10px 6px 10px;
+  padding: 0;
+}
+
+.tia-features-bullet-list li {
+  font-size: 6px;
+  color: #334155;
+  margin-bottom: 2px;
+  position: relative;
+  padding-left: 7px;
+  line-height: 1.2;
+}
+
+.tia-features-bullet-list li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: #f59e0b;
+  font-weight: bold;
+}
+
+.tia-highlights-card {
+  margin: 0 10px;
+  background-color: var(--tia-navy);
+  color: #ffffff;
+  border-radius: 3px;
+  padding: 5px 6px;
+  font-size: 5.6px;
+  line-height: 1.2;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.tia-highlights-card p {
+  margin: 0;
+}
+
+.tia-highlights-card strong {
+  color: #fbbf24;
+}
+
+/* Extra pages stack below spread */
+.tia-extra-pages-stack {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+
+.tia-pdf-additional-page-wrapper {
+  max-width: 480px;
+  width: 100%;
+  background: #ffffff;
+  border-radius: 3px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+.tia-additional-page-img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* =========================================================
+   6. BOTTOM SUPPORT FOOTER
+   ========================================================= */
+.tia-support-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13.5px;
+  color: #334155;
+  padding-top: 6px;
+}
+
+.tia-contact-link {
+  color: #1e293b;
+  font-weight: 500;
+  text-decoration: underline;
+  transition: color 0.15s ease;
+}
+
+.tia-contact-link:hover {
+  color: var(--tia-orange);
+}
+
+.tia-share-action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #1e293b;
+  font-size: 13.5px;
+  font-weight: 500;
+  padding: 0;
+}
+
+.tia-share-action-btn:hover .tia-share-text {
+  color: var(--tia-orange);
+}
+
+.tia-share-icon {
+  color: var(--tia-navy);
+}
+
+.tia-share-text {
+  text-decoration: underline;
+  transition: color 0.15s ease;
+}
+
+/* =========================================================
+   7. FLOATING WHATSAPP BUTTON
+   ========================================================= */
+.tia-whatsapp-floating-btn {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background-color: #25d366;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(37, 211, 102, 0.45);
+  z-index: 1000;
+  text-decoration: none;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+}
+
+.tia-whatsapp-floating-btn:hover {
+  transform: scale(1.08) translateY(-2px);
+  box-shadow: 0 6px 18px rgba(37, 211, 102, 0.55);
+  color: #ffffff;
+}
+
+.tia-whatsapp-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tia-whatsapp-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background-color: #ef4444;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* =========================================================
+   8. RESPONSIVE DESIGN (TABLET & MOBILE)
+   ========================================================= */
+@media (max-width: 860px) {
+  .tia-two-column-layout {
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .tia-details-column {
+    width: 100%;
+    flex: none;
+  }
+
+  .tia-preview-column {
+    width: 100%;
+  }
+
+  .tia-pdf-viewport {
+    height: 270px;
+  }
+
+  .tia-announcement-bar {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .tia-announcement-left {
+    width: 100%;
+    justify-content: center;
+    padding: 6px 16px;
+    height: auto;
+  }
+
+  .tia-announcement-right {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 6px 16px;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 768px) {
+  .tia-navbar-inner {
+    height: 56px;
+    padding: 0 16px;
+  }
+
+  .tia-mobile-toggle-btn {
+    display: block;
+  }
+
+  .tia-nav-menu {
+    position: fixed;
+    top: 56px;
+    left: 0;
+    right: 0;
+    background-color: #ffffff;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 20px 24px 28px 24px;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+    display: none;
+    gap: 16px;
+    max-height: calc(100vh - 56px);
+    overflow-y: auto;
+  }
+
+  .tia-nav-menu.tia-nav-menu-open {
+    display: flex;
+  }
+
+  .tia-nav-links {
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    gap: 12px;
+  }
+
+  .tia-dropdown-menu {
+    position: static;
+    box-shadow: none;
+    border: none;
+    background-color: #f8fafc;
+    margin: 4px 0;
+    padding: 4px 0;
+    width: 100%;
+  }
+
+  .tia-nav-actions {
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  .tia-login-pill-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .tia-main-title {
+    font-size: 21px;
+  }
+
+  .tia-pdf-spread-container {
+    flex-direction: column;
+    align-items: center;
+    min-width: 0;
+  }
+
+  .tia-mock-pdf-page {
+    max-width: 100%;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .tia-pdf-viewport {
+    height: 320px;
+  }
+}
+
+@media (max-width: 480px) {
+  .tia-confirmation-main {
+    padding: 20px 12px 30px 12px;
+  }
+
+  .tia-main-title {
+    font-size: 19px;
+  }
+
+  .tia-subtitle {
+    font-size: 13.5px;
+  }
+
+  .tia-whatsapp-floating-btn {
+    bottom: 16px;
+    left: 16px;
+    width: 46px;
+    height: 46px;
+  }
+
+  .tia-whatsapp-icon-wrap svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .tia-pdf-toolbar {
+    padding: 0 10px;
+  }
+
+  .tia-pdf-toolbar-right {
+    gap: 8px;
+  }
+
+  .tia-toolbar-action span {
+    display: none;
+  }
+
+  .tia-toolbar-action {
+    padding: 4px;
+  }
+}
