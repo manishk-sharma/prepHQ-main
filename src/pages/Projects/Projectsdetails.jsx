@@ -1386,9 +1386,6 @@ const Projectsdetails = () => {
                                             </div>
                                         )}
                                     </div>
-                                    <div className="widget-scrollbar-track" aria-hidden="true">
-                                        <div className="widget-scrollbar-thumb" />
-                                    </div>
                                 </div>
                             </div>
 
@@ -1405,9 +1402,6 @@ const Projectsdetails = () => {
                                             </div>
                                         )}
                                     </div>
-                                    <div className="widget-scrollbar-track" aria-hidden="true">
-                                        <div className="widget-scrollbar-thumb" />
-                                    </div>
                                 </div>
                             </div>
 
@@ -1423,9 +1417,6 @@ const Projectsdetails = () => {
                                                 No mini guides available.
                                             </div>
                                         )}
-                                    </div>
-                                    <div className="widget-scrollbar-track" aria-hidden="true">
-                                        <div className="widget-scrollbar-thumb" />
                                     </div>
                                 </div>
                             </div>

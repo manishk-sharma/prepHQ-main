@@ -1199,6 +1199,43 @@
   gap: 8px;
   flex: 1;
   min-width: 0;
+  max-height: 242px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 6px;
+}
+
+/* Firefox standard scrollbar */
+@supports not selector(::-webkit-scrollbar) {
+  .widget-card-list {
+    scrollbar-width: thin;
+    scrollbar-color: #52c496 #074568;
+  }
+}
+
+/* Custom Navy Pill Track with Mint Thumb for WebKit (Chrome, Edge, Safari) */
+.widget-card-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.widget-card-list::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.widget-card-list::-webkit-scrollbar-track {
+  background-color: #074568;
+  border-radius: 9999px;
+}
+
+.widget-card-list::-webkit-scrollbar-thumb {
+  background-color: #52c496;
+  border-radius: 9999px;
+}
+
+.widget-card-list::-webkit-scrollbar-thumb:hover {
+  background-color: #3bb282;
 }
 
 .widget-item-card {
@@ -1209,6 +1246,9 @@
   text-decoration: none;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
+  min-height: 72px;
+  box-sizing: border-box;
   gap: 6px;
   transition: all 0.2s ease;
 }
@@ -1250,26 +1290,6 @@
 .widget-open-icon {
   display: inline-block;
   vertical-align: middle;
-  flex-shrink: 0;
-}
-
-/* Custom Navy Pill Track with Mint Thumb */
-.widget-scrollbar-track {
-  width: 10px;
-  background-color: #074568;
-  border-radius: 9999px;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  padding: 2px;
-  flex-shrink: 0;
-}
-
-.widget-scrollbar-thumb {
-  width: 100%;
-  height: 38px;
-  background-color: #52c496;
-  border-radius: 9999px;
   flex-shrink: 0;
 }
 
