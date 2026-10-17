@@ -10,7 +10,7 @@ import ExpandMore from "@mui/icons-material/ExpandMore";
 import AddIcon from "@mui/icons-material/Add";
 import ListIcon from "@mui/icons-material/List";
 import EditIcon from "@mui/icons-material/Edit";
-import { Link, NavLink, useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { LuPanelLeftClose, LuPanelRightClose, LuChevronRight } from "react-icons/lu";
 
 export default function AdminSidebar({
@@ -23,24 +23,75 @@ export default function AdminSidebar({
   ...props
 }) {
   const location = useLocation();
-  const [openMenus, setOpenMenus] = React.useState({});
 
-  // Automatically keep parent menu open if current path is in children
+  // Route matching helper: returns true ONLY if the target route is currently active
+  const isRouteActive = React.useCallback(
+    (targetPath) => {
+      if (!targetPath) return false;
+      const current = location.pathname.replace(/\/+$/, "") || "/";
+      const target = targetPath.replace(/\/+$/, "") || "/";
+
+      // Dashboard special handling: match ONLY /admin or /admin/dashboard
+      if (target === "/admin") {
+        return current === "/admin" || current === "/admin/dashboard";
+      }
+
+      // Exact match or sub-path match (e.g. /admin/projects/details matches /admin/projects/details/customer-churn)
+      return current === target || current.startsWith(`${target}/`);
+    },
+    [location.pathname]
+  );
+
+  // Parent active detection: returns true if any child route is active or matches the section prefix
+  const isParentActive = React.useCallback(
+    (menu) => {
+      if (!menu.children) return false;
+      const childMatch = menu.children.some((child) => isRouteActive(child.to));
+      if (childMatch) return true;
+
+      const current = location.pathname.replace(/\/+$/, "");
+      if (menu.key && current.startsWith(`/admin/${menu.key}`)) {
+        return true;
+      }
+      return false;
+    },
+    [isRouteActive, location.pathname]
+  );
+
+  // Initialize and synchronize openMenus with active section
+  const [openMenus, setOpenMenus] = React.useState(() => {
+    const initial = {};
+    if (typeof window !== "undefined") {
+      const current = window.location.pathname.replace(/\/+$/, "");
+      menuConfig?.forEach((item) => {
+        if (item.children) {
+          const matchesChild = item.children.some(
+            (c) => current === c.to || current.startsWith(`${c.to}/`)
+          );
+          const matchesParent = item.key && current.startsWith(`/admin/${item.key}`);
+          if (matchesChild || matchesParent) {
+            initial[item.key] = true;
+          }
+        }
+      });
+    }
+    return initial;
+  });
+
+  // Automatically keep parent menu open if current path is in children or matches section
   React.useEffect(() => {
     menuConfig?.forEach((item) => {
-      if (item.children) {
-        const hasActiveChild = item.children.some((child) =>
-          location.pathname.startsWith(child.to)
-        );
-        if (hasActiveChild) {
-          setOpenMenus((prev) => ({ ...prev, [item.key]: true }));
-        }
+      if (item.children && isParentActive(item)) {
+        setOpenMenus((prev) => ({ ...prev, [item.key]: true }));
       }
     });
-  }, [location.pathname, menuConfig]);
+  }, [isParentActive, menuConfig]);
+
+  const isCompact = !isSidebarOpen && !isMobile;
+  const sidebarWidth = isMobile ? 280 : isSidebarOpen ? 260 : 72;
 
   const handleToggleMenu = (key) => {
-    if (!isSidebarOpen && !isMobile) {
+    if (isCompact) {
       setIsSidebarOpen(true);
       setOpenMenus((prev) => ({ ...prev, [key]: true }));
       return;
@@ -62,14 +113,12 @@ export default function AdminSidebar({
     return <LuChevronRight size={14} />;
   };
 
-  const sidebarWidth = isMobile ? 280 : isSidebarOpen ? 260 : 72;
-
   return (
     <nav
       {...props}
       className={`admin-sidebar-nav ${className} ${
         isMobile && isSidebarOpen ? "mobile-open" : ""
-      }`}
+      } ${isCompact ? "compact" : ""}`}
       style={{
         width: sidebarWidth,
         overflow: "hidden",
@@ -77,14 +126,8 @@ export default function AdminSidebar({
       aria-label="Admin Navigation"
     >
       {/* ── Top Header Brand ── */}
-      <div
-        className="admin-sidebar-header"
-        style={{
-          justifyContent: !isSidebarOpen && !isMobile ? "center" : "space-between",
-          padding: !isSidebarOpen && !isMobile ? "0 8px" : "0 18px",
-        }}
-      >
-        {(isSidebarOpen || isMobile) && (
+      <div className="admin-sidebar-header">
+        {!isCompact && (
           <Link
             to="/admin"
             className="admin-sidebar-brand"
@@ -122,33 +165,20 @@ export default function AdminSidebar({
           {menuConfig.map((menu) => {
             /* 1. SIMPLE MENU (No children) */
             if (menu.type === "A" || !menu.children) {
-              const isActive =
-                menu.to === "/admin"
-                  ? location.pathname === "/admin" || location.pathname === "/admin/dashboard"
-                  : location.pathname.startsWith(menu.to);
+              const isActive = isRouteActive(menu.to);
 
               const navButton = (
                 <ListItemButton
-                  component={NavLink}
+                  component={Link}
                   to={menu.to}
                   onClick={handleItemClick}
                   className={`admin-nav-item ${isActive ? "active" : ""}`}
-                  sx={{
-                    justifyContent: !isSidebarOpen && !isMobile ? "center" : "flex-start",
-                    px: !isSidebarOpen && !isMobile ? 1 : 2,
-                  }}
                 >
-                  <ListItemIcon
-                    className="admin-nav-icon"
-                    sx={{
-                      minWidth: !isSidebarOpen && !isMobile ? "unset" : 38,
-                      justifyContent: "center",
-                    }}
-                  >
+                  <ListItemIcon className="admin-nav-icon">
                     {menu.icon}
                   </ListItemIcon>
 
-                  {(isSidebarOpen || isMobile) && (
+                  {!isCompact && (
                     <ListItemText
                       primary={menu.label}
                       primaryTypographyProps={{
@@ -161,7 +191,7 @@ export default function AdminSidebar({
 
               return (
                 <li key={menu.key} style={{ listStyle: "none" }}>
-                  {!isSidebarOpen && !isMobile ? (
+                  {isCompact ? (
                     <Tooltip title={menu.label} placement="right" arrow>
                       {navButton}
                     </Tooltip>
@@ -174,32 +204,20 @@ export default function AdminSidebar({
 
             /* 2. NESTED MENU (With expandable children) */
             const isMenuOpen = !!openMenus[menu.key];
-            const hasActiveChild = menu.children.some((child) =>
-              location.pathname.startsWith(child.to)
-            );
+            const hasActiveChild = isParentActive(menu);
+            // In compact (collapsed) mode, highlight the parent icon if a child is active
+            const isParentHighlighted = isCompact && hasActiveChild;
 
             const parentButton = (
               <ListItemButton
                 onClick={() => handleToggleMenu(menu.key)}
-                className={`admin-nav-item ${
-                  hasActiveChild && (!isSidebarOpen && !isMobile) ? "active-parent" : ""
-                }`}
-                sx={{
-                  justifyContent: !isSidebarOpen && !isMobile ? "center" : "flex-start",
-                  px: !isSidebarOpen && !isMobile ? 1 : 2,
-                }}
+                className={`admin-nav-item ${isParentHighlighted ? "active" : ""}`}
               >
-                <ListItemIcon
-                  className="admin-nav-icon"
-                  sx={{
-                    minWidth: !isSidebarOpen && !isMobile ? "unset" : 38,
-                    justifyContent: "center",
-                  }}
-                >
+                <ListItemIcon className="admin-nav-icon">
                   {menu.icon}
                 </ListItemIcon>
 
-                {(isSidebarOpen || isMobile) && (
+                {!isCompact && (
                   <>
                     <ListItemText
                       primary={menu.label}
@@ -207,11 +225,13 @@ export default function AdminSidebar({
                         className: "admin-nav-label",
                       }}
                     />
-                    {isMenuOpen ? (
-                      <ExpandLess sx={{ fontSize: 18, color: "rgba(255,255,255,0.7)" }} />
-                    ) : (
-                      <ExpandMore sx={{ fontSize: 18, color: "rgba(255,255,255,0.7)" }} />
-                    )}
+                    <span className="admin-nav-arrow">
+                      {isMenuOpen ? (
+                        <ExpandLess sx={{ fontSize: 18 }} />
+                      ) : (
+                        <ExpandMore sx={{ fontSize: 18 }} />
+                      )}
+                    </span>
                   </>
                 )}
               </ListItemButton>
@@ -219,7 +239,7 @@ export default function AdminSidebar({
 
             return (
               <li key={menu.key} style={{ listStyle: "none" }}>
-                {!isSidebarOpen && !isMobile ? (
+                {isCompact ? (
                   <Tooltip title={menu.label} placement="right" arrow>
                     {parentButton}
                   </Tooltip>
@@ -227,25 +247,26 @@ export default function AdminSidebar({
                   parentButton
                 )}
 
-                {(isSidebarOpen || isMobile) && (
+                {!isCompact && (
                   <Collapse in={isMenuOpen} timeout="auto" unmountOnExit>
                     <List component="div" disablePadding className="admin-submenu-list">
                       {menu.children.map((child) => {
-                        const isChildActive = location.pathname === child.to;
+                        const isChildActive = isRouteActive(child.to);
                         return (
                           <ListItemButton
                             key={child.key}
-                            component={NavLink}
+                            component={Link}
                             to={child.to}
                             onClick={handleItemClick}
                             className={`admin-subnav-item ${isChildActive ? "active" : ""}`}
                           >
                             <ListItemIcon
+                              className="admin-subnav-icon"
                               sx={{
-                                minWidth: 24,
+                                minWidth: 22,
                                 color: isChildActive
                                   ? "var(--admin-accent)"
-                                  : "rgba(255,255,255,0.6)",
+                                  : "rgba(255, 255, 255, 0.6)",
                               }}
                             >
                               {child.icon || getSubmenuIcon(child.label)}
@@ -253,6 +274,7 @@ export default function AdminSidebar({
                             <ListItemText
                               primary={child.label}
                               primaryTypographyProps={{
+                                className: "admin-subnav-label",
                                 fontSize: "13px",
                                 fontWeight: isChildActive ? 600 : 400,
                               }}
@@ -270,22 +292,29 @@ export default function AdminSidebar({
       </div>
 
       {/* ── Sidebar Footer (Version/Status) ── */}
-      {(isSidebarOpen || isMobile) && (
-        <div
-          style={{
-            padding: "12px 18px",
-            borderTop: "1px solid rgba(255,255,255,0.08)",
-            fontSize: "11px",
-            color: "rgba(255,255,255,0.5)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <span>PrepHQ v2.0</span>
-          <span style={{ color: "var(--admin-accent)", fontWeight: 600 }}>● Online</span>
-        </div>
-      )}
+      <div className="admin-sidebar-footer">
+        {!isCompact ? (
+          <>
+            <span>PrepHQ v2.0</span>
+            <span style={{ color: "var(--admin-accent)", fontWeight: 600 }}>● Online</span>
+          </>
+        ) : (
+          <Tooltip title="PrepHQ v2.0 · Online" placement="right" arrow>
+            <span
+              style={{
+                color: "var(--admin-accent)",
+                fontSize: "12px",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "default",
+              }}
+            >
+              ●
+            </span>
+          </Tooltip>
+        )}
+      </div>
     </nav>
   );
 }

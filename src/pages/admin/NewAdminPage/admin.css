@@ -62,15 +62,20 @@
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .admin-sidebar-header {
   height: 64px;
+  flex-shrink: 0;
   background-color: var(--admin-primary-dark);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   align-items: center;
+  justify-content: space-between;
   padding: 0 16px;
+  box-sizing: border-box;
   transition: var(--admin-transition);
 }
 
@@ -101,6 +106,7 @@
   justify-content: center;
   cursor: pointer;
   transition: var(--admin-transition);
+  flex-shrink: 0;
 }
 
 .admin-toggle-btn:hover {
@@ -109,10 +115,11 @@
 }
 
 .admin-sidebar-scroll {
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 12px 10px 24px;
+  padding: 12px 10px 16px;
 }
 
 .admin-sidebar-scroll::-webkit-scrollbar {
@@ -128,10 +135,15 @@
 .admin-nav-item {
   border-radius: 10px !important;
   margin-bottom: 4px !important;
-  padding: 10px 14px !important;
+  padding: 0 14px !important;
+  min-height: 44px !important;
+  height: 44px !important;
   color: rgba(255, 255, 255, 0.8) !important;
   transition: var(--admin-transition) !important;
   text-decoration: none !important;
+  display: flex !important;
+  align-items: center !important;
+  box-sizing: border-box !important;
 }
 
 .admin-nav-item:hover {
@@ -139,22 +151,25 @@
   color: #FFFFFF !important;
 }
 
-.admin-nav-item.active,
-.admin-nav-item.active-parent {
+.admin-nav-item.active {
   background: var(--admin-accent-soft) !important;
   color: var(--admin-accent) !important;
-  font-weight: 600;
+  font-weight: 600 !important;
   border-left: 3px solid var(--admin-accent) !important;
 }
 
 .admin-nav-item.active .MuiListItemIcon-root,
-.admin-nav-item.active-parent .MuiListItemIcon-root {
+.admin-nav-item.active .admin-nav-icon,
+.admin-nav-item.active svg {
   color: var(--admin-accent) !important;
 }
 
 .admin-nav-icon {
   min-width: 36px !important;
+  width: 36px !important;
   color: rgba(255, 255, 255, 0.75) !important;
+  display: flex !important;
+  align-items: center !important;
   transition: var(--admin-transition) !important;
 }
 
@@ -165,33 +180,57 @@
 .admin-nav-label {
   font-size: 13.5px !important;
   font-weight: 500 !important;
-  white-space: nowrap;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.admin-nav-arrow {
+  margin-left: auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: rgba(255, 255, 255, 0.7) !important;
+  transition: var(--admin-transition) !important;
+  flex-shrink: 0 !important;
+}
+
+.admin-nav-item:hover .admin-nav-arrow {
+  color: #FFFFFF !important;
 }
 
 /* Submenu Child Items */
 .admin-submenu-list {
-  padding-left: 14px !important;
-  position: relative;
+  padding-left: 12px !important;
+  position: relative !important;
+  margin-top: 2px !important;
+  margin-bottom: 6px !important;
 }
 
 .admin-submenu-list::before {
   content: '';
   position: absolute;
-  left: 27px;
+  left: 24px;
   top: 4px;
-  bottom: 8px;
+  bottom: 6px;
   width: 1.5px;
   background: rgba(255, 255, 255, 0.15);
+  border-radius: 1px;
 }
 
 .admin-subnav-item {
   border-radius: 8px !important;
   margin-bottom: 2px !important;
-  padding: 8px 12px 8px 32px !important;
+  min-height: 36px !important;
+  height: 36px !important;
+  padding: 0 12px 0 28px !important;
   color: rgba(255, 255, 255, 0.7) !important;
   font-size: 13px !important;
   transition: var(--admin-transition) !important;
   text-decoration: none !important;
+  display: flex !important;
+  align-items: center !important;
+  box-sizing: border-box !important;
 }
 
 .admin-subnav-item:hover {
@@ -203,6 +242,74 @@
   background-color: var(--admin-accent-soft) !important;
   color: var(--admin-accent) !important;
   font-weight: 600 !important;
+}
+
+.admin-subnav-item.active .MuiListItemIcon-root,
+.admin-subnav-item.active svg {
+  color: var(--admin-accent) !important;
+}
+
+.admin-subnav-label {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Sidebar Bottom Footer */
+.admin-sidebar-footer {
+  height: 48px;
+  flex-shrink: 0;
+  padding: 0 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--admin-primary);
+  box-sizing: border-box;
+}
+
+/* Compact Sidebar Mode (72px) */
+.admin-sidebar-nav.compact {
+  width: 72px !important;
+}
+
+.admin-sidebar-nav.compact .admin-sidebar-header {
+  justify-content: center !important;
+  padding: 0 8px !important;
+}
+
+.admin-sidebar-nav.compact .admin-sidebar-scroll {
+  padding: 12px 6px 16px !important;
+}
+
+.admin-sidebar-nav.compact .admin-nav-item {
+  width: 44px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  padding: 0 !important;
+  margin: 0 auto 6px auto !important;
+  justify-content: center !important;
+  border-left: none !important;
+}
+
+.admin-sidebar-nav.compact .admin-nav-item.active {
+  background: var(--admin-accent-soft) !important;
+  border: 1.5px solid var(--admin-accent) !important;
+  border-radius: 10px !important;
+}
+
+.admin-sidebar-nav.compact .admin-nav-icon {
+  min-width: unset !important;
+  width: 100% !important;
+  justify-content: center !important;
+  margin: 0 !important;
+}
+
+.admin-sidebar-nav.compact .admin-sidebar-footer {
+  padding: 0 !important;
+  justify-content: center !important;
 }
 
 /* Mobile Drawer Overlay */
