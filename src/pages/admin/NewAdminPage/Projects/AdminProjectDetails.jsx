@@ -47,6 +47,115 @@ import {
   arrayMove,
   rectSortingStrategy,
 } from "./components/DndSortableWrapper";
+import SidebarContentManager from "./components/SidebarContentManager";
+
+const DEFAULT_SIDEBAR_CARDS = {
+  related_projects: [
+    {
+      id: "rel-1",
+      section_type: "related_project",
+      title: "Create Amazing Color Schemes Design",
+      display_date: "05 Aug, 2025",
+      destination_url: "/projects-details/customer-segmentation-using-k-means",
+      linked_resource: "customer-segmentation-using-k-means",
+      display_order: 1,
+      status: "active",
+      is_active: true,
+    },
+    {
+      id: "rel-2",
+      section_type: "related_project",
+      title: "Create Amazing Color Schemes Design",
+      display_date: "05 Aug, 2025",
+      destination_url: "/projects-details/credit-card-fraud-detection",
+      linked_resource: "credit-card-fraud-detection",
+      display_order: 2,
+      status: "active",
+      is_active: true,
+    },
+    {
+      id: "rel-3",
+      section_type: "related_project",
+      title: "Create Amazing Color Schemes Design",
+      display_date: "05 Aug, 2025",
+      destination_url: "/projects-details/stock-price-prediction",
+      linked_resource: "stock-price-prediction",
+      display_order: 3,
+      status: "active",
+      is_active: true,
+    },
+  ],
+  tutorials: [
+    {
+      id: "tut-1",
+      section_type: "tutorial",
+      title: "Create Amazing Color Schemes Design",
+      display_date: "05 Aug, 2025",
+      destination_url: "/tutorials",
+      linked_resource: "",
+      display_order: 1,
+      status: "active",
+      is_active: true,
+    },
+    {
+      id: "tut-2",
+      section_type: "tutorial",
+      title: "Create Amazing Color Schemes Design",
+      display_date: "05 Aug, 2025",
+      destination_url: "/tutorials",
+      linked_resource: "",
+      display_order: 2,
+      status: "active",
+      is_active: true,
+    },
+    {
+      id: "tut-3",
+      section_type: "tutorial",
+      title: "Create Amazing Color Schemes Design",
+      display_date: "05 Aug, 2025",
+      destination_url: "/tutorials",
+      linked_resource: "",
+      display_order: 3,
+      status: "active",
+      is_active: true,
+    },
+  ],
+  mini_guides: [
+    {
+      id: "mng-1",
+      section_type: "mini_guide",
+      title: "Create Amazing Color Schemes Design",
+      display_date: "05 Aug, 2025",
+      destination_url: "/guides",
+      linked_resource: "",
+      display_order: 1,
+      status: "active",
+      is_active: true,
+    },
+    {
+      id: "mng-2",
+      section_type: "mini_guide",
+      title: "Create Amazing Color Schemes Design",
+      display_date: "05 Aug, 2025",
+      destination_url: "/guides",
+      linked_resource: "",
+      display_order: 2,
+      status: "active",
+      is_active: true,
+    },
+    {
+      id: "mng-3",
+      section_type: "mini_guide",
+      title: "Create Amazing Color Schemes Design",
+      display_date: "05 Aug, 2025",
+      destination_url: "/guides",
+      linked_resource: "",
+      display_order: 3,
+      status: "active",
+      is_active: true,
+    },
+  ],
+};
 
 const DEFAULT_SLUG = "customer-churn-prediction-using-machine-learning";
 
@@ -1171,6 +1280,47 @@ export default function AdminProjectDetails() {
       cloned.common_mistakes = normalizedMistakes;
       cloned.commonMistakes = normalizedMistakes;
 
+      // ── Normalize Sidebar Cards ──
+      const rawSidebar = cloned.sidebar_cards || cloned.sidebarCards || {};
+      const normCardList = (arr, secType, defaultList) => {
+        if (Array.isArray(arr)) {
+          return arr.map((c, idx) => ({
+            id: c.id || `${secType}-${idx + 1}-${Math.random().toString(36).substring(2, 6)}`,
+            section_type: secType,
+            title: c.title || "",
+            display_date: c.display_date || c.date || "05 Aug, 2025",
+            destination_url: c.destination_url || c.link || "",
+            linked_resource: c.linked_resource || "",
+            display_order: Number(c.display_order ?? idx + 1),
+            status: c.status || (c.is_active === false ? "inactive" : "active"),
+            is_active: c.is_active !== false && c.status !== "inactive",
+          }));
+        }
+        return defaultList.map((c, idx) => ({
+          ...c,
+          id: c.id || `${secType}-${idx + 1}`,
+        }));
+      };
+
+      cloned.sidebar_cards = {
+        related_projects: normCardList(
+          rawSidebar.related_projects,
+          "related_project",
+          DEFAULT_SIDEBAR_CARDS.related_projects
+        ),
+        tutorials: normCardList(
+          rawSidebar.tutorials,
+          "tutorial",
+          DEFAULT_SIDEBAR_CARDS.tutorials
+        ),
+        mini_guides: normCardList(
+          rawSidebar.mini_guides,
+          "mini_guide",
+          DEFAULT_SIDEBAR_CARDS.mini_guides
+        ),
+      };
+      cloned.sidebarCards = cloned.sidebar_cards;
+
       setFormData(cloned);
     }
   }, [currentData]);
@@ -2143,6 +2293,7 @@ export default function AdminProjectDetails() {
         commonMistakes: finalMistakes,
         section_headers: finalHeaders,
         sectionHeaders: finalHeaders,
+        sidebar_cards: formData.sidebar_cards,
       };
 
       if (currentData && (currentData.id || currentData.slug)) {
@@ -2155,6 +2306,29 @@ export default function AdminProjectDetails() {
       }
     } catch (err) {
       console.error("Save error:", err);
+    }
+  };
+
+  const handleSidebarCardsChange = (updatedSidebar) => {
+    setFormData((prev) => ({
+      ...prev,
+      sidebar_cards: updatedSidebar,
+      sidebarCards: updatedSidebar,
+    }));
+  };
+
+  const handleSaveSidebarCards = async (cardsToSave = formData?.sidebar_cards) => {
+    if (!cardsToSave) return;
+    try {
+      await updateDetails({
+        slugOrId: formData?.slug || selectedSlug,
+        data: {
+          sidebar_cards: cardsToSave,
+        },
+      });
+      showNotification("Sidebar content saved successfully!", "success");
+    } catch (err) {
+      showNotification(err?.message || "Failed to save sidebar content", "danger");
     }
   };
 
@@ -3504,6 +3678,7 @@ export default function AdminProjectDetails() {
                   : `${String(idx + 1).padStart(2, "0")} · ${meta.name}`;
                 return <Tab key={secId} label={displayLabel} />;
               })}
+              <Tab label="Sidebar Content Management" />
             </Tabs>
           </Box>
 
@@ -3776,6 +3951,18 @@ export default function AdminProjectDetails() {
                     });
                   })()
                 )}
+
+                {/* ── TAB sectionsOrder.length + 1: Sidebar Content Management ── */}
+                {tabIndex === sectionsOrder.length + 1 && (
+                  <SidebarContentManager
+                    sidebarCards={formData.sidebar_cards}
+                    onChange={handleSidebarCardsChange}
+                    onSave={handleSaveSidebarCards}
+                    isSaving={isSaving}
+                    projectDetailsList={projectDetailsList}
+                    wpProjects={wpProjects}
+                  />
+                )}
               </>
             ) : (
               /* ── ALL SECTIONS DRAGGABLE VIEW ── */
@@ -3827,6 +4014,17 @@ export default function AdminProjectDetails() {
                     })}
                   </Box>
                 </SortableContainer>
+
+                {/* ── Sidebar Content Management in All-Sections Mode ── */}
+                <Divider sx={{ my: 1 }} />
+                <SidebarContentManager
+                  sidebarCards={formData.sidebar_cards}
+                  onChange={handleSidebarCardsChange}
+                  onSave={handleSaveSidebarCards}
+                  isSaving={isSaving}
+                  projectDetailsList={projectDetailsList}
+                  wpProjects={wpProjects}
+                />
               </Box>
             )}
 

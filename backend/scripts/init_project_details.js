@@ -51,7 +51,35 @@ async function initProjectDetailsTable() {
       console.log('Added column section_2_design to project_details.');
     }
 
-    console.log('Checked table: project_details (OK)');
+    const hasSidebarCards = cols.some((c) => c.Field === 'sidebar_cards');
+    if (!hasSidebarCards) {
+      await query('ALTER TABLE project_details ADD COLUMN sidebar_cards JSON NULL');
+      console.log('Added column sidebar_cards to project_details.');
+    }
+
+    // Ensure project_sidebar_cards table exists
+    await query(`
+      CREATE TABLE IF NOT EXISTS project_sidebar_cards (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        card_id VARCHAR(100) NOT NULL UNIQUE,
+        project_id INT NULL,
+        project_slug VARCHAR(255) NOT NULL,
+        section_type ENUM('related_project', 'tutorial', 'mini_guide') NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        display_date VARCHAR(100) NULL,
+        destination_url VARCHAR(500) NULL,
+        linked_resource VARCHAR(255) NULL,
+        display_order INT DEFAULT 0,
+        status ENUM('active', 'inactive') DEFAULT 'active',
+        is_active TINYINT(1) DEFAULT 1,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        KEY idx_slug_section (project_slug, section_type),
+        KEY idx_project_id (project_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+
+    console.log('Checked table: project_details & project_sidebar_cards (OK)');
 
     // Check if the default "customer-churn-prediction-using-machine-learning" exists
     const existing = await query(

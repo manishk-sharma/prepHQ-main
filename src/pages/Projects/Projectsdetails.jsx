@@ -544,6 +544,78 @@ const Projectsdetails = () => {
         dbData?.sections_order ||
         DEFAULT_SECTION_ORDER;
 
+    // Dynamic right-sidebar cards retrieved from database
+    const rawSidebar = dbData?.sidebar_cards || dbData?.sidebarCards;
+    const getActiveSortedCards = (cardsArray, fallbackArray) => {
+        if (rawSidebar && Array.isArray(cardsArray)) {
+            return [...cardsArray]
+                .filter((c) => c.status !== "inactive" && c.is_active !== false)
+                .sort((a, b) => (Number(a.display_order) || 0) - (Number(b.display_order) || 0));
+        }
+        return fallbackArray;
+    };
+
+    const activeRelatedProjects = getActiveSortedCards(rawSidebar?.related_projects, RELATED_PROJECTS);
+    const activeTutorials = getActiveSortedCards(rawSidebar?.tutorials, TUTORIALS);
+    const activeMiniGuides = getActiveSortedCards(rawSidebar?.mini_guides, MINI_GUIDES);
+
+    const renderSidebarCard = (card, idx) => {
+        const title = card.title || "Untitled";
+        const date = card.display_date || card.date || "";
+        const rawUrl = (card.destination_url || card.link || "").trim();
+        const isExternal = /^https?:\/\//i.test(rawUrl);
+
+        const cardContent = (
+            <>
+                <span className="widget-item-title">{title}</span>
+                <div className="widget-item-footer">
+                    <div className="widget-item-meta">
+                        <CalendarIcon />
+                        <span>{date}</span>
+                    </div>
+                    <ExternalLinkIcon />
+                </div>
+            </>
+        );
+
+        if (isExternal) {
+            return (
+                <a
+                    key={card.id || `ext-${idx}`}
+                    href={rawUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="widget-item-card"
+                >
+                    {cardContent}
+                </a>
+            );
+        }
+
+        if (!rawUrl || rawUrl === "#" || rawUrl === "#0") {
+            return (
+                <a
+                    key={card.id || `empty-${idx}`}
+                    href="#0"
+                    onClick={(e) => e.preventDefault()}
+                    className="widget-item-card"
+                >
+                    {cardContent}
+                </a>
+            );
+        }
+
+        return (
+            <Link
+                key={card.id || `lnk-${idx}`}
+                to={rawUrl}
+                className="widget-item-card"
+            >
+                {cardContent}
+            </Link>
+        );
+    };
+
     const [activeSection, setActiveSection] = useState("about-project");
 
     // Dynamic sidebar nav items ordered matching custom sections_order
@@ -1306,18 +1378,13 @@ const Projectsdetails = () => {
                                 <h3 className="widget-title">Related Projects</h3>
                                 <div className="widget-mint-box">
                                     <div className="widget-card-list">
-                                        {RELATED_PROJECTS.map((proj, idx) => (
-                                            <Link key={idx} to={proj.link} className="widget-item-card">
-                                                <span className="widget-item-title">{proj.title}</span>
-                                                <div className="widget-item-footer">
-                                                    <div className="widget-item-meta">
-                                                        <CalendarIcon />
-                                                        <span>{proj.date}</span>
-                                                    </div>
-                                                    <ExternalLinkIcon />
-                                                </div>
-                                            </Link>
-                                        ))}
+                                        {activeRelatedProjects.length > 0 ? (
+                                            activeRelatedProjects.map((proj, idx) => renderSidebarCard(proj, idx))
+                                        ) : (
+                                            <div style={{ padding: "14px", fontSize: "13px", color: "#64748b" }}>
+                                                No related projects available.
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="widget-scrollbar-track" aria-hidden="true">
                                         <div className="widget-scrollbar-thumb" />
@@ -1330,18 +1397,13 @@ const Projectsdetails = () => {
                                 <h3 className="widget-title">Tutorials</h3>
                                 <div className="widget-mint-box">
                                     <div className="widget-card-list">
-                                        {TUTORIALS.map((tut, idx) => (
-                                            <Link key={idx} to={tut.link} className="widget-item-card">
-                                                <span className="widget-item-title">{tut.title}</span>
-                                                <div className="widget-item-footer">
-                                                    <div className="widget-item-meta">
-                                                        <CalendarIcon />
-                                                        <span>{tut.date}</span>
-                                                    </div>
-                                                    <ExternalLinkIcon />
-                                                </div>
-                                            </Link>
-                                        ))}
+                                        {activeTutorials.length > 0 ? (
+                                            activeTutorials.map((tut, idx) => renderSidebarCard(tut, idx))
+                                        ) : (
+                                            <div style={{ padding: "14px", fontSize: "13px", color: "#64748b" }}>
+                                                No tutorials available.
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="widget-scrollbar-track" aria-hidden="true">
                                         <div className="widget-scrollbar-thumb" />
@@ -1354,18 +1416,13 @@ const Projectsdetails = () => {
                                 <h3 className="widget-title">Mini Guides</h3>
                                 <div className="widget-mint-box">
                                     <div className="widget-card-list">
-                                        {MINI_GUIDES.map((guide, idx) => (
-                                            <Link key={idx} to={guide.link} className="widget-item-card">
-                                                <span className="widget-item-title">{guide.title}</span>
-                                                <div className="widget-item-footer">
-                                                    <div className="widget-item-meta">
-                                                        <CalendarIcon />
-                                                        <span>{guide.date}</span>
-                                                    </div>
-                                                    <ExternalLinkIcon />
-                                                </div>
-                                            </Link>
-                                        ))}
+                                        {activeMiniGuides.length > 0 ? (
+                                            activeMiniGuides.map((guide, idx) => renderSidebarCard(guide, idx))
+                                        ) : (
+                                            <div style={{ padding: "14px", fontSize: "13px", color: "#64748b" }}>
+                                                No mini guides available.
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="widget-scrollbar-track" aria-hidden="true">
                                         <div className="widget-scrollbar-thumb" />

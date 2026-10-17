@@ -45,6 +45,11 @@ const formatProjectDetail = (row) => ({
   section_headers: parseJsonField(row.section_headers, {}),
   sectionHeaders: parseJsonField(row.section_headers, {}),
   section_2_design: row.section_2_design || parseJsonField(row.section_headers, {})?.section_2_design || 'grid',
+  sidebar_cards: parseJsonField(row.sidebar_cards, {
+    related_projects: [],
+    tutorials: [],
+    mini_guides: [],
+  }),
   created_at: row.created_at,
   updated_at: row.updated_at,
 });
@@ -106,7 +111,72 @@ export const getProjectDetailsBySlug = async (req, res, next) => {
   }
 };
 
-// ── Create Project Details (Admin) ───────────────────────────────────────────
+// ── Sync project_sidebar_cards table ──────────────────────────────────────────
+export const syncSidebarCardsTable = async (projectId, projectSlug, sidebarCards) => {
+  if (!sidebarCards || typeof sidebarCards !== 'object') return;
+  try {
+    const rel = Array.isArray(sidebarCards.related_projects) ? sidebarCards.related_projects : [];
+    const tut = Array.isArray(sidebarCards.tutorials) ? sidebarCards.tutorials : [];
+    const mng = Array.isArray(sidebarCards.mini_guides) ? sidebarCards.mini_guides : [];
+
+    const allCards = [
+      ...rel.map((c, i) => ({ ...c, section_type: 'related_project', display_order: c.display_order ?? i + 1 })),
+      ...tut.map((c, i) => ({ ...c, section_type: 'tutorial', display_order: c.display_order ?? i + 1 })),
+      ...mng.map((c, i) => ({ ...c, section_type: 'mini_guide', display_order: c.display_order ?? i + 1 })),
+    ];
+
+    const currentCardIds = allCards.map((c) => c.id).filter(Boolean);
+    if (currentCardIds.length > 0) {
+      await query(
+        `DELETE FROM project_sidebar_cards WHERE project_slug = ? AND card_id NOT IN (?)`,
+        [projectSlug, currentCardIds]
+      );
+    } else {
+      await query(`DELETE FROM project_sidebar_cards WHERE project_slug = ?`, [projectSlug]);
+    }
+
+    for (const c of allCards) {
+      const cardId = c.id || `${c.section_type}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+      const isAct = (c.status === 'inactive' || c.is_active === false) ? 0 : 1;
+      const status = isAct ? 'active' : 'inactive';
+      const destUrl = c.destination_url || c.link || '';
+      const dateStr = c.display_date || c.date || '05 Aug, 2025';
+
+      await query(
+        `INSERT INTO project_sidebar_cards 
+         (card_id, project_id, project_slug, section_type, title, display_date, destination_url, linked_resource, display_order, status, is_active)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE 
+           project_id = VALUES(project_id),
+           section_type = VALUES(section_type),
+           title = VALUES(title),
+           display_date = VALUES(display_date),
+           destination_url = VALUES(destination_url),
+           linked_resource = VALUES(linked_resource),
+           display_order = VALUES(display_order),
+           status = VALUES(status),
+           is_active = VALUES(is_active)`,
+        [
+          cardId,
+          projectId || null,
+          projectSlug,
+          c.section_type,
+          c.title || '',
+          dateStr,
+          destUrl,
+          c.linked_resource || '',
+          c.display_order || 0,
+          status,
+          isAct,
+        ]
+      );
+    }
+  } catch (err) {
+    console.error('Error in syncSidebarCardsTable:', err);
+  }
+};
+
+// ── Create New Project Details (Admin) ────────────────────────────────────────
 export const createProjectDetails = async (req, res, next) => {
   try {
     const {
@@ -133,6 +203,7 @@ export const createProjectDetails = async (req, res, next) => {
       common_mistakes,
       section_headers,
       section_2_design,
+      sidebar_cards,
     } = req.body;
 
     if (!title || !slug) {
@@ -151,8 +222,8 @@ export const createProjectDetails = async (req, res, next) => {
         prerequisites, objectives, architecture_steps, architecture_details,
         implementation_steps, technologies, dataset_resources,
         technical_learnings, practical_learnings, common_mistakes, section_headers,
-        section_2_design
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        section_2_design, sidebar_cards
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         project_id || null,
         cleanSlug,
@@ -177,8 +248,13 @@ export const createProjectDetails = async (req, res, next) => {
         JSON.stringify(common_mistakes || req.body.commonMistakes || []),
         JSON.stringify(section_headers || req.body.sectionHeaders || {}),
         validSection2Design,
+        JSON.stringify(sidebar_cards || {}),
       ]
     );
+
+    if (sidebar_cards) {
+      await syncSidebarCardsTable(result.insertId, cleanSlug, sidebar_cards);
+    }
 
     return res.status(201).json({
       status: 1,
@@ -258,7 +334,8 @@ export const updateProjectDetails = async (req, res, next) => {
            practical_learnings = COALESCE(?, practical_learnings),
            common_mistakes = COALESCE(?, common_mistakes),
            section_headers = COALESCE(?, section_headers),
-           section_2_design = COALESCE(?, section_2_design)
+           section_2_design = COALESCE(?, section_2_design),
+           sidebar_cards = COALESCE(?, sidebar_cards)
        ${whereClause}`,
       [
         project_id ?? null,
@@ -294,13 +371,78 @@ export const updateProjectDetails = async (req, res, next) => {
           ? JSON.stringify(section_headers !== undefined ? section_headers : req.body.sectionHeaders)
           : null,
         section_2_design ?? null,
+        req.body.sidebar_cards !== undefined ? JSON.stringify(req.body.sidebar_cards) : null,
         slugOrId,
       ]
     );
 
+    if (req.body.sidebar_cards !== undefined) {
+      const pRows = await query(`SELECT id, slug FROM project_details ${whereClause} LIMIT 1`, [slugOrId]);
+      if (pRows.length > 0) {
+        await syncSidebarCardsTable(pRows[0].id, pRows[0].slug, req.body.sidebar_cards);
+      }
+    }
+
     return res.status(200).json({
       status: 1,
       message: 'Project details updated successfully.',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ── GET Sidebar Cards for a Project ──────────────────────────────────────────
+export const getSidebarCards = async (req, res, next) => {
+  try {
+    const { slugOrId } = req.params;
+    const isNumeric = /^\d+$/.test(slugOrId);
+    const sql = isNumeric
+      ? 'SELECT id, slug, sidebar_cards FROM project_details WHERE id = ? OR project_id = ? LIMIT 1'
+      : 'SELECT id, slug, sidebar_cards FROM project_details WHERE slug = ? LIMIT 1';
+    const rows = await query(sql, [slugOrId]);
+    if (rows.length === 0) {
+      return res.status(404).json({ status: 0, message: 'Project not found.' });
+    }
+    const cards = parseJsonField(rows[0].sidebar_cards, {
+      related_projects: [],
+      tutorials: [],
+      mini_guides: [],
+    });
+    return res.status(200).json({ status: 1, data: cards });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ── UPDATE Sidebar Cards for a Project ───────────────────────────────────────
+export const updateSidebarCards = async (req, res, next) => {
+  try {
+    const { slugOrId } = req.params;
+    const { sidebar_cards } = req.body;
+    if (!sidebar_cards || typeof sidebar_cards !== 'object') {
+      return res.status(400).json({ status: 0, message: 'sidebar_cards object is required.' });
+    }
+
+    const isNumeric = /^\d+$/.test(slugOrId);
+    const whereClause = isNumeric ? 'WHERE id = ? OR project_id = ?' : 'WHERE slug = ?';
+    const rows = await query(`SELECT id, slug FROM project_details ${whereClause} LIMIT 1`, [slugOrId]);
+    if (rows.length === 0) {
+      return res.status(404).json({ status: 0, message: 'Project not found.' });
+    }
+
+    const project = rows[0];
+    await query(`UPDATE project_details SET sidebar_cards = ? WHERE id = ?`, [
+      JSON.stringify(sidebar_cards),
+      project.id,
+    ]);
+
+    await syncSidebarCardsTable(project.id, project.slug, sidebar_cards);
+
+    return res.status(200).json({
+      status: 1,
+      message: 'Sidebar content updated successfully.',
+      data: sidebar_cards,
     });
   } catch (error) {
     next(error);
@@ -331,4 +473,7 @@ export default {
   createProjectDetails,
   updateProjectDetails,
   deleteProjectDetails,
+  getSidebarCards,
+  updateSidebarCards,
+  syncSidebarCardsTable,
 };
