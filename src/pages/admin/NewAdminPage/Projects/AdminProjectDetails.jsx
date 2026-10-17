@@ -2560,15 +2560,20 @@ export default function AdminProjectDetails() {
                           />
                           <TextField
                             size="small"
-                            sx={{ width: 60 }}
+                            sx={{ width: 55, flexShrink: 0 }}
+                            inputProps={{ style: { textAlign: "center", padding: "6px 4px", fontWeight: 600 } }}
                             value={step.num || String(idx + 1).padStart(2, "0")}
                             onChange={(e) => handleArchStepChange(idx, "num", e.target.value)}
                           />
                           <TextField
                             size="small"
                             fullWidth
+                            multiline
+                            minRows={1}
+                            maxRows={2}
                             value={step.title || ""}
                             onChange={(e) => handleArchStepChange(idx, "title", e.target.value)}
+                            placeholder="Step Title (e.g. Raw\nDataset)"
                           />
                           <IconButton size="small" onClick={() => removeArchStep(idx)} sx={{ color: "#dc2626" }}>
                             <DeleteIcon fontSize="small" />

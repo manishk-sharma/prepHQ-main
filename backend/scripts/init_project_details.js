@@ -94,16 +94,16 @@ async function initProjectDetailsTable() {
     ];
 
     const defaultArchitectureSteps = [
-      { id: 'arch-1', num: '01', title: 'Feature\nEngineering' },
-      { id: 'arch-2', num: '02', title: 'Feature\nEngineering' },
-      { id: 'arch-3', num: '03', title: 'Feature\nEngineering' },
-      { id: 'arch-4', num: '04', title: 'Feature\nEngineering' },
+      { id: 'arch-1', num: '01', title: 'Raw\nDataset' },
+      { id: 'arch-2', num: '02', title: 'Data\nCollection' },
+      { id: 'arch-3', num: '03', title: 'Data\nCleaning' },
+      { id: 'arch-4', num: '04', title: 'Exploratory\nAnalysis' },
       { id: 'arch-5', num: '05', title: 'Feature\nEngineering' },
-      { id: 'arch-6', num: '06', title: 'Feature\nEngineering' },
-      { id: 'arch-7', num: '07', title: 'Feature\nEngineering' },
-      { id: 'arch-8', num: '08', title: 'Feature\nEngineering' },
-      { id: 'arch-9', num: '09', title: 'Feature\nEngineering' },
-      { id: 'arch-10', num: '10', title: 'Feature\nEngineering' },
+      { id: 'arch-6', num: '06', title: 'Train-Test\nSplit' },
+      { id: 'arch-7', num: '07', title: 'Model\nTraining' },
+      { id: 'arch-8', num: '08', title: 'Model\nEvaluation' },
+      { id: 'arch-9', num: '09', title: 'Hyperparameter\nTuning' },
+      { id: 'arch-10', num: '10', title: 'Deployment &\nPrediction' },
     ];
 
     const defaultArchitectureDetails = [
