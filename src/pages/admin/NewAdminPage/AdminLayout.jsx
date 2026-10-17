@@ -89,8 +89,8 @@ const menuConfig = [
 ];
 
 export default function AdminLayout({ onLogout }) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => typeof window !== "undefined" && window.innerWidth < 768);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => typeof window !== "undefined" && window.innerWidth >= 768);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const location = useLocation();
   const adminLogout = useAdminLogout();
@@ -99,15 +99,16 @@ export default function AdminLayout({ onLogout }) {
   useEffect(() => {
     const handleResize = () => {
       const mobile = window.innerWidth < 768;
-      setIsMobile(mobile);
-      if (mobile) {
-        setIsSidebarOpen(false);
-      } else {
-        setIsSidebarOpen(true);
-      }
+      setIsMobile((prevMobile) => {
+        if (!prevMobile && mobile) {
+          setIsSidebarOpen(false);
+        } else if (prevMobile && !mobile) {
+          setIsSidebarOpen(true);
+        }
+        return mobile;
+      });
     };
 
-    handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -208,13 +209,18 @@ export default function AdminLayout({ onLogout }) {
 
       {/* ── Main Viewport Area ── */}
       <div
+        className="admin-main-viewport"
         style={{
-          width: "100%",
+          flex: 1,
+          minWidth: 0,
           marginLeft: isMobile ? 0 : isSidebarOpen ? "260px" : "72px",
-          transition: "margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+          width: isMobile ? "100%" : isSidebarOpen ? "calc(100% - 260px)" : "calc(100% - 72px)",
+          maxWidth: isMobile ? "100%" : isSidebarOpen ? "calc(100% - 260px)" : "calc(100% - 72px)",
+          transition: "margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1), max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
           display: "flex",
           flexDirection: "column",
           minHeight: "100vh",
+          boxSizing: "border-box",
         }}
       >
         {/* ── Modern Top Navigation Header ── */}

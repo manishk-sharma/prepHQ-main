@@ -3282,33 +3282,68 @@ export default function AdminProjectDetails() {
   };
 
   return (
-    <Box sx={{ p: { xs: 2, sm: 3 }, maxWidth: 1400, mx: "auto" }}>
+    <Box sx={{ width: "100%", maxWidth: 1440, mx: "auto", boxSizing: "border-box" }}>
       {/* ── Top Header Actions ── */}
       <Box
         sx={{
           display: "flex",
+          flexDirection: { xs: "column", md: "row" },
           justifyContent: "space-between",
-          alignItems: "center",
+          alignItems: { xs: "flex-start", md: "center" },
           mb: 3,
-          flexWrap: "wrap",
-          gap: 2,
+          gap: { xs: 2, md: 3 },
+          width: "100%",
         }}
       >
-        <Box>
+        {/* Left: Title & Subtitle */}
+        <Box sx={{ minWidth: 0, flex: { md: "1 1 auto" } }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <IconButton onClick={() => navigate("/admin/projects")} size="small">
+            <IconButton
+              onClick={() => navigate("/admin/projects")}
+              size="small"
+              sx={{ color: "#074568", p: 0.5 }}
+              aria-label="Back to projects"
+            >
               <ArrowBackIcon />
             </IconButton>
-            <Typography variant="h5" sx={{ fontWeight: 800, color: "#074568" }}>
+            <Typography
+              variant="h5"
+              sx={{
+                fontWeight: 800,
+                color: "#074568",
+                fontSize: { xs: "1.25rem", sm: "1.5rem" },
+                letterSpacing: "-0.01em",
+                lineHeight: 1.2,
+              }}
+            >
               Project Details Editor
             </Typography>
           </Box>
-          <Typography variant="body2" sx={{ color: "#666", ml: 4 }}>
+          <Typography
+            variant="body2"
+            sx={{
+              color: "#64748b",
+              mt: 0.5,
+              ml: { xs: 0, sm: 4.5 },
+              fontSize: { xs: "0.82rem", sm: "0.875rem" },
+              lineHeight: 1.4,
+            }}
+          >
             Edit, reorder sections, format steps, and manage the full learning curriculum with drag-and-drop.
           </Typography>
         </Box>
 
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, flexWrap: "wrap" }}>
+        {/* Right: Project Selector & Actions */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1.5,
+            flexWrap: "wrap",
+            width: { xs: "100%", md: "auto" },
+            flexShrink: 0,
+          }}
+        >
           {/* Project Selector Dropdown */}
           <TextField
             select
@@ -3316,7 +3351,12 @@ export default function AdminProjectDetails() {
             label="Selected Project"
             value={selectedSlug}
             onChange={(e) => handleSlugChange(e.target.value)}
-            sx={{ minWidth: 260 }}
+            sx={{
+              minWidth: { xs: "100%", sm: 220, lg: 240 },
+              flex: { xs: "1 1 100%", sm: "0 0 auto" },
+              backgroundColor: "#fff",
+              "& .MuiInputBase-root": { fontSize: "0.875rem" },
+            }}
           >
             <MenuItem value={DEFAULT_SLUG}>Customer Churn Prediction</MenuItem>
             {projectDetailsList
@@ -3333,95 +3373,168 @@ export default function AdminProjectDetails() {
             ))}
           </TextField>
 
-          {/* View Live Project */}
-          <Tooltip title="View live on website">
-            <Button
-              variant="outlined"
-              size="medium"
-              startIcon={<VisibilityIcon />}
-              onClick={() => window.open(`/projects-details/${selectedSlug}`, "_blank")}
-              sx={{ borderColor: "#37AB79", color: "#37AB79", textTransform: "none" }}
-            >
-              View Live
-            </Button>
-          </Tooltip>
-
-          {/* Save Button */}
-          <Button
-            variant="contained"
-            size="medium"
-            startIcon={isSaving ? <CircularProgress size={18} color="inherit" /> : <SaveIcon />}
-            disabled={isSaving}
-            onClick={handleSave}
+          {/* Action Buttons Container */}
+          <Box
             sx={{
-              backgroundColor: "#37AB79",
-              "&:hover": { backgroundColor: "#2d8a62" },
-              textTransform: "none",
-              fontWeight: 600,
-              px: 3,
+              display: "flex",
+              alignItems: "center",
+              gap: 1.5,
+              width: { xs: "100%", sm: "auto" },
+              flex: { xs: "1 1 100%", sm: "0 0 auto" },
             }}
           >
-            {isSaving ? "Saving..." : "Save Changes"}
-          </Button>
+            <Tooltip title="View live on website">
+              <Button
+                variant="outlined"
+                size="medium"
+                startIcon={<VisibilityIcon />}
+                onClick={() => window.open(`/projects-details/${selectedSlug}`, "_blank")}
+                sx={{
+                  borderColor: "#37AB79",
+                  color: "#37AB79",
+                  textTransform: "none",
+                  fontWeight: 600,
+                  fontSize: "0.875rem",
+                  flex: { xs: 1, sm: "0 0 auto" },
+                  whiteSpace: "nowrap",
+                  py: 0.85,
+                  px: 2,
+                  "&:hover": {
+                    borderColor: "#2d8a62",
+                    backgroundColor: "#f0fdf4",
+                  },
+                }}
+              >
+                View Live
+              </Button>
+            </Tooltip>
+
+            <Button
+              variant="contained"
+              size="medium"
+              startIcon={isSaving ? <CircularProgress size={18} color="inherit" /> : <SaveIcon />}
+              disabled={isSaving}
+              onClick={handleSave}
+              sx={{
+                backgroundColor: "#37AB79",
+                "&:hover": { backgroundColor: "#2d8a62" },
+                textTransform: "none",
+                fontWeight: 600,
+                fontSize: "0.875rem",
+                flex: { xs: 1, sm: "0 0 auto" },
+                whiteSpace: "nowrap",
+                py: 0.85,
+                px: 2.5,
+                boxShadow: "0 2px 4px rgba(55, 171, 121, 0.25)",
+              }}
+            >
+              {isSaving ? "Saving..." : "Save Changes"}
+            </Button>
+          </Box>
         </Box>
       </Box>
 
       {/* ── Main Editor Card ── */}
-      <Paper elevation={0} sx={{ border: "1px solid #e0e6ed", borderRadius: 3, overflow: "hidden" }}>
+      <Paper elevation={0} sx={{ border: "1px solid #e0e6ed", borderRadius: 3, overflow: "hidden", width: "100%", boxSizing: "border-box" }}>
         {/* Navigation Bar & Mode Switcher */}
         <Box
           sx={{
             display: "flex",
+            flexDirection: { xs: "column", md: "row" },
+            alignItems: { xs: "stretch", md: "center" },
             justifyContent: "space-between",
-            alignItems: "center",
             borderBottom: "1px solid #e0e6ed",
             backgroundColor: "#f9fafb",
-            flexWrap: "wrap",
-            pr: 2,
+            width: "100%",
+            boxSizing: "border-box",
           }}
         >
-          <Tabs
-            value={tabIndex}
-            onChange={(e, val) => {
-              setTabIndex(val);
-              if (viewMode === "all") setViewMode("tabs");
-            }}
-            variant="scrollable"
-            scrollButtons="auto"
+          {/* Scrollable Tabs */}
+          <Box sx={{ flex: 1, minWidth: 0, width: "100%", overflow: "hidden" }}>
+            <Tabs
+              value={tabIndex}
+              onChange={(e, val) => {
+                setTabIndex(val);
+                if (viewMode === "all") setViewMode("tabs");
+              }}
+              variant="scrollable"
+              scrollButtons="auto"
+              allowScrollButtonsMobile
+              sx={{
+                width: "100%",
+                minHeight: 48,
+                "& .MuiTabs-scroller": {
+                  overflowX: "auto !important",
+                },
+                "& .MuiTab-root": {
+                  textTransform: "none",
+                  fontWeight: 600,
+                  fontSize: { xs: "0.8rem", sm: "0.85rem" },
+                  minHeight: 48,
+                  py: 1,
+                  px: { xs: 1.5, sm: 2 },
+                  whiteSpace: "nowrap",
+                  color: "#64748b",
+                  "&.Mui-selected": {
+                    color: "#37AB79",
+                    fontWeight: 700,
+                  },
+                },
+                "& .MuiTabs-indicator": {
+                  backgroundColor: "#37AB79",
+                  height: 3,
+                },
+                "& .MuiTabs-scrollButtons": {
+                  color: "#074568",
+                  "&.Mui-disabled": { opacity: 0.3 },
+                },
+              }}
+            >
+              <Tab label="Header & Meta" />
+              {sectionsOrder.map((secId, idx) => {
+                const meta = SECTION_METAS[secId] || { name: secId, label: secId };
+                const currentHdr = formData?.section_headers?.[secId] || DEFAULT_SECTION_HEADERS[secId];
+                const displayLabel = currentHdr?.title
+                  ? currentHdr.title.replace(/^\d{2}\s*·\s*/, `${String(idx + 1).padStart(2, "0")} · `)
+                  : `${String(idx + 1).padStart(2, "0")} · ${meta.name}`;
+                return <Tab key={secId} label={displayLabel} />;
+              })}
+            </Tabs>
+          </Box>
+
+          {/* View Mode Toggle Buttons */}
+          <Box
             sx={{
-              flex: 1,
-              "& .MuiTab-root": { textTransform: "none", fontWeight: 600, fontSize: 13.5 },
-              "& .Mui-selected": { color: "#37AB79" },
-              "& .MuiTabs-indicator": { backgroundColor: "#37AB79", height: 3 },
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              py: 1,
+              px: { xs: 1.5, sm: 2 },
+              borderTop: { xs: "1px solid #e0e6ed", md: "none" },
+              borderLeft: { md: "1px solid #e0e6ed" },
+              flexShrink: 0,
+              justifyContent: { xs: "flex-end", md: "center" },
+              backgroundColor: { xs: "#f8fafc", md: "transparent" },
             }}
           >
-            <Tab label="Header & Meta" />
-            {sectionsOrder.map((secId, idx) => {
-              const meta = SECTION_METAS[secId] || { name: secId, label: secId };
-              const currentHdr = formData?.section_headers?.[secId] || DEFAULT_SECTION_HEADERS[secId];
-              const displayLabel = currentHdr?.title
-                ? currentHdr.title.replace(/^\d{2}\s*·\s*/, `${String(idx + 1).padStart(2, "0")} · `)
-                : `${String(idx + 1).padStart(2, "0")} · ${meta.name}`;
-              return <Tab key={secId} label={displayLabel} />;
-            })}
-          </Tabs>
-
-          {/* View Mode Toggle */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1, py: 1, pl: 2 }}>
             <Button
               size="small"
               variant={viewMode === "tabs" ? "contained" : "outlined"}
-              startIcon={<ViewListIcon />}
+              startIcon={<ViewListIcon sx={{ fontSize: "16px !important" }} />}
               onClick={() => setViewMode("tabs")}
               sx={{
                 textTransform: "none",
-                fontSize: "0.8rem",
+                fontSize: "0.78rem",
                 fontWeight: 600,
+                whiteSpace: "nowrap",
                 backgroundColor: viewMode === "tabs" ? "#37AB79" : "transparent",
                 color: viewMode === "tabs" ? "#fff" : "#475569",
                 borderColor: "#cbd5e1",
+                py: 0.5,
+                px: 1.5,
                 "&:hover": {
                   backgroundColor: viewMode === "tabs" ? "#2d8a62" : "#f1f5f9",
+                  borderColor: viewMode === "tabs" ? "#2d8a62" : "#94a3b8",
                 },
               }}
             >
@@ -3430,17 +3543,21 @@ export default function AdminProjectDetails() {
             <Button
               size="small"
               variant={viewMode === "all" ? "contained" : "outlined"}
-              startIcon={<ViewStreamIcon />}
+              startIcon={<ViewStreamIcon sx={{ fontSize: "16px !important" }} />}
               onClick={() => setViewMode("all")}
               sx={{
                 textTransform: "none",
-                fontSize: "0.8rem",
+                fontSize: "0.78rem",
                 fontWeight: 600,
+                whiteSpace: "nowrap",
                 backgroundColor: viewMode === "all" ? "#37AB79" : "transparent",
                 color: viewMode === "all" ? "#fff" : "#475569",
                 borderColor: "#cbd5e1",
+                py: 0.5,
+                px: 1.5,
                 "&:hover": {
                   backgroundColor: viewMode === "all" ? "#2d8a62" : "#f1f5f9",
+                  borderColor: viewMode === "all" ? "#2d8a62" : "#94a3b8",
                 },
               }}
             >
@@ -3453,83 +3570,115 @@ export default function AdminProjectDetails() {
         {viewMode === "tabs" && (
           <Box
             sx={{
-              px: 3,
+              px: { xs: 1.5, sm: 2.5 },
               py: 1.5,
               backgroundColor: "#f0fdf4",
               borderBottom: "1px solid #bbf7d0",
               display: "flex",
-              alignItems: "center",
+              flexDirection: { xs: "column", sm: "row" },
+              alignItems: { xs: "flex-start", sm: "center" },
               gap: 1.5,
-              flexWrap: "wrap",
+              width: "100%",
+              boxSizing: "border-box",
             }}
           >
-            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, color: "#166534", fontWeight: 700, fontSize: "0.82rem" }}>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 0.5,
+                color: "#166534",
+                fontWeight: 700,
+                fontSize: "0.82rem",
+                flexShrink: 0,
+                whiteSpace: "nowrap",
+              }}
+            >
               <SwapVertIcon fontSize="small" />
               <span>Drag to Reorder Sections:</span>
             </Box>
-            <SortableContainer
-              items={sectionsOrder.map((id) => ({ id }))}
-              onReorder={(reordered) => handleReorderSections(reordered.map((r) => r.id))}
-              strategy={rectSortingStrategy}
-            >
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
-                {sectionsOrder.map((secId, idx) => {
-                  const secMeta = SECTION_METAS[secId] || { name: secId };
-                  const numStr = String(idx + 1).padStart(2, "0");
-                  const isActiveTab = tabIndex === idx + 1;
-                  return (
-                    <SortableItem key={secId} id={secId}>
-                      {({ attributes, listeners, isDragging }) => (
-                        <Box
-                          sx={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: 0.5,
-                            backgroundColor: isDragging ? "#dcfce7" : isActiveTab ? "#e8fbf0" : "#fff",
-                            border: isDragging ? "2px dashed #16a34a" : isActiveTab ? "2px solid #37AB79" : "1px solid #86efac",
-                            borderRadius: "16px",
-                            px: 1,
-                            py: 0.25,
-                            fontSize: "0.8rem",
-                            fontWeight: 600,
-                            color: "#166534",
-                            boxShadow: isDragging ? 3 : 1,
-                            transition: "all 0.15s ease",
-                          }}
-                        >
-                          <DragHandle
-                            attributes={attributes}
-                            listeners={listeners}
-                            isDragging={isDragging}
-                            title="Drag to reorder section"
-                            color="#16a34a"
-                          />
-                          <span
-                            style={{ cursor: "pointer", userSelect: "none" }}
-                            onClick={() => setTabIndex(idx + 1)}
-                            title="Click to view tab"
+
+            <Box sx={{ flex: 1, minWidth: 0, width: "100%" }}>
+              <SortableContainer
+                items={sectionsOrder.map((id) => ({ id }))}
+                onReorder={(reordered) => handleReorderSections(reordered.map((r) => r.id))}
+                strategy={rectSortingStrategy}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                    flexWrap: "wrap",
+                    width: "100%",
+                  }}
+                >
+                  {sectionsOrder.map((secId, idx) => {
+                    const secMeta = SECTION_METAS[secId] || { name: secId };
+                    const numStr = String(idx + 1).padStart(2, "0");
+                    const isActiveTab = tabIndex === idx + 1;
+                    return (
+                      <SortableItem key={secId} id={secId}>
+                        {({ attributes, listeners, isDragging }) => (
+                          <Box
+                            sx={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 0.5,
+                              backgroundColor: isDragging ? "#dcfce7" : isActiveTab ? "#e8fbf0" : "#fff",
+                              border: isDragging ? "2px dashed #16a34a" : isActiveTab ? "2px solid #37AB79" : "1px solid #86efac",
+                              borderRadius: "16px",
+                              px: 1,
+                              py: 0.25,
+                              fontSize: "0.8rem",
+                              fontWeight: 600,
+                              color: "#166534",
+                              boxShadow: isDragging ? 3 : "0 1px 2px rgba(0,0,0,0.05)",
+                              transition: "all 0.15s ease",
+                              maxWidth: "100%",
+                              boxSizing: "border-box",
+                            }}
                           >
-                            {numStr} · {secMeta.name}
-                          </span>
-                          <AccessibleReorderButtons
-                            isFirst={idx === 0}
-                            isLast={idx === sectionsOrder.length - 1}
-                            onMoveUp={() => handleMoveSection(idx, -1)}
-                            onMoveDown={() => handleMoveSection(idx, 1)}
-                            color="#16a34a"
-                          />
-                        </Box>
-                      )}
-                    </SortableItem>
-                  );
-                })}
-              </Box>
-            </SortableContainer>
+                            <DragHandle
+                              attributes={attributes}
+                              listeners={listeners}
+                              isDragging={isDragging}
+                              title="Drag to reorder section"
+                              color="#16a34a"
+                            />
+                            <span
+                              style={{
+                                cursor: "pointer",
+                                userSelect: "none",
+                                whiteSpace: "nowrap",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                              }}
+                              onClick={() => setTabIndex(idx + 1)}
+                              title="Click to view tab"
+                            >
+                              {numStr} · {secMeta.name}
+                            </span>
+                            <AccessibleReorderButtons
+                              isFirst={idx === 0}
+                              isLast={idx === sectionsOrder.length - 1}
+                              onMoveUp={() => handleMoveSection(idx, -1)}
+                              onMoveDown={() => handleMoveSection(idx, 1)}
+                              color="#16a34a"
+                            />
+                          </Box>
+                        )}
+                      </SortableItem>
+                    );
+                  })}
+                </Box>
+              </SortableContainer>
+            </Box>
           </Box>
         )}
 
         {formData && (
-          <Box sx={{ p: 3 }}>
+          <Box sx={{ p: { xs: 2, sm: 3 }, width: "100%", boxSizing: "border-box" }}>
             {viewMode === "tabs" ? (
               <>
                 {/* ── TAB 0: Header & Meta ── */}
