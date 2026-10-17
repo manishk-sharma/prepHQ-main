@@ -35,9 +35,16 @@ const formatProjectDetail = (row) => ({
   implementation_steps: parseJsonField(row.implementation_steps, []),
   technologies: parseJsonField(row.technologies, []),
   dataset_resources: parseJsonField(row.dataset_resources, []),
+  datasetResources: parseJsonField(row.dataset_resources, []),
   technical_learnings: parseJsonField(row.technical_learnings, []),
+  technicalLearnings: parseJsonField(row.technical_learnings, []),
   practical_learnings: parseJsonField(row.practical_learnings, []),
+  practicalLearnings: parseJsonField(row.practical_learnings, []),
   common_mistakes: parseJsonField(row.common_mistakes, []),
+  commonMistakes: parseJsonField(row.common_mistakes, []),
+  section_headers: parseJsonField(row.section_headers, {}),
+  sectionHeaders: parseJsonField(row.section_headers, {}),
+  section_2_design: row.section_2_design || parseJsonField(row.section_headers, {})?.section_2_design || 'grid',
   created_at: row.created_at,
   updated_at: row.updated_at,
 });
@@ -124,6 +131,8 @@ export const createProjectDetails = async (req, res, next) => {
       technical_learnings,
       practical_learnings,
       common_mistakes,
+      section_headers,
+      section_2_design,
     } = req.body;
 
     if (!title || !slug) {
@@ -131,6 +140,9 @@ export const createProjectDetails = async (req, res, next) => {
     }
 
     const cleanSlug = slug.toLowerCase().trim().replace(/[^a-z0-9-]+/g, '-');
+    const validSection2Design = ['grid', 'single_column'].includes(section_2_design)
+      ? section_2_design
+      : 'grid';
 
     const result = await query(
       `INSERT INTO project_details (
@@ -138,8 +150,9 @@ export const createProjectDetails = async (req, res, next) => {
         about_text_1, about_text_2, about_text_3,
         prerequisites, objectives, architecture_steps, architecture_details,
         implementation_steps, technologies, dataset_resources,
-        technical_learnings, practical_learnings, common_mistakes
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        technical_learnings, practical_learnings, common_mistakes, section_headers,
+        section_2_design
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         project_id || null,
         cleanSlug,
@@ -158,10 +171,12 @@ export const createProjectDetails = async (req, res, next) => {
         JSON.stringify(architecture_details || []),
         JSON.stringify(implementation_steps || []),
         JSON.stringify(technologies || []),
-        JSON.stringify(dataset_resources || []),
-        JSON.stringify(technical_learnings || []),
-        JSON.stringify(practical_learnings || []),
-        JSON.stringify(common_mistakes || []),
+        JSON.stringify(dataset_resources || req.body.datasetResources || []),
+        JSON.stringify(technical_learnings || req.body.technicalLearnings || []),
+        JSON.stringify(practical_learnings || req.body.practicalLearnings || []),
+        JSON.stringify(common_mistakes || req.body.commonMistakes || []),
+        JSON.stringify(section_headers || req.body.sectionHeaders || {}),
+        validSection2Design,
       ]
     );
 
@@ -201,10 +216,19 @@ export const updateProjectDetails = async (req, res, next) => {
       technical_learnings,
       practical_learnings,
       common_mistakes,
+      section_headers,
+      section_2_design,
     } = req.body;
 
     if (!slugOrId) {
       return res.status(400).json({ status: 0, message: 'Identifier is required.' });
+    }
+
+    if (section_2_design !== undefined && !['grid', 'single_column'].includes(section_2_design)) {
+      return res.status(400).json({
+        status: 0,
+        message: 'Invalid section_2_design. Must be "grid" or "single_column".',
+      });
     }
 
     const isNumeric = /^\d+$/.test(slugOrId);
@@ -232,7 +256,9 @@ export const updateProjectDetails = async (req, res, next) => {
            dataset_resources = COALESCE(?, dataset_resources),
            technical_learnings = COALESCE(?, technical_learnings),
            practical_learnings = COALESCE(?, practical_learnings),
-           common_mistakes = COALESCE(?, common_mistakes)
+           common_mistakes = COALESCE(?, common_mistakes),
+           section_headers = COALESCE(?, section_headers),
+           section_2_design = COALESCE(?, section_2_design)
        ${whereClause}`,
       [
         project_id ?? null,
@@ -252,10 +278,22 @@ export const updateProjectDetails = async (req, res, next) => {
         architecture_details !== undefined ? JSON.stringify(architecture_details) : null,
         implementation_steps !== undefined ? JSON.stringify(implementation_steps) : null,
         technologies !== undefined ? JSON.stringify(technologies) : null,
-        dataset_resources !== undefined ? JSON.stringify(dataset_resources) : null,
-        technical_learnings !== undefined ? JSON.stringify(technical_learnings) : null,
-        practical_learnings !== undefined ? JSON.stringify(practical_learnings) : null,
-        common_mistakes !== undefined ? JSON.stringify(common_mistakes) : null,
+        (dataset_resources !== undefined || req.body.datasetResources !== undefined)
+          ? JSON.stringify(dataset_resources !== undefined ? dataset_resources : req.body.datasetResources)
+          : null,
+        (technical_learnings !== undefined || req.body.technicalLearnings !== undefined)
+          ? JSON.stringify(technical_learnings !== undefined ? technical_learnings : req.body.technicalLearnings)
+          : null,
+        (practical_learnings !== undefined || req.body.practicalLearnings !== undefined)
+          ? JSON.stringify(practical_learnings !== undefined ? practical_learnings : req.body.practicalLearnings)
+          : null,
+        (common_mistakes !== undefined || req.body.commonMistakes !== undefined)
+          ? JSON.stringify(common_mistakes !== undefined ? common_mistakes : req.body.commonMistakes)
+          : null,
+        (section_headers !== undefined || req.body.sectionHeaders !== undefined)
+          ? JSON.stringify(section_headers !== undefined ? section_headers : req.body.sectionHeaders)
+          : null,
+        section_2_design ?? null,
         slugOrId,
       ]
     );

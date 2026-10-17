@@ -346,7 +346,7 @@ export const useUpdateProjectDetails = () => {
         mutationFn: saveProjectDetails,
         onSuccess: (data, variables) => {
             queryClient.invalidateQueries({
-                queryKey: ["projectDetails", variables.slugOrId],
+                queryKey: ["projectDetails"],
             });
             queryClient.invalidateQueries({
                 queryKey: ["projectDetailsList"],

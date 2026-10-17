@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
-import { useProjectDetails } from "../../services/projectsServices";
+import { useProjectDetails, useUpdateProjectDetails } from "../../services/projectsServices";
+import { useNotification } from "../../context/useNotificationContext";
+import EditableSectionHeader from "./components/EditableSectionHeader";
 import {
     FiCopy,
     FiCheck,
@@ -186,19 +188,31 @@ const TECHNOLOGIES_DATA = [
 // Section 07 Dataset Resources Data matching Screenshot 6
 const DATASET_RESOURCES = [
     {
+        id: "ds-1",
         title: "Kaggle",
+        providerTitle: "Kaggle",
         desc: "Telco Customer Churn is hosted here as a ready-to-use CSV, with notebooks from other learners.",
+        description: "Telco Customer Churn is hosted here as a ready-to-use CSV, with notebooks from other learners.",
         url: "https://www.kaggle.com/datasets/blastchar/telco-customer-churn",
+        externalUrl: "https://www.kaggle.com/datasets/blastchar/telco-customer-churn",
     },
     {
-        title: "Kaggle",
-        desc: "Telco Customer Churn is hosted here as a ready-to-use CSV, with notebooks from other learners.",
-        url: "https://www.kaggle.com/datasets/blastchar/telco-customer-churn",
+        id: "ds-2",
+        title: "IBM Community",
+        providerTitle: "IBM Community",
+        desc: "The original enterprise telecom customer dataset with 21 customer attributes and payment histories.",
+        description: "The original enterprise telecom customer dataset with 21 customer attributes and payment histories.",
+        url: "https://github.com/IBM/telco-customer-churn-on-icp4d",
+        externalUrl: "https://github.com/IBM/telco-customer-churn-on-icp4d",
     },
     {
-        title: "Kaggle",
-        desc: "Telco Customer Churn is hosted here as a ready-to-use CSV, with notebooks from other learners.",
-        url: "https://www.kaggle.com/datasets/blastchar/telco-customer-churn",
+        id: "ds-3",
+        title: "UCI Machine Learning Repository",
+        providerTitle: "UCI ML Repo",
+        desc: "Standard benchmark repository containing customer attrition and retention records for classification research.",
+        description: "Standard benchmark repository containing customer attrition and retention records for classification research.",
+        url: "https://archive.ics.uci.edu/dataset/193/churn",
+        externalUrl: "https://archive.ics.uci.edu/dataset/193/churn",
     },
 ];
 
@@ -227,32 +241,32 @@ const COMMON_MISTAKES = [
         num: "01",
         title: "Data Leakage",
         mistake: "Using information in training that wouldn't be available at prediction time.",
-        why: "Scaling or encoding before splitting, or keeping columns that reveal the outcome.",
-        avoid: "Split first, fit transformers on training data only, and use a Pipeline.",
+        why: "Scaling, encoding, or imputing before train-test split, or keeping target-proxy columns.",
+        avoid: "Split first, fit transformers on training data only, and use scikit-learn Pipeline.",
     },
     {
         id: "mistake-2",
         num: "02",
-        title: "Data Leakage",
-        mistake: "Using information in training that wouldn't be available at prediction time.",
-        why: "Scaling or encoding before splitting, or keeping columns that reveal the outcome.",
-        avoid: "Split first, fit transformers on training data only, and use a Pipeline.",
+        title: "Optimizing for Accuracy on Imbalanced Data",
+        mistake: "Relying on raw accuracy when the majority of customers do not churn.",
+        why: "A model predicting 'no churn' for everyone can score 80% accuracy while failing completely.",
+        avoid: "Use ROC-AUC, Precision-Recall, F1-Score, and consider SMOTE or class weights.",
     },
     {
         id: "mistake-3",
         num: "03",
-        title: "Data Leakage",
-        mistake: "Using information in training that wouldn't be available at prediction time.",
-        why: "Scaling or encoding before splitting, or keeping columns that reveal the outcome.",
-        avoid: "Split first, fit transformers on training data only, and use a Pipeline.",
+        title: "Ignoring Feature Multicollinearity",
+        mistake: "Feeding strongly correlated features without inspection or pruning.",
+        why: "Features like 'TotalCharges' and 'Tenure' are collinear and destabilize model coefficients.",
+        avoid: "Check correlation heatmaps, compute Variance Inflation Factor (VIF), or use regularized models.",
     },
     {
         id: "mistake-4",
         num: "04",
-        title: "Data Leakage",
-        mistake: "Using information in training that wouldn't be available at prediction time.",
-        why: "Scaling or encoding before splitting, or keeping columns that reveal the outcome.",
-        avoid: "Split first, fit transformers on training data only, and use a Pipeline.",
+        title: "Evaluating Without Cross-Validation",
+        mistake: "Evaluating model generalization on a single fixed train/test split.",
+        why: "A single split can result in overly optimistic or pessimistic performance estimates.",
+        avoid: "Apply Stratified 5-Fold Cross-Validation to assess true stability across folds.",
     },
 ];
 
@@ -275,10 +289,95 @@ const MINI_GUIDES = [
     { title: "Create Amazing Color Schemes Design", date: "05 Aug, 2025", link: "/guides" },
 ];
 
+export const DEFAULT_SECTION_HEADERS = {
+    "about-project": {
+        title: "01 · About the Project",
+        subtitle: "Understand what you'll build and why it matters.",
+    },
+    "prerequisites": {
+        title: "02 · What You Should Know Before Starting",
+        subtitle: "A quick checklist so you can start with confidence.",
+    },
+    "project-objectives": {
+        title: "03 · Project Objectives",
+        subtitle: "Understand what you will accomplish.",
+    },
+    "project-architecture": {
+        title: "04 · Project Architecture",
+        subtitle: "How data flows from raw records to predictions.",
+    },
+    "implementation-guide": {
+        title: "05 · Step-by-Step Implementation",
+        subtitle: "Follow these ten steps to build the project from start to finish.",
+    },
+    "technologies": {
+        title: "06 · Tools / Technologies Used",
+        subtitle: "Everything you need is free and open source.",
+    },
+    "dataset-resources": {
+        title: "07 · Where to Get Data",
+        subtitle: "Trusted places to download the dataset.",
+    },
+    "project-learnings": {
+        title: "08 · Learnings From the Project",
+        subtitle: "Skills you will take away.",
+    },
+    "common-mistakes": {
+        title: "09 · Common Mistakes to Avoid",
+        subtitle: "Save hours by knowing these pitfalls early.",
+    },
+};
+
 const Projectsdetails = () => {
     const { postSlug } = useParams();
     const activeSlug = postSlug || "customer-churn-prediction-using-machine-learning";
     const { data: dbData } = useProjectDetails(activeSlug);
+    const { mutateAsync: updateDetails } = useUpdateProjectDetails();
+    const { showNotification } = useNotification();
+
+    const [sectionHeaders, setSectionHeaders] = useState(DEFAULT_SECTION_HEADERS);
+
+    useEffect(() => {
+        if (dbData?.sectionHeaders || dbData?.section_headers) {
+            const raw = dbData.sectionHeaders || dbData.section_headers;
+            if (raw && typeof raw === "object") {
+                setSectionHeaders((prev) => ({
+                    ...DEFAULT_SECTION_HEADERS,
+                    ...raw,
+                }));
+            }
+        }
+    }, [dbData]);
+
+    const handleSaveSectionHeader = async (sectionId, newTitle, newSubtitle) => {
+        const updated = {
+            ...sectionHeaders,
+            [sectionId]: {
+                title: newTitle,
+                subtitle: newSubtitle,
+            },
+        };
+        setSectionHeaders(updated);
+
+        try {
+            await updateDetails({
+                slugOrId: dbData?.id || activeSlug,
+                data: {
+                    section_headers: updated,
+                    sectionHeaders: updated,
+                },
+            });
+            showNotification("Section heading updated successfully!", "success");
+            return true;
+        } catch (error) {
+            setSectionHeaders((prev) => ({
+                ...prev,
+                [sectionId]: sectionHeaders[sectionId] || DEFAULT_SECTION_HEADERS[sectionId],
+            }));
+            showNotification(error?.message || "Failed to save section heading", "danger");
+            throw error;
+        }
+    };
 
     const projectTitle = dbData?.title || "Customer Churn Prediction Using Machine Learning";
     const projectDesc = dbData?.subtitle || dbData?.description || "Build an end-to-end machine learning project to identify customers who are likely to churn using real-world customer data.";
@@ -291,18 +390,59 @@ const Projectsdetails = () => {
     const aboutP2 = dbData?.about_text_2 || dbData?.about_p2 || "In this project you'll work with a real telecom dataset to find the patterns behind churn, then train classification models that flag at-risk customers before they leave.";
     const aboutP3 = dbData?.about_text_3 || dbData?.about_p3 || "By the end you'll have built a complete workflow: cleaned data, insightful visualizations, a tuned and evaluated model, and a working prediction pipeline.";
 
+    const section2Design = dbData?.section_2_design || dbData?.section_headers?.section_2_design || "grid";
+
     let prerequisites = DEFAULT_PREREQUISITES;
     if (dbData?.prerequisites) {
         if (Array.isArray(dbData.prerequisites) && dbData.prerequisites.length > 0) {
-            prerequisites = dbData.prerequisites;
+            const categoryTitles = dbData?.prerequisites?.category_titles || dbData?.prereq_category_titles || {};
+            prerequisites = dbData.prerequisites.map((p) => {
+                const key = p.key || (
+                    p.category?.toLowerCase().includes("program") ? "programming" :
+                    p.category?.toLowerCase().includes("data") ? "data" :
+                    p.category?.toLowerCase().includes("stat") ? "statistics" :
+                    p.category?.toLowerCase().includes("machine") || p.category?.toLowerCase().includes("ml") ? "machineLearning" : null
+                );
+                return {
+                    ...p,
+                    key: key || p.key,
+                    category: (key && categoryTitles[key]) ? categoryTitles[key] : p.category,
+                };
+            });
         } else if (typeof dbData.prerequisites === "object") {
             const pObj = dbData.prerequisites;
-            const converted = [
-                { category: "Programming", items: pObj.programming || [] },
-                { category: "Data", items: pObj.data || [] },
-                { category: "Statistics", items: pObj.statistics || [] },
-                { category: "Machine Learning", items: pObj.machineLearning || [] },
-            ].filter((c) => c.items && c.items.length > 0);
+            const defaultOrder = ["programming", "data", "statistics", "machineLearning"];
+            const categoryOrder = Array.isArray(pObj.category_order) && pObj.category_order.length > 0
+                ? [...new Set([...pObj.category_order, ...defaultOrder])]
+                : defaultOrder;
+
+            const categoryTitles = pObj.category_titles || dbData?.prereq_category_titles || {};
+
+            const catMap = {
+                programming: {
+                    key: "programming",
+                    category: categoryTitles.programming || "Programming Prerequisites",
+                    items: pObj.programming || []
+                },
+                data: {
+                    key: "data",
+                    category: categoryTitles.data || "Data Handling Prerequisites",
+                    items: pObj.data || []
+                },
+                statistics: {
+                    key: "statistics",
+                    category: categoryTitles.statistics || "Statistics Prerequisites",
+                    items: pObj.statistics || []
+                },
+                machineLearning: {
+                    key: "machineLearning",
+                    category: categoryTitles.machineLearning || "Machine Learning Prerequisites",
+                    items: pObj.machineLearning || []
+                },
+            };
+            const converted = categoryOrder
+                .map((key) => catMap[key])
+                .filter((c) => c && c.items && c.items.length > 0);
             if (converted.length > 0) {
                 prerequisites = converted;
             }
@@ -325,29 +465,114 @@ const Projectsdetails = () => {
         ? dbData.implementation_steps
         : IMPLEMENTATION_STEPS;
 
-    const techData = (dbData?.technologies && Array.isArray(dbData.technologies) && dbData.technologies.length > 0)
+    const rawTech = (dbData?.technologies && Array.isArray(dbData.technologies) && dbData.technologies.length > 0)
         ? dbData.technologies
         : TECHNOLOGIES_DATA;
+    const techData = rawTech.map((t, idx) => ({
+        id: t.id || `tech-${idx + 1}`,
+        toolName: t.toolName || t.name || "",
+        categoryUsage: t.categoryUsage || t.desc || "",
+        name: t.name || t.toolName || "",
+        desc: t.desc || t.categoryUsage || "",
+    }));
 
-    const datasets = (dbData?.dataset_resources && Array.isArray(dbData.dataset_resources) && dbData.dataset_resources.length > 0)
-        ? dbData.dataset_resources
-        : ((dbData?.datasets && Array.isArray(dbData.datasets) && dbData.datasets.length > 0)
-            ? dbData.datasets
-            : DATASET_RESOURCES);
+    const rawDatasets = (dbData?.datasetResources && Array.isArray(dbData.datasetResources) && dbData.datasetResources.length > 0)
+        ? dbData.datasetResources
+        : ((dbData?.dataset_resources && Array.isArray(dbData.dataset_resources) && dbData.dataset_resources.length > 0)
+            ? dbData.dataset_resources
+            : ((dbData?.datasets && Array.isArray(dbData.datasets) && dbData.datasets.length > 0)
+                ? dbData.datasets
+                : DATASET_RESOURCES));
+    const datasets = rawDatasets.map((ds, idx) => ({
+        id: ds.id || `ds-${idx + 1}`,
+        providerTitle: ds.providerTitle || ds.title || "",
+        externalUrl: ds.externalUrl || ds.url || "",
+        description: ds.description || ds.desc || "",
+        title: ds.title || ds.providerTitle || "",
+        url: ds.url || ds.externalUrl || "",
+        desc: ds.desc || ds.description || "",
+    }));
 
     const technicalLearnings = (dbData?.technical_learnings && Array.isArray(dbData.technical_learnings) && dbData.technical_learnings.length > 0)
         ? dbData.technical_learnings
-        : TECHNICAL_LEARNINGS;
+        : ((dbData?.technicalLearnings && Array.isArray(dbData.technicalLearnings) && dbData.technicalLearnings.length > 0)
+            ? dbData.technicalLearnings
+            : TECHNICAL_LEARNINGS);
 
     const practicalLearnings = (dbData?.practical_learnings && Array.isArray(dbData.practical_learnings) && dbData.practical_learnings.length > 0)
         ? dbData.practical_learnings
-        : PRACTICAL_LEARNINGS;
+        : ((dbData?.practicalLearnings && Array.isArray(dbData.practicalLearnings) && dbData.practicalLearnings.length > 0)
+            ? dbData.practicalLearnings
+            : PRACTICAL_LEARNINGS);
 
-    const commonMistakes = (dbData?.common_mistakes && Array.isArray(dbData.common_mistakes) && dbData.common_mistakes.length > 0)
+    const DEFAULT_LEARNINGS_ORDER = ["technical_learnings", "practical_learnings"];
+    const rawLearningsOrder = dbData?.learnings_order || dbData?.section_headers?.learnings_order;
+    const learningsOrder = Array.isArray(rawLearningsOrder) && rawLearningsOrder.length > 0
+        ? [...new Set([...rawLearningsOrder, ...DEFAULT_LEARNINGS_ORDER])]
+        : DEFAULT_LEARNINGS_ORDER;
+
+    const learningCategoryTitles = dbData?.section_headers?.learning_category_titles ||
+        dbData?.learning_category_titles || {};
+
+    const rawMistakes = (dbData?.common_mistakes && Array.isArray(dbData.common_mistakes) && dbData.common_mistakes.length > 0)
         ? dbData.common_mistakes
-        : COMMON_MISTAKES;
+        : ((dbData?.commonMistakes && Array.isArray(dbData.commonMistakes) && dbData.commonMistakes.length > 0)
+            ? dbData.commonMistakes
+            : COMMON_MISTAKES);
+    const commonMistakes = rawMistakes.map((m, idx) => ({
+        id: m.id || `mistake-${idx + 1}`,
+        num: m.num || String(idx + 1).padStart(2, "0"),
+        title: m.title || "",
+        mistake: m.mistake || "",
+        why: m.why || "",
+        avoid: m.avoid || "",
+    }));
+
+    const DEFAULT_SECTION_ORDER = [
+        "about-project",
+        "prerequisites",
+        "project-objectives",
+        "project-architecture",
+        "implementation-guide",
+        "technologies",
+        "dataset-resources",
+        "project-learnings",
+        "common-mistakes",
+    ];
+
+    const sectionsOrder = dbData?.section_headers?.sections_order ||
+        dbData?.sections_order ||
+        DEFAULT_SECTION_ORDER;
 
     const [activeSection, setActiveSection] = useState("about-project");
+
+    // Dynamic sidebar nav items ordered matching custom sections_order
+    const navItems = sectionsOrder
+        .map((secId) => NAV_ITEMS.find((n) => n.id === secId))
+        .filter(Boolean)
+        .map((item, idx) => {
+            const customHeader = sectionHeaders[item.id];
+            const defaultNum = String(idx + 1).padStart(2, "0");
+            if (customHeader?.title) {
+                const parts = customHeader.title.split(/[·•\-:]/).map((s) => s.trim());
+                if (parts.length > 1 && parts[0].length <= 4) {
+                    return {
+                        ...item,
+                        number: parts[0],
+                        label: parts.slice(1).join(" · "),
+                    };
+                }
+                return {
+                    ...item,
+                    number: defaultNum,
+                    label: customHeader.title,
+                };
+            }
+            return {
+                ...item,
+                number: defaultNum,
+            };
+        });
 
     // Accordion independent state groups
     const [openObjective, setOpenObjective] = useState("obj-1");
@@ -373,8 +598,8 @@ const Projectsdetails = () => {
     useEffect(() => {
         const handleScroll = () => {
             const scrollPosition = window.scrollY + 130;
-            for (let i = NAV_ITEMS.length - 1; i >= 0; i--) {
-                const item = NAV_ITEMS[i];
+            for (let i = navItems.length - 1; i >= 0; i--) {
+                const item = navItems[i];
                 const el = document.getElementById(item.id);
                 if (el && el.offsetTop <= scrollPosition) {
                     setActiveSection(item.id);
@@ -385,7 +610,7 @@ const Projectsdetails = () => {
 
         window.addEventListener("scroll", handleScroll, { passive: true });
         return () => window.removeEventListener("scroll", handleScroll);
-    }, []);
+    }, [navItems]);
 
     // Share actions
     const pageUrl = window.location.href;
@@ -411,6 +636,430 @@ const Projectsdetails = () => {
 
     const handleDownloadPDF = () => {
         window.print();
+    };
+
+    const renderContentSection = (sectionId) => {
+        switch (sectionId) {
+            case "about-project":
+                return (
+                    <section key="about-project" id="about-project" className="content-section">
+                        <EditableSectionHeader
+                            sectionId="about-project"
+                            title={sectionHeaders["about-project"]?.title}
+                            subtitle={sectionHeaders["about-project"]?.subtitle}
+                            defaultTitle={DEFAULT_SECTION_HEADERS["about-project"].title}
+                            defaultSubtitle={DEFAULT_SECTION_HEADERS["about-project"].subtitle}
+                            onSave={handleSaveSectionHeader}
+                        />
+
+                        <div className="about-project-card">
+                            {aboutP1 && <p className="about-card-text">{aboutP1}</p>}
+                            {aboutP2 && <p className="about-card-text">{aboutP2}</p>}
+                            {aboutP3 && <p className="about-card-text">{aboutP3}</p>}
+                        </div>
+                    </section>
+                );
+
+            case "prerequisites":
+                return (
+                    <section id="prerequisites" className="content-section" key="prerequisites">
+                        <EditableSectionHeader
+                            sectionId="prerequisites"
+                            title={sectionHeaders["prerequisites"]?.title}
+                            subtitle={sectionHeaders["prerequisites"]?.subtitle}
+                            defaultTitle={DEFAULT_SECTION_HEADERS["prerequisites"].title}
+                            defaultSubtitle={DEFAULT_SECTION_HEADERS["prerequisites"].subtitle}
+                            onSave={handleSaveSectionHeader}
+                        />
+
+                        {section2Design === "single_column" ? (
+                            /* DESIGN 2 — Single Column Layout */
+                            <div className="prereq-single-container">
+                                {prerequisites.map((p, idx) => (
+                                    <div key={idx} className="prereq-single-category">
+                                        <h3 className="prereq-category-title">{p.category}</h3>
+                                        <ul className="prereq-list">
+                                            {(p.items || []).map((item, i) => (
+                                                <li key={i}>{item}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            /* DESIGN 1 — Grid Card Layout (Default) */
+                            <div className="prereq-cards-layout">
+                                {prerequisites.map((p, idx) => (
+                                    <div
+                                        key={idx}
+                                        className={`prereq-card ${p.key === "machineLearning" || p.category?.toLowerCase().includes("machine") || p.category?.toLowerCase().includes("ml") ? "prereq-card-ml" : ""}`}
+                                    >
+                                        <h3 className="prereq-card-title">{p.category}</h3>
+                                        <ul className="prereq-list">
+                                            {(p.items || []).map((item, i) => (
+                                                <li key={i}>{item}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </section>
+                );
+
+            case "project-objectives":
+                return (
+                    <section key="project-objectives" id="project-objectives" className="content-section">
+                        <EditableSectionHeader
+                            sectionId="project-objectives"
+                            title={sectionHeaders["project-objectives"]?.title}
+                            subtitle={sectionHeaders["project-objectives"]?.subtitle}
+                            defaultTitle={DEFAULT_SECTION_HEADERS["project-objectives"].title}
+                            defaultSubtitle={DEFAULT_SECTION_HEADERS["project-objectives"].subtitle}
+                            onSave={handleSaveSectionHeader}
+                        />
+
+                        <div className="accordion-group">
+                            {objectives.map((obj, idx) => {
+                                const objKey = obj.id || `obj-${idx + 1}`;
+                                const isOpen = openObjective === objKey;
+                                const displayNum = obj.num || (idx + 1 < 10 ? `0${idx + 1}` : `${idx + 1}`);
+                                return (
+                                    <div key={objKey} className={`accordion-card ${isOpen ? "open" : ""}`}>
+                                        <button
+                                            type="button"
+                                            className="accordion-header"
+                                            onClick={() => setOpenObjective(isOpen ? null : objKey)}
+                                            aria-expanded={isOpen}
+                                            aria-controls={`obj-panel-${objKey}`}
+                                        >
+                                            <span className={`accordion-badge ${isOpen ? "active-badge" : "default-badge"}`}>
+                                                {displayNum}
+                                            </span>
+                                            <span className="accordion-title">{obj.title}</span>
+                                            <span className="accordion-chevron">
+                                                {isOpen ? <FiChevronUp /> : <FiChevronDown />}
+                                            </span>
+                                        </button>
+
+                                        {isOpen && (
+                                            <div id={`obj-panel-${objKey}`} className="accordion-body">
+                                                <p className="accordion-desc">{obj.content}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </section>
+                );
+
+            case "project-architecture":
+                return (
+                    <section key="project-architecture" id="project-architecture" className="content-section">
+                        <EditableSectionHeader
+                            sectionId="project-architecture"
+                            title={sectionHeaders["project-architecture"]?.title}
+                            subtitle={sectionHeaders["project-architecture"]?.subtitle}
+                            defaultTitle={DEFAULT_SECTION_HEADERS["project-architecture"].title}
+                            defaultSubtitle={DEFAULT_SECTION_HEADERS["project-architecture"].subtitle}
+                            onSave={handleSaveSectionHeader}
+                        />
+
+                        <div className="arch-steps-grid">
+                            {archSteps.map((step, idx) => {
+                                const stepKey = step.id || `arch-${idx + 1}`;
+                                const displayNum = step.num || (idx + 1 < 10 ? `0${idx + 1}` : `${idx + 1}`);
+                                return (
+                                    <div key={stepKey} className="arch-step-card">
+                                        <div className="arch-step-circle">{displayNum}</div>
+                                        <span className="arch-step-title" style={{ whiteSpace: "pre-line" }}>{step.title}</span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {archDetails.length > 0 && (
+                            <div className="arch-details-card">
+                                <div className="arch-details-header">
+                                    <div className="arch-icon-box">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                            <path d="M16.25 3.33333H6.66667V2.5C6.66667 1.12167 5.545 0 4.16667 0H3.33333C1.495 0 0 1.495 0 3.33333V16.6667C0 18.505 1.495 20 3.33333 20H7.91667C8.6075 20 9.16667 19.4408 9.16667 18.75C9.16667 18.0592 8.6075 17.5 7.91667 17.5H3.33333C2.87417 17.5 2.5 17.1258 2.5 16.6667C2.5 16.2075 2.87417 15.8333 3.33333 15.8333H4.16667C5.545 15.8333 6.66667 14.7117 6.66667 13.3333V5.83333H16.25C16.9392 5.83333 17.5 6.39417 17.5 7.08333V8.33333C17.5 9.02417 18.0592 9.58333 18.75 9.58333C19.4408 9.58333 20 9.02417 20 8.33333V7.08333C20 5.01583 18.3175 3.33333 16.25 3.33333ZM4.16667 13.3333H3.33333C3.04583 13.3333 2.76667 13.37 2.5 13.4383V3.33333C2.5 2.87417 2.87417 2.5 3.33333 2.5H4.16667V13.3333ZM19.2008 13.2325L16.7008 11.2758C15.9467 10.6858 14.8875 10.6858 14.1333 11.2758L11.6333 13.2325C11.1292 13.6275 10.8342 14.2325 10.8342 14.8733V17.9167C10.8342 19.0675 11.7667 20 12.9175 20H17.9175C19.0683 20 20.0008 19.0675 20.0008 17.9167V14.8733C20.0008 14.2325 19.705 13.6275 19.2008 13.2325ZM16.6667 16.6667C16.6667 17.1267 16.2933 17.5 15.8333 17.5H15C14.54 17.5 14.1667 17.1267 14.1667 16.6667V15.8333C14.1667 15.3733 14.54 15 15 15H15.8333C16.2933 15 16.6667 15.3733 16.6667 15.8333V16.6667ZM10.4167 12.0833C9.72583 12.0833 9.16667 11.5242 9.16667 10.8333V8.75C9.16667 8.05917 9.72583 7.5 10.4167 7.5H13.75C14.4408 7.5 15 8.05917 15 8.75C15 9.44083 14.4408 10 13.75 10H11.6667V10.8333C11.6667 11.5242 11.1075 12.0833 10.4167 12.0833Z" fill="white" />
+                                        </svg>
+                                    </div>
+                                    <h3 className="arch-details-title">View Architecture Details</h3>
+                                </div>
+
+                                <div className="arch-details-list">
+                                    {archDetails.map((detail, idx) => (
+                                        <div key={idx} className="arch-detail-row">
+                                            <strong className="arch-detail-num">{detail.step}</strong>
+                                            <p className="arch-detail-desc">{detail.desc}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </section>
+                );
+
+            case "implementation-guide":
+                return (
+                    <section key="implementation-guide" id="implementation-guide" className="content-section">
+                        <EditableSectionHeader
+                            sectionId="implementation-guide"
+                            title={sectionHeaders["implementation-guide"]?.title}
+                            subtitle={sectionHeaders["implementation-guide"]?.subtitle}
+                            defaultTitle={DEFAULT_SECTION_HEADERS["implementation-guide"].title}
+                            defaultSubtitle={DEFAULT_SECTION_HEADERS["implementation-guide"].subtitle}
+                            onSave={handleSaveSectionHeader}
+                        />
+
+                        <div className="accordion-group">
+                            {implSteps.map((step, idx) => {
+                                const stepKey = step.id || `step-${idx + 1}`;
+                                const isOpen = openStep === stepKey;
+                                const displayNum = step.num || (idx + 1 < 10 ? `0${idx + 1}` : `${idx + 1}`);
+                                return (
+                                    <div key={stepKey} className={`accordion-card ${isOpen ? "open" : ""}`}>
+                                        <button
+                                            type="button"
+                                            className="accordion-header implementation-accordion-header"
+                                            onClick={() => setOpenStep(isOpen ? null : stepKey)}
+                                            aria-expanded={isOpen}
+                                            aria-controls={`step-panel-${stepKey}`}
+                                        >
+                                            <span className={`accordion-badge ${isOpen ? "active-badge" : "default-badge"}`}>
+                                                {displayNum}
+                                            </span>
+                                            <div className="accordion-title-block">
+                                                <span className="accordion-title">{step.title}</span>
+                                                <span className="accordion-sub-label">{step.subtitle}</span>
+                                            </div>
+                                            <span className="accordion-chevron">
+                                                {isOpen ? <FiChevronUp /> : <FiChevronDown />}
+                                            </span>
+                                        </button>
+
+                                        {isOpen && (
+                                            <div id={`step-panel-${stepKey}`} className="accordion-body step-body">
+                                                {step.whatYouDo && (
+                                                    <div className="step-field">
+                                                        <span className="step-field-label">What you'll do</span>
+                                                        <p className="step-field-text">{step.whatYouDo}</p>
+                                                    </div>
+                                                )}
+
+                                                {step.matters && (
+                                                    <div className="step-field">
+                                                        <span className="step-field-label">Why it matters</span>
+                                                        <p className="step-field-text">{step.matters}</p>
+                                                    </div>
+                                                )}
+
+                                                {step.output && (
+                                                    <div className="step-field">
+                                                        <span className="step-field-label">Expected output</span>
+                                                        <p className="step-field-text">{step.output}</p>
+                                                    </div>
+                                                )}
+
+                                                {step.tools && step.tools.length > 0 && (
+                                                    <div className="step-field">
+                                                        <span className="step-field-label">Tools used</span>
+                                                        <div className="step-tools-list">
+                                                            {step.tools.map((tool, tIdx) => (
+                                                                <span key={tIdx} className="step-tool-badge">{tool}</span>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {step.command && (
+                                                    <div className="step-code-wrapper">
+                                                        <pre className="step-code-block">{step.command}</pre>
+                                                        <button
+                                                            type="button"
+                                                            className="step-code-copy-btn"
+                                                            onClick={() => handleCopyCommand(step.command)}
+                                                            title="Copy code to clipboard"
+                                                            aria-label="Copy code command"
+                                                        >
+                                                            {copiedCmd ? <FiCheck /> : <FiCopy />}
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </section>
+                );
+
+            case "technologies":
+                return (
+                    <section key="technologies" id="technologies" className="content-section">
+                        <EditableSectionHeader
+                            sectionId="technologies"
+                            title={sectionHeaders["technologies"]?.title}
+                            subtitle={sectionHeaders["technologies"]?.subtitle}
+                            defaultTitle={DEFAULT_SECTION_HEADERS["technologies"].title}
+                            defaultSubtitle={DEFAULT_SECTION_HEADERS["technologies"].subtitle}
+                            onSave={handleSaveSectionHeader}
+                        />
+
+                        <div className="tech-badges-grid">
+                            {techData.map((tech, idx) => (
+                                <div key={tech.id || idx} className="tech-badge-card">
+                                    <span className="tech-name">{tech.toolName || tech.name}</span>
+                                    <span className="tech-sub">{tech.categoryUsage || tech.desc}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                );
+
+            case "dataset-resources":
+                return (
+                    <section key="dataset-resources" id="dataset-resources" className="content-section">
+                        <EditableSectionHeader
+                            sectionId="dataset-resources"
+                            title={sectionHeaders["dataset-resources"]?.title}
+                            subtitle={sectionHeaders["dataset-resources"]?.subtitle}
+                            defaultTitle={DEFAULT_SECTION_HEADERS["dataset-resources"].title}
+                            defaultSubtitle={DEFAULT_SECTION_HEADERS["dataset-resources"].subtitle}
+                            onSave={handleSaveSectionHeader}
+                        />
+
+                        <div className="dataset-cards-grid">
+                            {datasets.map((ds, idx) => (
+                                <div key={ds.id || idx} className="dataset-resource-card">
+                                    <h3 className="dataset-source-title">{ds.providerTitle || ds.title}</h3>
+                                    <p className="dataset-source-desc">{ds.description || ds.desc}</p>
+                                    <a
+                                        href={ds.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="dataset-btn"
+                                    >
+                                        <span>Get Dataset</span>
+                                        <span className="arrow-sym">→</span>
+                                    </a>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                );
+
+            case "project-learnings":
+                return (
+                    <section key="project-learnings" id="project-learnings" className="content-section">
+                        <EditableSectionHeader
+                            sectionId="project-learnings"
+                            title={sectionHeaders["project-learnings"]?.title}
+                            subtitle={sectionHeaders["project-learnings"]?.subtitle}
+                            defaultTitle={DEFAULT_SECTION_HEADERS["project-learnings"].title}
+                            defaultSubtitle={DEFAULT_SECTION_HEADERS["project-learnings"].subtitle}
+                            onSave={handleSaveSectionHeader}
+                        />
+
+                        <div className="learnings-grid">
+                            {learningsOrder.map((catKey) => {
+                                const isTech = catKey === "technical_learnings" || catKey === "technicalLearnings";
+                                const defaultTitle = isTech ? "Technical Learnings" : "Practical Learnings";
+                                const title = learningCategoryTitles[catKey] ||
+                                    (isTech
+                                        ? (learningCategoryTitles.technical_learnings || learningCategoryTitles.technicalLearnings)
+                                        : (learningCategoryTitles.practical_learnings || learningCategoryTitles.practicalLearnings)
+                                    ) || defaultTitle;
+                                const items = isTech ? technicalLearnings : practicalLearnings;
+                                return (
+                                    <div key={catKey} className="learning-card">
+                                        <h3 className="learning-card-title">{title}</h3>
+                                        <ul className="learning-list">
+                                            {items.map((item, idx) => (
+                                                <li key={idx}>
+                                                    <span className="check-bullet-circle"><FiCheck /></span>
+                                                    <span>{item}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </section>
+                );
+
+            case "common-mistakes":
+                return (
+                    <section key="common-mistakes" id="common-mistakes" className="content-section">
+                        <EditableSectionHeader
+                            sectionId="common-mistakes"
+                            title={sectionHeaders["common-mistakes"]?.title}
+                            subtitle={sectionHeaders["common-mistakes"]?.subtitle}
+                            defaultTitle={DEFAULT_SECTION_HEADERS["common-mistakes"].title}
+                            defaultSubtitle={DEFAULT_SECTION_HEADERS["common-mistakes"].subtitle}
+                            onSave={handleSaveSectionHeader}
+                        />
+
+                        <div className="accordion-group">
+                            {commonMistakes.map((mistake, idx) => {
+                                const mistakeKey = mistake.id || `mistake-${idx + 1}`;
+                                const isOpen = openMistake === mistakeKey;
+                                const displayNum = mistake.num || (idx + 1 < 10 ? `0${idx + 1}` : `${idx + 1}`);
+                                return (
+                                    <div key={mistakeKey} className={`accordion-card ${isOpen ? "open" : ""}`}>
+                                        <button
+                                            type="button"
+                                            className="accordion-header"
+                                            onClick={() => setOpenMistake(isOpen ? null : mistakeKey)}
+                                            aria-expanded={isOpen}
+                                            aria-controls={`mistake-panel-${mistakeKey}`}
+                                        >
+                                            <span className={`accordion-badge ${isOpen ? "active-badge" : "default-badge"}`}>
+                                                {displayNum}
+                                            </span>
+                                            <span className="accordion-title">{mistake.title}</span>
+                                            <span className="accordion-chevron">
+                                                {isOpen ? <FiChevronUp /> : <FiChevronDown />}
+                                            </span>
+                                        </button>
+
+                                        {isOpen && (
+                                            <div id={`mistake-panel-${mistakeKey}`} className="accordion-body mistake-body">
+                                                {mistake.mistake && (
+                                                    <div className="mistake-field">
+                                                        <span className="mistake-label">The mistake</span>
+                                                        <p className="mistake-text">{mistake.mistake}</p>
+                                                    </div>
+                                                )}
+                                                {mistake.why && (
+                                                    <div className="mistake-field">
+                                                        <span className="mistake-label">Why it happens</span>
+                                                        <p className="mistake-text">{mistake.why}</p>
+                                                    </div>
+                                                )}
+                                                {mistake.avoid && (
+                                                    <div className="mistake-field">
+                                                        <span className="mistake-label">How to avoid it</span>
+                                                        <p className="mistake-text">{mistake.avoid}</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </section>
+                );
+
+            default:
+                return null;
+        }
     };
 
     return (
@@ -440,7 +1089,7 @@ const Projectsdetails = () => {
                             <h2 className="sidebar-heading">In This Project</h2>
 
                             <nav className="project-nav-list" aria-label="Project section links">
-                                {NAV_ITEMS.map((item) => (
+                                {navItems.map((item) => (
                                     <button
                                         key={item.id}
                                         type="button"
@@ -506,377 +1155,9 @@ const Projectsdetails = () => {
                             <hr className="header-divider" />
                         </div>
 
-                        {/* SECTION 01: About the Project (Screenshot 1) */}
-                        <section id="about-project" className="content-section">
-                            <div className="section-pill-header">
-                                <span className="section-badge">01 · About the Project</span>
-                                <p className="section-subtitle">Understand what you'll build and why it matters.</p>
-                            </div>
+                        {/* DYNAMIC SECTIONS ORDERED BY USER PREFERENCE */}
+                        {sectionsOrder.map((sectionId) => renderContentSection(sectionId))}
 
-                            <div className="about-project-card">
-                                {aboutP1 && <p className="about-card-text">{aboutP1}</p>}
-                                {aboutP2 && <p className="about-card-text">{aboutP2}</p>}
-                                {aboutP3 && <p className="about-card-text">{aboutP3}</p>}
-                            </div>
-                        </section>
-
-                        {/* SECTION 02: What You Should Know Before Starting (Screenshot 2) */}
-                        <section id="prerequisites" className="content-section">
-                            <div className="section-pill-header">
-                                <span className="section-badge">02 · What You Should Know Before Starting</span>
-                                <p className="section-subtitle">A quick checklist so you can start with confidence.</p>
-                            </div>
-
-                            {/* 3 columns grid: Row 1 has Programming, Data, Statistics; Row 2 has Machine Learning */}
-                            <div className="prereq-cards-layout">
-                                {prerequisites.map((p, idx) => (
-                                    <div
-                                        key={idx}
-                                        className={`prereq-card ${p.category?.toLowerCase().includes("machine") ? "prereq-card-ml" : ""}`}
-                                    >
-                                        <h3 className="prereq-card-title">{p.category}</h3>
-                                        <ul className="prereq-list">
-                                            {(p.items || []).map((item, i) => (
-                                                <li key={i}>{item}</li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                ))}
-                            </div>
-                        </section>
-
-                        {/* SECTION 02 (Layout 2): What You Should Know Before Starting - Single Container Layout */}
-                        <section id="prerequisites-single" className="content-section">
-                            <div className="section-pill-header">
-                                <span className="section-badge">02 · What You Should Know Before Starting</span>
-                                <p className="section-subtitle">A quick checklist so you can start with confidence.</p>
-                            </div>
-
-                            <div className="prereq-single-container">
-                                {prerequisites.map((p, idx) => (
-                                    <div key={idx} className="prereq-single-category">
-                                        <h3 className="prereq-category-title">{p.category}</h3>
-                                        <ul className="prereq-list">
-                                            {(p.items || []).map((item, i) => (
-                                                <li key={i}>{item}</li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                ))}
-                            </div>
-                        </section>
-
-                        {/* SECTION 03: Project Objectives (Screenshot 3) */}
-                        <section id="project-objectives" className="content-section">
-                            <div className="section-pill-header">
-                                <span className="section-badge">03 · Project Objectives</span>
-                                <p className="section-subtitle">Understand what you will accomplish.</p>
-                            </div>
-
-                            <div className="accordion-group">
-                                {objectives.map((obj, idx) => {
-                                    const objKey = obj.id || `obj-${idx + 1}`;
-                                    const isOpen = openObjective === objKey;
-                                    const displayNum = obj.num || (idx + 1 < 10 ? `0${idx + 1}` : `${idx + 1}`);
-                                    return (
-                                        <div key={objKey} className={`accordion-card ${isOpen ? "open" : ""}`}>
-                                            <button
-                                                type="button"
-                                                className="accordion-header"
-                                                onClick={() => setOpenObjective(isOpen ? null : objKey)}
-                                                aria-expanded={isOpen}
-                                                aria-controls={`obj-panel-${objKey}`}
-                                            >
-                                                <span className={`accordion-badge ${isOpen ? "active-badge" : "default-badge"}`}>
-                                                    {displayNum}
-                                                </span>
-                                                <span className="accordion-title">{obj.title}</span>
-                                                <span className="accordion-chevron">
-                                                    {isOpen ? <FiChevronUp /> : <FiChevronDown />}
-                                                </span>
-                                            </button>
-
-                                            {isOpen && (
-                                                <div id={`obj-panel-${objKey}`} className="accordion-body">
-                                                    <p className="accordion-desc">{obj.content}</p>
-                                                </div>
-                                            )}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </section>
-
-                        {/* SECTION 04: Project Architecture (Screenshot 4) */}
-                        <section id="project-architecture" className="content-section">
-                            <div className="section-pill-header">
-                                <span className="section-badge">04 · Project Architecture</span>
-                                <p className="section-subtitle">How data flows from raw records to predictions.</p>
-                            </div>
-
-                            {/* Architecture Steps Grid */}
-                            <div className="arch-steps-grid">
-                                {archSteps.map((step, idx) => {
-                                    const stepKey = step.id || `arch-${idx + 1}`;
-                                    const displayNum = step.num || (idx + 1 < 10 ? `0${idx + 1}` : `${idx + 1}`);
-                                    return (
-                                        <div key={stepKey} className="arch-step-card">
-                                            <div className="arch-step-circle">{displayNum}</div>
-                                            <span className="arch-step-title" style={{ whiteSpace: "pre-line" }}>{step.title}</span>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-
-                            {/* View Architecture Details Card */}
-                            {archDetails.length > 0 && (
-                                <div className="arch-details-card">
-                                    <div className="arch-details-header">
-                                        <div className="arch-icon-box">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                                <path d="M16.25 3.33333H6.66667V2.5C6.66667 1.12167 5.545 0 4.16667 0H3.33333C1.495 0 0 1.495 0 3.33333V16.6667C0 18.505 1.495 20 3.33333 20H7.91667C8.6075 20 9.16667 19.4408 9.16667 18.75C9.16667 18.0592 8.6075 17.5 7.91667 17.5H3.33333C2.87417 17.5 2.5 17.1258 2.5 16.6667C2.5 16.2075 2.87417 15.8333 3.33333 15.8333H4.16667C5.545 15.8333 6.66667 14.7117 6.66667 13.3333V5.83333H16.25C16.9392 5.83333 17.5 6.39417 17.5 7.08333V8.33333C17.5 9.02417 18.0592 9.58333 18.75 9.58333C19.4408 9.58333 20 9.02417 20 8.33333V7.08333C20 5.01583 18.3175 3.33333 16.25 3.33333ZM4.16667 13.3333H3.33333C3.04583 13.3333 2.76667 13.37 2.5 13.4383V3.33333C2.5 2.87417 2.87417 2.5 3.33333 2.5H4.16667V13.3333ZM19.2008 13.2325L16.7008 11.2758C15.9467 10.6858 14.8875 10.6858 14.1333 11.2758L11.6333 13.2325C11.1292 13.6275 10.8342 14.2325 10.8342 14.8733V17.9167C10.8342 19.0675 11.7667 20 12.9175 20H17.9175C19.0683 20 20.0008 19.0675 20.0008 17.9167V14.8733C20.0008 14.2325 19.705 13.6275 19.2008 13.2325ZM16.6667 16.6667C16.6667 17.1267 16.2933 17.5 15.8333 17.5H15C14.54 17.5 14.1667 17.1267 14.1667 16.6667V15.8333C14.1667 15.3733 14.54 15 15 15H15.8333C16.2933 15 16.6667 15.3733 16.6667 15.8333V16.6667ZM10.4167 12.0833C9.72583 12.0833 9.16667 11.5242 9.16667 10.8333V8.75C9.16667 8.05917 9.72583 7.5 10.4167 7.5H13.75C14.4408 7.5 15 8.05917 15 8.75C15 9.44083 14.4408 10 13.75 10H11.6667V10.8333C11.6667 11.5242 11.1075 12.0833 10.4167 12.0833Z" fill="white" />
-                                            </svg>
-                                        </div>
-                                        <h3 className="arch-details-title">View Architecture Details</h3>
-                                    </div>
-
-                                    <div className="arch-details-list">
-                                        {archDetails.map((detail, idx) => (
-                                            <div key={idx} className="arch-detail-row">
-                                                <strong className="arch-detail-num">{detail.step}</strong>
-                                                <p className="arch-detail-desc">{detail.desc}</p>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </section>
-
-                        {/* SECTION 05: Step-by-Step Implementation (Screenshot 5) */}
-                        <section id="implementation-guide" className="content-section">
-                            <div className="section-pill-header">
-                                <span className="section-badge">05 · Step-by-Step Implementation</span>
-                                <p className="section-subtitle">Follow these ten steps to build the project from start to finish.</p>
-                            </div>
-
-                            <div className="accordion-group">
-                                {implSteps.map((step, idx) => {
-                                    const stepKey = step.id || `step-${idx + 1}`;
-                                    const isOpen = openStep === stepKey;
-                                    const displayNum = step.num || (idx + 1 < 10 ? `0${idx + 1}` : `${idx + 1}`);
-                                    return (
-                                        <div key={stepKey} className={`accordion-card ${isOpen ? "open" : ""}`}>
-                                            <button
-                                                type="button"
-                                                className="accordion-header implementation-accordion-header"
-                                                onClick={() => setOpenStep(isOpen ? null : stepKey)}
-                                                aria-expanded={isOpen}
-                                                aria-controls={`step-panel-${stepKey}`}
-                                            >
-                                                <span className={`accordion-badge ${isOpen ? "active-badge" : "default-badge"}`}>
-                                                    {displayNum}
-                                                </span>
-                                                <div className="accordion-title-block">
-                                                    <span className="accordion-title">{step.title}</span>
-                                                    <span className="accordion-sub-label">{step.subtitle}</span>
-                                                </div>
-                                                <span className="accordion-chevron">
-                                                    {isOpen ? <FiChevronUp /> : <FiChevronDown />}
-                                                </span>
-                                            </button>
-
-                                            {isOpen && (
-                                                <div id={`step-panel-${stepKey}`} className="accordion-body step-body">
-                                                    {step.whatYouDo && (
-                                                        <div className="step-field">
-                                                            <span className="step-field-label">What you'll do</span>
-                                                            <p className="step-field-text">{step.whatYouDo}</p>
-                                                        </div>
-                                                    )}
-
-                                                    {step.matters && (
-                                                        <div className="step-field">
-                                                            <span className="step-field-label">Why it matters</span>
-                                                            <p className="step-field-text">{step.matters}</p>
-                                                        </div>
-                                                    )}
-
-                                                    {step.output && (
-                                                        <div className="step-field">
-                                                            <span className="step-field-label">Expected output</span>
-                                                            <p className="step-field-text">{step.output}</p>
-                                                        </div>
-                                                    )}
-
-                                                    {step.tools && step.tools.length > 0 && (
-                                                        <div className="step-field">
-                                                            <span className="step-field-label">Tools used</span>
-                                                            <div className="step-tools-list">
-                                                                {step.tools.map((tool, tIdx) => (
-                                                                    <span key={tIdx} className="step-tool-badge">{tool}</span>
-                                                                ))}
-                                                            </div>
-                                                        </div>
-                                                    )}
-
-                                                    {step.command && (
-                                                        <div className="step-code-wrapper">
-                                                            <pre className="step-code-block">{step.command}</pre>
-                                                            <button
-                                                                type="button"
-                                                                className="step-code-copy-btn"
-                                                                onClick={() => handleCopyCommand(step.command)}
-                                                                title="Copy code to clipboard"
-                                                                aria-label="Copy code command"
-                                                            >
-                                                                {copiedCmd ? <FiCheck /> : <FiCopy />}
-                                                            </button>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </section>
-
-                        {/* SECTION 06: Tools / Technologies Used */}
-                        <section id="technologies" className="content-section">
-                            <div className="section-pill-header">
-                                <span className="section-badge">06 · Tools / Technologies Used</span>
-                                <p className="section-subtitle">Everything you need is free and open source.</p>
-                            </div>
-
-                            <div className="tech-badges-grid">
-                                {techData.map((tech, idx) => (
-                                    <div key={idx} className="tech-badge-card">
-                                        <span className="tech-name">{tech.name}</span>
-                                        <span className="tech-sub">{tech.desc}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </section>
-
-                        {/* SECTION 07: Where to Get Data */}
-                        <section id="dataset-resources" className="content-section">
-                            <div className="section-pill-header">
-                                <span className="section-badge">07 · Where to Get Data</span>
-                                <p className="section-subtitle">Trusted places to download the dataset.</p>
-                            </div>
-
-                            <div className="dataset-cards-grid">
-                                {datasets.map((ds, idx) => (
-                                    <div key={idx} className="dataset-resource-card">
-                                        <h3 className="dataset-source-title">{ds.title}</h3>
-                                        <p className="dataset-source-desc">{ds.desc}</p>
-                                        <a
-                                            href={ds.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="dataset-btn"
-                                        >
-                                            <span>Get Dataset</span>
-                                            <span className="arrow-sym">→</span>
-                                        </a>
-                                    </div>
-                                ))}
-                            </div>
-                        </section>
-
-                        {/* SECTION 08: Learnings From the Project */}
-                        <section id="project-learnings" className="content-section">
-                            <div className="section-pill-header">
-                                <span className="section-badge">08 · Learnings From the Project</span>
-                                <p className="section-subtitle">Skills you will take away.</p>
-                            </div>
-
-                            <div className="learnings-grid">
-                                {/* Technical Learning */}
-                                <div className="learning-card">
-                                    <h3 className="learning-card-title">Technical Learnings</h3>
-                                    <ul className="learning-list">
-                                        {technicalLearnings.map((item, idx) => (
-                                            <li key={idx}>
-                                                <span className="check-bullet-circle"><FiCheck /></span>
-                                                <span>{item}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-
-                                {/* Practical Learning */}
-                                <div className="learning-card">
-                                    <h3 className="learning-card-title">Practical Learnings</h3>
-                                    <ul className="learning-list">
-                                        {practicalLearnings.map((item, idx) => (
-                                            <li key={idx}>
-                                                <span className="check-bullet-circle"><FiCheck /></span>
-                                                <span>{item}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            </div>
-                        </section>
-
-                        {/* SECTION 09: Common Mistakes to Avoid */}
-                        <section id="common-mistakes" className="content-section">
-                            <div className="section-pill-header">
-                                <span className="section-badge">09 · Common Mistakes to Avoid</span>
-                                <p className="section-subtitle">Save hours by knowing these pitfalls early.</p>
-                            </div>
-
-                            <div className="accordion-group">
-                                {commonMistakes.map((mistake, idx) => {
-                                    const mistakeKey = mistake.id || `mistake-${idx + 1}`;
-                                    const isOpen = openMistake === mistakeKey;
-                                    const displayNum = mistake.num || (idx + 1 < 10 ? `0${idx + 1}` : `${idx + 1}`);
-                                    return (
-                                        <div key={mistakeKey} className={`accordion-card ${isOpen ? "open" : ""}`}>
-                                            <button
-                                                type="button"
-                                                className="accordion-header"
-                                                onClick={() => setOpenMistake(isOpen ? null : mistakeKey)}
-                                                aria-expanded={isOpen}
-                                                aria-controls={`mistake-panel-${mistakeKey}`}
-                                            >
-                                                <span className={`accordion-badge ${isOpen ? "active-badge" : "default-badge"}`}>
-                                                    {displayNum}
-                                                </span>
-                                                <span className="accordion-title">{mistake.title}</span>
-                                                <span className="accordion-chevron">
-                                                    {isOpen ? <FiChevronUp /> : <FiChevronDown />}
-                                                </span>
-                                            </button>
-
-                                            {isOpen && (
-                                                <div id={`mistake-panel-${mistakeKey}`} className="accordion-body mistake-body">
-                                                    {mistake.mistake && (
-                                                        <div className="mistake-field">
-                                                            <span className="mistake-label">The mistake</span>
-                                                            <p className="mistake-text">{mistake.mistake}</p>
-                                                        </div>
-                                                    )}
-                                                    {mistake.why && (
-                                                        <div className="mistake-field">
-                                                            <span className="mistake-label">Why it happens</span>
-                                                            <p className="mistake-text">{mistake.why}</p>
-                                                        </div>
-                                                    )}
-                                                    {mistake.avoid && (
-                                                        <div className="mistake-field">
-                                                            <span className="mistake-label">How to avoid it</span>
-                                                            <p className="mistake-text">{mistake.avoid}</p>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </section>
 
                         {/* BOTTOM SHARE CARD
                         <div className="bottom-share-card" role="region" aria-label="Share this learning guide">

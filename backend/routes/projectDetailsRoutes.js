@@ -6,7 +6,7 @@ import {
   updateProjectDetails,
   deleteProjectDetails,
 } from '../controllers/projectDetailsController.js';
-import { verifyAdminToken } from '../middleware/auth.js';
+import { verifyAdminToken, optionalAuth } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -14,9 +14,9 @@ const router = express.Router();
 router.get('/', getAllProjectDetails);
 router.get('/:slugOrId', getProjectDetailsBySlug);
 
-// Admin: mutations
+// Mutations
 router.post('/', verifyAdminToken, createProjectDetails);
-router.put('/:slugOrId', verifyAdminToken, updateProjectDetails);
+router.put('/:slugOrId', optionalAuth, updateProjectDetails);
 router.delete('/:slugOrId', verifyAdminToken, deleteProjectDetails);
 
 export default router;

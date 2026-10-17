@@ -1,15 +1,135 @@
+import bcrypt from 'bcryptjs';
 import { pool, query } from '../config/db.js';
 
 async function initDatabase() {
   console.log('--- Initializing / Verifying PrepHQ Database Schema ---');
 
   try {
-    // 1. Verify existing tables
-    const existingTables = await query('SHOW TABLES;');
-    const tableNames = existingTables.map((row) => Object.values(row)[0]);
-    console.log(`Found ${tableNames.length} existing tables:`, tableNames.join(', '));
+    // 1. Ensure user table exists
+    await query(`
+      CREATE TABLE IF NOT EXISTS user (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(150) NOT NULL,
+        lastname VARCHAR(150) DEFAULT '',
+        username VARCHAR(150) NOT NULL UNIQUE,
+        email VARCHAR(255) NOT NULL UNIQUE,
+        password VARCHAR(255) NOT NULL,
+        status TINYINT DEFAULT 1,
+        phone VARCHAR(50) NULL,
+        country VARCHAR(100) NULL,
+        bio TEXT NULL,
+        github VARCHAR(255) NULL,
+        linkedin VARCHAR(255) NULL,
+        profile_image VARCHAR(255) NULL,
+        resume VARCHAR(255) NULL,
+        resume_date TIMESTAMP NULL,
+        created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+    console.log('Checked table: user (OK)');
 
-    // 2. Ensure coding_questions table exists
+    // 2. Ensure admin table exists
+    await query(`
+      CREATE TABLE IF NOT EXISTS admin (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        adminname VARCHAR(150) NOT NULL UNIQUE,
+        email VARCHAR(255) NOT NULL UNIQUE,
+        password VARCHAR(255) NOT NULL,
+        token TEXT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+    console.log('Checked table: admin (OK)');
+
+    // Seed default admin if table is empty
+    const adminRows = await query('SELECT COUNT(*) as count FROM admin;');
+    if (adminRows[0].count === 0) {
+      const hashedAdminPassword = await bcrypt.hash('admin123', 10);
+      await query(
+        `INSERT INTO admin (adminname, email, password) VALUES (?, ?, ?)`,
+        ['admin', 'admin@prephq.com', hashedAdminPassword]
+      );
+      console.log('Seeded default admin user: admin / admin123');
+    }
+
+    // 3. Ensure accountconfirm table exists
+    await query(`
+      CREATE TABLE IF NOT EXISTS accountconfirm (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NULL,
+        email VARCHAR(255) NOT NULL,
+        code VARCHAR(20) NOT NULL,
+        status VARCHAR(50) DEFAULT 'PENDING',
+        attempts INT DEFAULT 0,
+        expires_at TIMESTAMP NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        KEY idx_email (email),
+        KEY idx_user_id (user_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+    console.log('Checked table: accountconfirm (OK)');
+
+    // 4. Ensure contact_messages table exists
+    await query(`
+      CREATE TABLE IF NOT EXISTS contact_messages (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        firstname VARCHAR(150) NULL,
+        lastname VARCHAR(150) NULL,
+        countryCode VARCHAR(20) DEFAULT '+91',
+        phone VARCHAR(50) NULL,
+        email VARCHAR(255) NOT NULL,
+        message TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+    console.log('Checked table: contact_messages (OK)');
+
+    // 5. Ensure newsletter_subscribers table exists
+    await query(`
+      CREATE TABLE IF NOT EXISTS newsletter_subscribers (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        email VARCHAR(255) NOT NULL UNIQUE,
+        status VARCHAR(50) DEFAULT 'active',
+        subscribed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+    console.log('Checked table: newsletter_subscribers (OK)');
+
+    // 6. Ensure jobs table exists
+    await query(`
+      CREATE TABLE IF NOT EXISTS jobs (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        position VARCHAR(255) NOT NULL,
+        company VARCHAR(255) NOT NULL,
+        min_year INT DEFAULT 0,
+        max_year INT DEFAULT 0,
+        location VARCHAR(255) NULL,
+        deadline VARCHAR(100) NULL,
+        description LONGTEXT NULL,
+        date_posted TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        apply_link VARCHAR(500) NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+    console.log('Checked table: jobs (OK)');
+
+    // Seed sample jobs if empty
+    const jobRows = await query('SELECT COUNT(*) as count FROM jobs;');
+    if (jobRows[0].count === 0) {
+      await query(`
+        INSERT INTO jobs (position, company, min_year, max_year, location, deadline, description, apply_link)
+        VALUES
+        ('Full Stack Web Developer', 'TechNova Solutions', 1, 3, 'Bengaluru, India (Hybrid)', '30 Nov 2026', 'Looking for an enthusiastic MERN stack engineer with experience in React, Node.js, and SQL databases.', 'https://prephq.theiotacademy.co/jobs'),
+        ('Machine Learning Engineer', 'Cognitive Labs', 2, 5, 'Remote', '15 Dec 2026', 'Work on cutting-edge deep learning pipelines, computer vision, and LLM fine-tuning.', 'https://prephq.theiotacademy.co/jobs'),
+        ('Frontend Software Engineer', 'Pixel Craft Studio', 0, 2, 'Noida, India (On-site)', '20 Dec 2026', 'Develop high-performance React user interfaces with modern design systems and animations.', 'https://prephq.theiotacademy.co/jobs'),
+        ('DevOps & Cloud Engineer', 'CloudScale Inc', 3, 6, 'Hyderabad, India (Hybrid)', '31 Dec 2026', 'Automate CI/CD pipelines, Docker containers, Kubernetes clusters, and AWS infrastructure.', 'https://prephq.theiotacademy.co/jobs');
+      `);
+      console.log('Seeded sample tech jobs successfully.');
+    }
+
+    // 7. Ensure coding_questions table exists
     await query(`
       CREATE TABLE IF NOT EXISTS coding_questions (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -35,7 +155,7 @@ async function initDatabase() {
     `);
     console.log('Checked table: coding_questions (OK)');
 
-    // 3. Ensure submissions table exists
+    // 8. Ensure submissions table exists
     await query(`
       CREATE TABLE IF NOT EXISTS submissions (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -57,7 +177,7 @@ async function initDatabase() {
     `);
     console.log('Checked table: submissions (OK)');
 
-    // 4. Seed sample coding questions if empty
+    // Seed sample coding questions if empty
     const [countRow] = await query('SELECT COUNT(*) as count FROM coding_questions;');
     if (countRow.count === 0) {
       console.log('Seeding initial coding questions...');
@@ -173,6 +293,11 @@ async function initDatabase() {
     } else {
       console.log(`Table coding_questions already has ${countRow.count} records.`);
     }
+
+    // 9. Verify total tables
+    const allTables = await query('SHOW TABLES;');
+    const tableNames = allTables.map((row) => Object.values(row)[0]);
+    console.log(`Total tables present in database (${tableNames.length}):`, tableNames.join(', '));
 
     console.log('--- Database schema verification complete ---');
   } catch (error) {
