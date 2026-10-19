@@ -263,7 +263,7 @@ export default function AdminSidebar({
                             <ListItemIcon
                               className="admin-subnav-icon"
                               sx={{
-                                minWidth: 22,
+                                minWidth: 20,
                                 color: isChildActive
                                   ? "var(--admin-accent)"
                                   : "rgba(255, 255, 255, 0.6)",
@@ -279,6 +279,9 @@ export default function AdminSidebar({
                                 fontWeight: isChildActive ? 600 : 400,
                               }}
                             />
+                            {isChildActive && (
+                              <span className="admin-subnav-indicator" />
+                            )}
                           </ListItemButton>
                         );
                       })}
@@ -295,22 +298,16 @@ export default function AdminSidebar({
       <div className="admin-sidebar-footer">
         {!isCompact ? (
           <>
-            <span>PrepHQ v2.0</span>
-            <span style={{ color: "var(--admin-accent)", fontWeight: 600 }}>● Online</span>
+            <span className="admin-sidebar-version">PrepHQ v2.0</span>
+            <span className="admin-sidebar-status">
+              <span className="admin-status-pulse" />
+              <span>Online</span>
+            </span>
           </>
         ) : (
           <Tooltip title="PrepHQ v2.0 · Online" placement="right" arrow>
-            <span
-              style={{
-                color: "var(--admin-accent)",
-                fontSize: "12px",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "default",
-              }}
-            >
-              ●
+            <span className="admin-compact-status">
+              <span className="admin-status-pulse" />
             </span>
           </Tooltip>
         )}

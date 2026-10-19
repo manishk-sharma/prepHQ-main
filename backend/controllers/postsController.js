@@ -103,6 +103,14 @@ const enrichPosts = async (posts) => {
       seo_tags: metas.seo_tags || '[]',
       likes: parseInt(metas.likes || '0', 10),
       comments: 0,
+      difficulty_level: metas.difficulty_level || metas.level || 'Intermediate',
+      level: metas.difficulty_level || metas.level || 'Intermediate',
+      tech_stack: metas.tech_stack || metas.technologies || '',
+      technologies: metas.tech_stack || metas.technologies || '',
+      project_duration: metas.project_duration || metas.duration || '',
+      duration: metas.project_duration || metas.duration || '',
+      github_url: metas.github_url || '',
+      live_demo_url: metas.live_demo_url || '',
     };
   });
 };
@@ -290,6 +298,21 @@ export const createPost = (type) => async (req, res, next) => {
       ['likes', '0'],
     ];
 
+    if (difficulty_level) {
+      metaEntries.push(['difficulty_level', difficulty_level]);
+      metaEntries.push(['level', difficulty_level]);
+    }
+    if (tech_stack) {
+      metaEntries.push(['tech_stack', tech_stack]);
+      metaEntries.push(['technologies', tech_stack]);
+    }
+    if (project_duration) {
+      metaEntries.push(['project_duration', project_duration]);
+      metaEntries.push(['duration', project_duration]);
+    }
+    if (github_url) metaEntries.push(['github_url', github_url]);
+    if (live_demo_url) metaEntries.push(['live_demo_url', live_demo_url]);
+
     if (req.file) {
       metaEntries.push(['featured_image', `/uploads/posts/${req.file.filename}`]);
     }
@@ -319,6 +342,8 @@ export const updatePost = (type) => async (req, res, next) => {
       post_title,
       post_name,
       post_content,
+      category_name,
+      category_slug,
       seo_title,
       seo_desc,
       seo_focus_keyword,
@@ -327,6 +352,11 @@ export const updatePost = (type) => async (req, res, next) => {
       author_image,
       author_quote,
       author_linkedin,
+      difficulty_level,
+      tech_stack,
+      project_duration,
+      github_url,
+      live_demo_url,
     } = req.body;
 
     if (!id) {
@@ -341,6 +371,55 @@ export const updatePost = (type) => async (req, res, next) => {
        WHERE ID = ?`,
       [post_title, post_name, post_content, id]
     );
+
+    // ── Update Category Relationships ──
+    if (category_name || category_slug) {
+      const rawCategories = (category_name || category_slug)
+        .split(',')
+        .map((c) => c.trim())
+        .filter(Boolean);
+
+      if (rawCategories.length > 0) {
+        // Delete previous category associations for this post
+        await query(
+          `DELETE tr FROM wp_term_relationships tr
+           JOIN wp_term_taxonomy tt ON tr.term_taxonomy_id = tt.term_taxonomy_id
+           WHERE tr.object_id = ? AND tt.taxonomy = 'category'`,
+          [id]
+        );
+
+        for (const cat of rawCategories) {
+          const catSlug = cat.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+          let terms = await query('SELECT term_id FROM wp_terms WHERE slug = ? OR name = ? LIMIT 1', [catSlug, cat]);
+          let termId;
+
+          if (terms.length > 0) {
+            termId = terms[0].term_id;
+          } else {
+            const termInsert = await query(
+              'INSERT INTO wp_terms (name, slug) VALUES (?, ?)',
+              [cat, catSlug]
+            );
+            termId = termInsert.insertId;
+            await query(
+              "INSERT INTO wp_term_taxonomy (term_id, taxonomy, description, parent, count) VALUES (?, 'category', '', 0, 1)",
+              [termId]
+            );
+          }
+
+          const ttRows = await query(
+            "SELECT term_taxonomy_id FROM wp_term_taxonomy WHERE term_id = ? AND taxonomy = 'category' LIMIT 1",
+            [termId]
+          );
+          if (ttRows.length > 0) {
+            await query(
+              'INSERT IGNORE INTO wp_term_relationships (object_id, term_taxonomy_id) VALUES (?, ?)',
+              [id, ttRows[0].term_taxonomy_id]
+            );
+          }
+        }
+      }
+    }
 
     const updateMeta = async (key, val) => {
       if (val !== undefined && val !== null) {
@@ -361,6 +440,22 @@ export const updatePost = (type) => async (req, res, next) => {
     if (author_image) await updateMeta('author_image', author_image);
     if (author_quote) await updateMeta('author_quote', author_quote);
     if (author_linkedin) await updateMeta('author_linkedin', author_linkedin);
+
+    // Project-specific metadata
+    if (difficulty_level !== undefined) {
+      await updateMeta('difficulty_level', difficulty_level);
+      await updateMeta('level', difficulty_level);
+    }
+    if (tech_stack !== undefined) {
+      await updateMeta('tech_stack', tech_stack);
+      await updateMeta('technologies', tech_stack);
+    }
+    if (project_duration !== undefined) {
+      await updateMeta('project_duration', project_duration);
+      await updateMeta('duration', project_duration);
+    }
+    if (github_url !== undefined) await updateMeta('github_url', github_url);
+    if (live_demo_url !== undefined) await updateMeta('live_demo_url', live_demo_url);
 
     if (req.file) {
       await updateMeta('featured_image', `/uploads/posts/${req.file.filename}`);

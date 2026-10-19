@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Controller } from "react-hook-form";
 import { Editor } from "@tinymce/tinymce-react";
 import { useDropzone } from "react-dropzone";
@@ -15,6 +15,7 @@ import { categoryList, processImage, formatSlug } from "../../../../../utils/hel
 import { AUTHORS } from "../../commons/commons";
 import { PreviewModal } from "../PreviewModal";
 import { useNotification } from "../../../../../context/useNotificationContext";
+import placeholderImg from "../../../../../assets/img/prepHq_placeholder_image.webp";
 
 /**
  * EditForm — Reusable form UI for Edit flows (EditTutorial / EditBlog / EditProject / EditInterview)
@@ -28,6 +29,7 @@ const EditForm = ({
   existingImageUrl = null,
   previewOpen = false,
   setPreviewOpen = () => {},
+  isProject = false,
 }) => {
   const { showNotification } = useNotification();
   const { register, control, setValue, watch, getValues, errors } = formMethods;
@@ -35,8 +37,35 @@ const EditForm = ({
   const featureImage = watch("feature_image");
   const formValues = watch();
 
+  const [previewBlobUrl, setPreviewBlobUrl] = useState(null);
+
+  useEffect(() => {
+    if (featureImage instanceof File) {
+      const url = URL.createObjectURL(featureImage);
+      setPreviewBlobUrl(url);
+      return () => {
+        URL.revokeObjectURL(url);
+      };
+    } else {
+      setPreviewBlobUrl(null);
+    }
+  }, [featureImage]);
+
+  const getFullImageUrl = (url) => {
+    if (!url) return placeholderImg;
+    if (
+      url.startsWith("http://") ||
+      url.startsWith("https://") ||
+      url.startsWith("blob:") ||
+      url.startsWith("data:")
+    ) {
+      return url;
+    }
+    return url.startsWith("/") ? url : `/${url}`;
+  };
+
   // 3-state image logic
-  const showNewPreview = !!featureImage;
+  const showNewPreview = !!featureImage && !!previewBlobUrl;
   const showExistingPreview = !featureImage && !!existingImageUrl;
 
   // ─── Alt-label fix for TinyMCE ───────────────────────────────────────────
@@ -235,6 +264,100 @@ const EditForm = ({
             </div>
           </div>
 
+          {/* ── Card 1.5: Project Specifications (Project Edit only) ── */}
+          {isProject && (
+            <div className="admin-card">
+              <div className="admin-card-header">
+                <div>
+                  <h3 className="admin-card-title">Project Specifications & Links</h3>
+                  <div style={{ fontSize: "12px", color: "var(--admin-text-secondary)" }}>
+                    Technical difficulty, timeline, technologies used, and external repositories.
+                  </div>
+                </div>
+              </div>
+
+              <div className="admin-card-body">
+                <div className="row g-3">
+                  {/* Row 1: Difficulty Level */}
+                  <div className="col-12 col-md-6">
+                    <Controller
+                      name="difficulty_level"
+                      control={control}
+                      render={({ field }) => (
+                        <Autocomplete
+                          options={["Beginner", "Intermediate", "Advanced"]}
+                          value={field.value || "Intermediate"}
+                          onChange={(_, v) => field.onChange(v || "Intermediate")}
+                          renderInput={(params) => (
+                            <TextField
+                              {...params}
+                              label="Difficulty Level"
+                              error={!!errors.difficulty_level}
+                              helperText={errors.difficulty_level?.message || "Select project complexity"}
+                              InputLabelProps={{ shrink: true }}
+                            />
+                          )}
+                        />
+                      )}
+                    />
+                  </div>
+
+                  {/* Row 1: Project Duration */}
+                  <div className="col-12 col-md-6">
+                    <TextField
+                      label="Project Duration"
+                      placeholder="e.g. 4 Weeks, 10–15 Hours"
+                      fullWidth
+                      {...register("project_duration")}
+                      error={!!errors.project_duration}
+                      helperText={errors.project_duration?.message || "Estimated duration to complete"}
+                      InputLabelProps={{ shrink: !!watch("project_duration") }}
+                    />
+                  </div>
+
+                  {/* Row 2: Technologies / Tech Stack */}
+                  <div className="col-12">
+                    <TextField
+                      label="Technologies / Tech Stack"
+                      placeholder="e.g. React, Node.js, Express, MySQL, Tailwind CSS"
+                      fullWidth
+                      {...register("tech_stack")}
+                      error={!!errors.tech_stack}
+                      helperText={errors.tech_stack?.message || "Comma-separated list of tools, libraries, or frameworks"}
+                      InputLabelProps={{ shrink: !!watch("tech_stack") }}
+                    />
+                  </div>
+
+                  {/* Row 3: GitHub URL */}
+                  <div className="col-12 col-md-6">
+                    <TextField
+                      label="GitHub Repository URL"
+                      placeholder="https://github.com/username/project-repo"
+                      fullWidth
+                      {...register("github_url")}
+                      error={!!errors.github_url}
+                      helperText={errors.github_url?.message || "Source code repository link"}
+                      InputLabelProps={{ shrink: !!watch("github_url") }}
+                    />
+                  </div>
+
+                  {/* Row 3: Live Demo URL */}
+                  <div className="col-12 col-md-6">
+                    <TextField
+                      label="Live Demo URL"
+                      placeholder="https://project-demo.com"
+                      fullWidth
+                      {...register("live_demo_url")}
+                      error={!!errors.live_demo_url}
+                      helperText={errors.live_demo_url?.message || "Public interactive demo link"}
+                      InputLabelProps={{ shrink: !!watch("live_demo_url") }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* ── Card 2: Feature Image Upload (3-State) ── */}
           <div className="admin-card">
             <div className="admin-card-header">
@@ -251,10 +374,9 @@ const EditForm = ({
               {showNewPreview && (
                 <div className="admin-upload-preview-box">
                   <img
-                    src={URL.createObjectURL(featureImage)}
+                    src={previewBlobUrl}
                     alt="New preview"
                     className="admin-upload-preview-img"
-                    onLoad={(e) => URL.revokeObjectURL(e.target.src)}
                   />
                   <p style={{ margin: "12px 0 10px", fontSize: "13px", fontWeight: 500, color: "var(--admin-text)" }}>
                     {featureImage.name} (New Image)
@@ -291,9 +413,13 @@ const EditForm = ({
               {showExistingPreview && (
                 <div className="admin-upload-preview-box">
                   <img
-                    src={existingImageUrl}
+                    src={getFullImageUrl(existingImageUrl)}
                     alt="Current feature"
                     className="admin-upload-preview-img"
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = placeholderImg;
+                    }}
                   />
                   <p style={{ margin: "12px 0 10px", fontSize: "13px", color: "var(--admin-text-secondary)" }}>
                     Current image — upload new file to replace
@@ -585,8 +711,8 @@ const EditForm = ({
           ...getValues(),
           featured_image:
             featureImage instanceof File
-              ? URL.createObjectURL(featureImage)
-              : (existingImageUrl ?? null),
+              ? previewBlobUrl
+              : (existingImageUrl ? getFullImageUrl(existingImageUrl) : null),
           post_date: new Date().toISOString(),
           author_id: getValues().author_id,
         }}

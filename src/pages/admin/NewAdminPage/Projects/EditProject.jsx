@@ -7,7 +7,7 @@ import { CircularProgress } from "@mui/material";
 import { useProject, useUpdateProject } from "../../../../services/projectsServices";
 import { useNotification } from "../../../../context/useNotificationContext";
 import { AUTHORS } from "../commons/commons";
-import { EditSchema } from "../schema/schema";
+import { EditProjectSchema } from "../schema/schema";
 import EditForm from "../components/post-form/EditForm";
 
 
@@ -23,8 +23,17 @@ const EditProject = () => {
     register, handleSubmit, control, setValue, watch, reset, getValues,
     formState: { errors },
   } = useForm({
-    resolver: yupResolver(EditSchema),
-    defaultValues: { post_content: "", feature_image: null, seo_tags: [] },
+    resolver: yupResolver(EditProjectSchema),
+    defaultValues: {
+      post_content: "",
+      feature_image: null,
+      seo_tags: [],
+      difficulty_level: "Intermediate",
+      tech_stack: "",
+      project_duration: "",
+      github_url: "",
+      live_demo_url: "",
+    },
   });
 
   // ─── API data aane ke baad form fill karo ────────────────────────────────
@@ -39,16 +48,25 @@ const EditProject = () => {
       seo_title: projectData.seo_title || "",
       seo_desc: projectData.seo_desc || "",
       seo_focus_keyword: projectData.seo_focus_keyword || "",
-      seo_tags: projectData.seo_tags ? JSON.parse(projectData.seo_tags) : [],
+      seo_tags: projectData.seo_tags
+        ? (typeof projectData.seo_tags === "string"
+            ? (() => { try { return JSON.parse(projectData.seo_tags); } catch { return []; } })()
+            : projectData.seo_tags)
+        : [],
       author_id: AUTHORS.find((a) => a.name === projectData.author_name)?.id || null,
       feature_image: null,
+      difficulty_level: projectData.difficulty_level || projectData.level || "Intermediate",
+      tech_stack: projectData.tech_stack || projectData.technologies || "",
+      project_duration: projectData.project_duration || projectData.duration || "",
+      github_url: projectData.github_url || "",
+      live_demo_url: projectData.live_demo_url || "",
     });
   }, [projectData, reset]);
 
   // ─── Submit ───────────────────────────────────────────────────────────────
   const onSubmit = handleSubmit(async (data) => {
     const selectedAuthor = AUTHORS.find((a) => a.id === Number(data.author_id));
-    const cleanHtml = data.post_content
+    const cleanHtml = (data.post_content || "")
       .replace(/\\n/g, "")
       .replace(/\\"/g, '"')
       .replace(/\\'/g, "'");
@@ -69,6 +87,12 @@ const EditProject = () => {
       formData.append("author_image", selectedAuthor?.image || "");
       formData.append("author_quote", selectedAuthor?.quote || "");
       formData.append("author_linkedin", selectedAuthor?.author_linkedin || "");
+      formData.append("difficulty_level", data.difficulty_level || "Intermediate");
+      formData.append("tech_stack", data.tech_stack || "");
+      formData.append("project_duration", data.project_duration || "");
+      formData.append("github_url", data.github_url || "");
+      formData.append("live_demo_url", data.live_demo_url || "");
+
       if (data.feature_image instanceof File)
         formData.append("featured_image", data.feature_image);
 
@@ -106,6 +130,7 @@ const EditProject = () => {
       existingImageUrl={projectData?.featured_image || null}
       previewOpen={previewOpen}
       setPreviewOpen={setPreviewOpen}
+      isProject={true}
     />
   );
 };

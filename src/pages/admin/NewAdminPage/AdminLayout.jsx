@@ -225,25 +225,26 @@ export default function AdminLayout({ onLogout }) {
       >
         {/* ── Modern Top Navigation Header ── */}
         <header className="admin-topbar">
-          <div className="d-flex align-items-center gap-3">
+          <div className="d-flex align-items-center gap-2 gap-sm-3">
             <button
               type="button"
-              className="admin-action-btn"
+              className="admin-topbar-toggle"
               onClick={() => setIsSidebarOpen((prev) => !prev)}
               aria-label="Toggle sidebar"
+              title={isSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
             >
               <MenuIcon sx={{ fontSize: 20 }} />
             </button>
 
             {/* Breadcrumb Navigation */}
-            <div className="admin-breadcrumbs">
+            <nav className="admin-breadcrumbs" aria-label="Breadcrumb">
               <Link to="/admin" className="admin-breadcrumb-root">
                 Dashboard
               </Link>
               {breadcrumbs.section !== "Dashboard" && (
                 <>
                   <span className="admin-breadcrumb-sep">/</span>
-                  <span style={{ color: "var(--admin-text-secondary)" }}>
+                  <span className="admin-breadcrumb-section">
                     {breadcrumbs.section}
                   </span>
                 </>
@@ -252,7 +253,7 @@ export default function AdminLayout({ onLogout }) {
               <span className="admin-breadcrumb-current">
                 {breadcrumbs.current}
               </span>
-            </div>
+            </nav>
           </div>
 
           {/* Right Section Actions & Profile */}
@@ -264,7 +265,7 @@ export default function AdminLayout({ onLogout }) {
               className="admin-view-site-btn d-none d-md-inline-flex"
               title="Open public website in new tab"
             >
-              <LaunchIcon sx={{ fontSize: 16 }} />
+              <LaunchIcon sx={{ fontSize: 15 }} />
               <span>View Website</span>
             </Link>
 
@@ -282,13 +283,13 @@ export default function AdminLayout({ onLogout }) {
                 />
                 <span className="admin-online-dot" />
               </div>
-              <div className="d-none d-sm-block text-start">
-                <div style={{ fontSize: "13.5px", fontWeight: 600, color: "var(--admin-text)", lineHeight: 1.2 }}>
+              <div className="d-none d-sm-flex flex-column text-start">
+                <span className="admin-profile-name">
                   PrepHQ-Admin
-                </div>
-                <div style={{ fontSize: "11px", color: "var(--admin-text-secondary)" }}>
+                </span>
+                <span className="admin-profile-role">
                   Administrator
-                </div>
+                </span>
               </div>
             </div>
 

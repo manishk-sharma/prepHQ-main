@@ -54,3 +54,12 @@ export const EditSchema = yup.object({
 
   feature_image: yup.mixed().nullable(), // optional only here
 });
+
+export const EditProjectSchema = EditSchema.shape({
+  difficulty_level: yup.string().nullable(),
+  tech_stack: yup.string().nullable(),
+  project_duration: yup.string().nullable(),
+  github_url: yup.string().nullable(),
+  live_demo_url: yup.string().nullable(),
+});
+

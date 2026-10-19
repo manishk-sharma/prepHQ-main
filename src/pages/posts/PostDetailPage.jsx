@@ -347,6 +347,22 @@ const PostDetailPage = () => {
                       {cat.trim()}
                     </div>
                   ))}
+                  {type === "projects" && data?.difficulty_level && (
+                    <div
+                      className="category-name rounded-3 px-2 py-1"
+                      style={{ backgroundColor: "#EBF3F7", color: "#0B4565" }}
+                    >
+                      {data.difficulty_level}
+                    </div>
+                  )}
+                  {type === "projects" && data?.project_duration && (
+                    <div
+                      className="category-name rounded-3 px-2 py-1"
+                      style={{ backgroundColor: "#E6FFF4", color: "#059669" }}
+                    >
+                      {data.project_duration}
+                    </div>
+                  )}
                 </div>
               </div>
                   {/* <TableOfContents toc={toc} /> */}
@@ -378,6 +394,59 @@ const PostDetailPage = () => {
               </ul> */}
 
               <h1 className="mt-3">{data?.post_title}</h1>
+
+              {type === "projects" && (data?.tech_stack || data?.github_url || data?.live_demo_url) && (
+                <div
+                  className="d-flex flex-wrap align-items-center justify-content-between gap-3 my-3 p-3 rounded-3"
+                  style={{ background: "#F8FAFC", border: "1px solid #E2E8F0" }}
+                >
+                  {data?.tech_stack && (
+                    <div className="d-flex align-items-center gap-2 flex-wrap">
+                      <span className="fw-semibold text-muted" style={{ fontSize: "13px" }}>
+                        Tech Stack:
+                      </span>
+                      {data.tech_stack.split(",").map((tech, idx) => (
+                        <span
+                          key={idx}
+                          className="badge bg-white text-dark border px-2 py-1"
+                          style={{ fontSize: "12px", fontWeight: 500 }}
+                        >
+                          {tech.trim()}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <div className="d-flex align-items-center gap-2 ms-auto flex-wrap">
+                    {data?.github_url && (
+                      <a
+                        href={data.github_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-sm btn-outline-dark d-inline-flex align-items-center gap-1"
+                        style={{ fontSize: "12px", borderRadius: "6px" }}
+                      >
+                        GitHub Repo
+                      </a>
+                    )}
+                    {data?.live_demo_url && (
+                      <a
+                        href={data.live_demo_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-sm text-white d-inline-flex align-items-center gap-1"
+                        style={{
+                          fontSize: "12px",
+                          borderRadius: "6px",
+                          backgroundColor: "#35B779",
+                          borderColor: "#35B779",
+                        }}
+                      >
+                        Live Demo
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
 
               <div className="content mb-4 mb-lg-5">
                 {parse(parsedContent || "")}
