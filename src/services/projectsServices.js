@@ -260,7 +260,43 @@ export const useDeleteProject = () => {
     });
 };
 
+const toggleFeaturedProject = async ({ id, is_featured }) => {
+    try {
+        const response = await adminApi.patch(`/project/${id}/feature`, { is_featured });
+        if (response?.status === 200 && response?.data?.status === 1) {
+            return response?.data;
+        } else {
+            throw new Error(response?.data?.message || "Failed to update featured status");
+        }
+    } catch (error) {
+        console.error("toggleFeaturedProject error:", error);
+        throw error;
+    }
+};
+
+export const useToggleFeaturedProject = () => {
+    const queryClient = useQueryClient();
+    const { showNotification } = useNotification();
+
+    return useMutation({
+        mutationFn: toggleFeaturedProject,
+        onSuccess: (data) => {
+            queryClient.invalidateQueries({
+                queryKey: ["projectList"],
+            });
+            queryClient.invalidateQueries({
+                queryKey: ["projectCat"],
+            });
+            showNotification(data?.message || "Featured status updated", "success");
+        },
+        onError: (error) => {
+            showNotification(error?.message || "Failed to update featured status", "danger");
+        },
+    });
+};
+
 // ── Project Details (Curriculum & Guide) Services ───────────────────────────
+
 
 const getProjectDetails = async ({ queryKey }) => {
     const [_key, slugOrId] = queryKey;

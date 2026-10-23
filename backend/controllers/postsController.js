@@ -80,8 +80,22 @@ const enrichPosts = async (posts) => {
     const metas = metaMap[post.ID] || {};
     const cats = catMap[post.ID] || { names: [], slugs: [] };
     const thumbId = metas._thumbnail_id;
-    const featured_image =
+    let featured_image =
       metas.featured_image || (thumbId ? thumbMap[thumbId] : null) || null;
+
+    if (
+      featured_image &&
+      typeof featured_image === 'string' &&
+      featured_image.includes('prephq.theiotacademy.co/project/wp-content/uploads/')
+    ) {
+      featured_image = null;
+    }
+
+    const projectDescription =
+      post.post_excerpt ||
+      metas.project_description ||
+      metas.description ||
+      '';
 
     return {
       ID: post.ID,
@@ -89,7 +103,9 @@ const enrichPosts = async (posts) => {
       post_name: post.post_name,
       post_date: post.post_date,
       post_content: post.post_content,
-      post_excerpt: post.post_excerpt || '',
+      post_excerpt: projectDescription,
+      description: projectDescription,
+      project_description: projectDescription,
       category_name: cats.names.join(', '),
       category_slug: cats.slugs.join(', '),
       featured_image,
@@ -105,15 +121,24 @@ const enrichPosts = async (posts) => {
       comments: 0,
       difficulty_level: metas.difficulty_level || metas.level || 'Intermediate',
       level: metas.difficulty_level || metas.level || 'Intermediate',
+      domain: metas.domain || 'Data Science',
+      project_type: metas.project_type || 'Machine Learning',
       tech_stack: metas.tech_stack || metas.technologies || '',
       technologies: metas.tech_stack || metas.technologies || '',
       project_duration: metas.project_duration || metas.duration || '',
       duration: metas.project_duration || metas.duration || '',
       github_url: metas.github_url || '',
       live_demo_url: metas.live_demo_url || '',
+      is_featured:
+        metas.is_featured === '1' ||
+        metas.is_featured === 1 ||
+        metas.is_featured === 'true' ||
+        metas.featured === '1' ||
+        metas.featured === 'true',
     };
   });
 };
+
 
 // ── GET All Posts by Resource Type ────────────────────────────────────────────
 export const getPostsByType = (type) => async (req, res, next) => {
@@ -205,6 +230,9 @@ export const createPost = (type) => async (req, res, next) => {
       post_title,
       post_name,
       post_content,
+      post_excerpt,
+      description,
+      project_description,
       category_name,
       category_slug,
       seo_title,
@@ -221,6 +249,8 @@ export const createPost = (type) => async (req, res, next) => {
       return res.status(400).json({ status: 0, message: 'Title is required.' });
     }
 
+    const excerpt = post_excerpt || description || project_description || '';
+
     const slug = (
       post_name ||
       post_title
@@ -233,12 +263,13 @@ export const createPost = (type) => async (req, res, next) => {
     const cleanType = (type || 'post').toLowerCase();
 
     const insertResult = await query(
-      `INSERT INTO wp_posts (post_title, post_name, post_content, post_date, post_date_gmt, post_status, post_type, post_author, guid)
-       VALUES (?, ?, ?, ?, ?, 'publish', ?, 1, ?)`,
+      `INSERT INTO wp_posts (post_title, post_name, post_content, post_excerpt, post_date, post_date_gmt, post_status, post_type, post_author, guid)
+       VALUES (?, ?, ?, ?, ?, ?, 'publish', ?, 1, ?)`,
       [
         post_title.trim(),
         slug,
         post_content || '',
+        excerpt,
         postDate,
         postDate,
         cleanType,
@@ -298,6 +329,11 @@ export const createPost = (type) => async (req, res, next) => {
       ['likes', '0'],
     ];
 
+    if (excerpt) {
+      metaEntries.push(['project_description', excerpt]);
+      metaEntries.push(['description', excerpt]);
+    }
+
     if (difficulty_level) {
       metaEntries.push(['difficulty_level', difficulty_level]);
       metaEntries.push(['level', difficulty_level]);
@@ -312,6 +348,8 @@ export const createPost = (type) => async (req, res, next) => {
     }
     if (github_url) metaEntries.push(['github_url', github_url]);
     if (live_demo_url) metaEntries.push(['live_demo_url', live_demo_url]);
+    if (req.body.domain) metaEntries.push(['domain', req.body.domain]);
+    if (req.body.project_type) metaEntries.push(['project_type', req.body.project_type]);
 
     if (req.file) {
       metaEntries.push(['featured_image', `/uploads/posts/${req.file.filename}`]);
@@ -342,6 +380,9 @@ export const updatePost = (type) => async (req, res, next) => {
       post_title,
       post_name,
       post_content,
+      post_excerpt,
+      description,
+      project_description,
       category_name,
       category_slug,
       seo_title,
@@ -363,13 +404,21 @@ export const updatePost = (type) => async (req, res, next) => {
       return res.status(400).json({ status: 0, message: 'Post ID is required.' });
     }
 
+    const excerpt =
+      post_excerpt !== undefined
+        ? post_excerpt
+        : description !== undefined
+        ? description
+        : project_description;
+
     await query(
       `UPDATE wp_posts
        SET post_title = COALESCE(?, post_title),
            post_name = COALESCE(?, post_name),
-           post_content = COALESCE(?, post_content)
+           post_content = COALESCE(?, post_content),
+           post_excerpt = COALESCE(?, post_excerpt)
        WHERE ID = ?`,
-      [post_title, post_name, post_content, id]
+      [post_title, post_name, post_content, excerpt !== undefined ? excerpt : null, id]
     );
 
     // ── Update Category Relationships ──
@@ -423,12 +472,21 @@ export const updatePost = (type) => async (req, res, next) => {
 
     const updateMeta = async (key, val) => {
       if (val !== undefined && val !== null) {
-        await query(
-          `INSERT INTO wp_postmeta (post_id, meta_key, meta_value)
-           VALUES (?, ?, ?)
-           ON DUPLICATE KEY UPDATE meta_value = VALUES(meta_value)`,
-          [id, key, String(val)]
+        const existing = await query(
+          'SELECT meta_id FROM wp_postmeta WHERE post_id = ? AND meta_key = ? LIMIT 1',
+          [id, key]
         );
+        if (existing.length > 0) {
+          await query(
+            'UPDATE wp_postmeta SET meta_value = ? WHERE meta_id = ?',
+            [String(val), existing[0].meta_id]
+          );
+        } else {
+          await query(
+            'INSERT INTO wp_postmeta (post_id, meta_key, meta_value) VALUES (?, ?, ?)',
+            [id, key, String(val)]
+          );
+        }
       }
     };
 
@@ -456,9 +514,39 @@ export const updatePost = (type) => async (req, res, next) => {
     }
     if (github_url !== undefined) await updateMeta('github_url', github_url);
     if (live_demo_url !== undefined) await updateMeta('live_demo_url', live_demo_url);
+    if (req.body.domain !== undefined) await updateMeta('domain', req.body.domain);
+    if (req.body.project_type !== undefined) await updateMeta('project_type', req.body.project_type);
+    if (excerpt !== undefined) {
+      await updateMeta('project_description', excerpt);
+      await updateMeta('description', excerpt);
+    }
+
+    if (req.body.is_featured !== undefined) {
+      const fVal =
+        req.body.is_featured === true ||
+        req.body.is_featured === 'true' ||
+        req.body.is_featured === 1 ||
+        req.body.is_featured === '1'
+          ? '1'
+          : '0';
+      await updateMeta('is_featured', fVal);
+    }
 
     if (req.file) {
       await updateMeta('featured_image', `/uploads/posts/${req.file.filename}`);
+      await query(
+        'DELETE FROM wp_postmeta WHERE post_id = ? AND meta_key = ?',
+        [id, '_thumbnail_id']
+      );
+    } else if (
+      req.body.remove_image === 'true' ||
+      req.body.remove_image === true ||
+      req.body.featured_image === ''
+    ) {
+      await query(
+        'DELETE FROM wp_postmeta WHERE post_id = ? AND meta_key IN (?, ?)',
+        [id, 'featured_image', '_thumbnail_id']
+      );
     }
 
     return res.status(200).json({
@@ -470,6 +558,64 @@ export const updatePost = (type) => async (req, res, next) => {
     next(error);
   }
 };
+
+// ── Toggle Featured Status ───────────────────────────────────────────────────
+export const toggleFeaturedPost = (type) => async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    let { is_featured } = req.body;
+
+    if (!id) {
+      return res.status(400).json({ status: 0, message: 'Post ID is required.' });
+    }
+
+    if (is_featured === undefined) {
+      const rows = await query(
+        `SELECT meta_value FROM wp_postmeta WHERE post_id = ? AND meta_key = 'is_featured' LIMIT 1`,
+        [id]
+      );
+      const current =
+        rows.length > 0 &&
+        (rows[0].meta_value === '1' || rows[0].meta_value === 'true');
+      is_featured = !current;
+    } else {
+      is_featured =
+        is_featured === true ||
+        is_featured === 'true' ||
+        is_featured === 1 ||
+        is_featured === '1';
+    }
+
+    const val = is_featured ? '1' : '0';
+    const existing = await query(
+      `SELECT meta_id FROM wp_postmeta WHERE post_id = ? AND meta_key = 'is_featured' LIMIT 1`,
+      [id]
+    );
+
+    if (existing.length > 0) {
+      await query(
+        `UPDATE wp_postmeta SET meta_value = ? WHERE meta_id = ?`,
+        [val, existing[0].meta_id]
+      );
+    } else {
+      await query(
+        `INSERT INTO wp_postmeta (post_id, meta_key, meta_value) VALUES (?, 'is_featured', ?)`,
+        [id, val]
+      );
+    }
+
+    return res.status(200).json({
+      status: 1,
+      message: is_featured
+        ? 'Project added to Featured.'
+        : 'Project removed from Featured.',
+      data: { id: parseInt(id, 10), is_featured },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 
 // ── Delete Post ───────────────────────────────────────────────────────────────
 export const deletePost = (type) => async (req, res, next) => {

@@ -10,19 +10,126 @@ const parseJsonField = (val, fallback = null) => {
   }
 };
 
-const formatProjectDetail = (row) => ({
-  id: row.id,
-  project_id: row.project_id,
-  slug: row.slug,
-  title: row.title,
-  subtitle: row.subtitle,
-  level: row.level || 'Intermediate',
-  duration: row.duration || '8–12 Hours',
-  domain: row.domain || 'Data Science',
-  project_type: row.project_type || 'Machine Learning',
-  about_text_1: row.about_text_1 || '',
-  about_text_2: row.about_text_2 || '',
-  about_text_3: row.about_text_3 || '',
+const combineStepDescription = (step) => {
+  if (!step) return '';
+  if (typeof step.description === 'string' && step.description.trim()) {
+    return step.description.trim();
+  }
+  if (typeof step.implementationDescription === 'string' && step.implementationDescription.trim()) {
+    return step.implementationDescription.trim();
+  }
+  if (typeof step.implementation_description === 'string' && step.implementation_description.trim()) {
+    return step.implementation_description.trim();
+  }
+
+  const rawParts = [
+    step.whatYouDo || step.whatYoullDo,
+    step.matters || step.whyItMatters,
+    step.output || step.expectedOutput,
+  ];
+
+  const cleanParts = rawParts
+    .filter((p) => typeof p === 'string' && p.trim().length > 0)
+    .map((p) => p.trim());
+
+  if (cleanParts.length === 0) return '';
+
+  return cleanParts.reduce((acc, part) => {
+    if (!acc) return part;
+    const endsWithPunct = /[.!?]$/.test(acc);
+    return endsWithPunct ? `${acc} ${part}` : `${acc}. ${part}`;
+  }, '');
+};
+
+const combineMistakeDescription = (m) => {
+  if (!m) return '';
+  if (typeof m.description === 'string' && m.description.trim()) {
+    return m.description.trim();
+  }
+  if (typeof m.mistakeDescription === 'string' && m.mistakeDescription.trim()) {
+    return m.mistakeDescription.trim();
+  }
+  if (typeof m.mistake_description === 'string' && m.mistake_description.trim()) {
+    return m.mistake_description.trim();
+  }
+
+  const rawParts = [
+    m.mistake || m.theMistake || m.theError || m.error,
+    m.why || m.whyItHappens || m.rootCause,
+    m.avoid || m.howToAvoid || m.solution || m.recommendedSolution,
+  ];
+
+  const cleanParts = rawParts
+    .filter((p) => typeof p === 'string' && p.trim().length > 0)
+    .map((p) => p.trim());
+
+  if (cleanParts.length === 0) return '';
+
+  const joined = cleanParts.reduce((acc, part) => {
+    if (!acc) return part;
+    const endsWithPunct = /[.!?]$/.test(acc);
+    return endsWithPunct ? `${acc} ${part}` : `${acc}. ${part}`;
+  }, '');
+
+  return joined.startsWith('<') ? joined : `<p>${joined}</p>`;
+};
+
+const formatProjectDetail = (row) => {
+  const rawP1 = (row.about_text_1 || '').trim();
+  const rawP2 = (row.about_text_2 || '').trim();
+  const rawP3 = (row.about_text_3 || '').trim();
+
+  let combinedAbout = '';
+  if (rawP1 && rawP2 && !rawP1.includes(rawP2)) {
+    combinedAbout = [rawP1, rawP2, rawP3].filter(Boolean).join('\n\n');
+  } else if (rawP1) {
+    combinedAbout = rawP1;
+  } else {
+    combinedAbout = [rawP2, rawP3].filter(Boolean).join('\n\n');
+  }
+
+  const rawImplSteps = parseJsonField(row.implementation_steps, []);
+  const formattedImplSteps = Array.isArray(rawImplSteps)
+    ? rawImplSteps.map((step) => {
+        const desc = combineStepDescription(step);
+        return {
+          ...step,
+          description: desc,
+          whatYouDo: desc,
+          descriptionLabel: step.descriptionLabel || step.implementationDescriptionLabel || '',
+        };
+      })
+    : [];
+
+  const rawMistakes = parseJsonField(row.common_mistakes, []);
+  const formattedMistakes = Array.isArray(rawMistakes)
+    ? rawMistakes.map((m) => {
+        const desc = combineMistakeDescription(m);
+        return {
+          ...m,
+          description: desc,
+          mistake: desc,
+          descriptionLabel: m.descriptionLabel || m.mistakeDescriptionLabel || '',
+        };
+      })
+    : [];
+
+  return {
+    id: row.id,
+    project_id: row.project_id,
+    slug: row.slug,
+    title: row.title,
+    subtitle: row.subtitle,
+    level: row.level || 'Intermediate',
+    duration: row.duration || '8–12 Hours',
+    domain: row.domain || 'Data Science',
+    project_type: row.project_type || 'Machine Learning',
+    about_text_1: combinedAbout,
+    about_text_2: row.about_text_2 || '',
+    about_text_3: row.about_text_3 || '',
+    description: combinedAbout,
+    about_text: combinedAbout,
+    project_description: combinedAbout,
   prerequisites: parseJsonField(row.prerequisites, {
     programming: [],
     data: [],
@@ -32,7 +139,7 @@ const formatProjectDetail = (row) => ({
   objectives: parseJsonField(row.objectives, []),
   architecture_steps: parseJsonField(row.architecture_steps, []),
   architecture_details: parseJsonField(row.architecture_details, []),
-  implementation_steps: parseJsonField(row.implementation_steps, []),
+  implementation_steps: formattedImplSteps,
   technologies: parseJsonField(row.technologies, []),
   dataset_resources: parseJsonField(row.dataset_resources, []),
   datasetResources: parseJsonField(row.dataset_resources, []),
@@ -40,8 +147,8 @@ const formatProjectDetail = (row) => ({
   technicalLearnings: parseJsonField(row.technical_learnings, []),
   practical_learnings: parseJsonField(row.practical_learnings, []),
   practicalLearnings: parseJsonField(row.practical_learnings, []),
-  common_mistakes: parseJsonField(row.common_mistakes, []),
-  commonMistakes: parseJsonField(row.common_mistakes, []),
+  common_mistakes: formattedMistakes,
+  commonMistakes: formattedMistakes,
   section_headers: parseJsonField(row.section_headers, {}),
   sectionHeaders: parseJsonField(row.section_headers, {}),
   section_2_design: row.section_2_design || parseJsonField(row.section_headers, {})?.section_2_design || 'grid',
@@ -52,7 +159,8 @@ const formatProjectDetail = (row) => ({
   }),
   created_at: row.created_at,
   updated_at: row.updated_at,
-});
+  };
+};
 
 // ── GET List of All Project Details (summary for selector) ───────────────────
 export const getAllProjectDetails = async (req, res, next) => {
@@ -215,6 +323,41 @@ export const createProjectDetails = async (req, res, next) => {
       ? section_2_design
       : 'grid';
 
+    const resolvedDescription = req.body.description !== undefined
+      ? req.body.description
+      : (req.body.about_text !== undefined
+          ? req.body.about_text
+          : (req.body.project_description !== undefined ? req.body.project_description : about_text_1));
+
+    const finalAbout1 = resolvedDescription !== undefined ? resolvedDescription : (about_text_1 || '');
+    const finalAbout2 = resolvedDescription !== undefined ? (about_text_2 || '') : (about_text_2 || '');
+    const finalAbout3 = resolvedDescription !== undefined ? (about_text_3 || '') : (about_text_3 || '');
+
+    const finalImplSteps = Array.isArray(implementation_steps)
+      ? implementation_steps.map((step) => {
+          const desc = combineStepDescription(step);
+          return {
+            ...step,
+            description: desc,
+            whatYouDo: desc,
+            descriptionLabel: step.descriptionLabel || step.implementationDescriptionLabel || '',
+          };
+        })
+      : [];
+
+    const rawMistakes = common_mistakes !== undefined ? common_mistakes : req.body.commonMistakes;
+    const finalMistakes = Array.isArray(rawMistakes)
+      ? rawMistakes.map((m) => {
+          const desc = combineMistakeDescription(m);
+          return {
+            ...m,
+            description: desc,
+            mistake: desc,
+            descriptionLabel: m.descriptionLabel || m.mistakeDescriptionLabel || '',
+          };
+        })
+      : [];
+
     const result = await query(
       `INSERT INTO project_details (
         project_id, slug, title, subtitle, level, duration, domain, project_type,
@@ -233,19 +376,19 @@ export const createProjectDetails = async (req, res, next) => {
         duration || '8–12 Hours',
         domain || 'Data Science',
         project_type || 'Machine Learning',
-        about_text_1 || '',
-        about_text_2 || '',
-        about_text_3 || '',
+        finalAbout1 || '',
+        finalAbout2 || '',
+        finalAbout3 || '',
         JSON.stringify(prerequisites || {}),
         JSON.stringify(objectives || []),
         JSON.stringify(architecture_steps || []),
         JSON.stringify(architecture_details || []),
-        JSON.stringify(implementation_steps || []),
+        JSON.stringify(finalImplSteps),
         JSON.stringify(technologies || []),
         JSON.stringify(dataset_resources || req.body.datasetResources || []),
         JSON.stringify(technical_learnings || req.body.technicalLearnings || []),
         JSON.stringify(practical_learnings || req.body.practicalLearnings || []),
-        JSON.stringify(common_mistakes || req.body.commonMistakes || []),
+        JSON.stringify(finalMistakes),
         JSON.stringify(section_headers || req.body.sectionHeaders || {}),
         validSection2Design,
         JSON.stringify(sidebar_cards || {}),
@@ -310,6 +453,46 @@ export const updateProjectDetails = async (req, res, next) => {
     const isNumeric = /^\d+$/.test(slugOrId);
     const whereClause = isNumeric ? 'WHERE id = ?' : 'WHERE slug = ?';
 
+    const resolvedDescription = req.body.description !== undefined
+      ? req.body.description
+      : (req.body.about_text !== undefined
+          ? req.body.about_text
+          : (req.body.project_description !== undefined ? req.body.project_description : about_text_1));
+
+    const isUpdatingAbout = resolvedDescription !== undefined;
+    const finalAbout1 = isUpdatingAbout ? resolvedDescription : (about_text_1 ?? null);
+    const finalAbout2 = isUpdatingAbout ? (about_text_2 !== undefined ? about_text_2 : '') : (about_text_2 ?? null);
+    const finalAbout3 = isUpdatingAbout ? (about_text_3 !== undefined ? about_text_3 : '') : (about_text_3 ?? null);
+
+    const finalImplSteps = implementation_steps !== undefined
+      ? (Array.isArray(implementation_steps)
+          ? implementation_steps.map((step) => {
+              const desc = combineStepDescription(step);
+              return {
+                ...step,
+                description: desc,
+                whatYouDo: desc,
+                descriptionLabel: step.descriptionLabel || step.implementationDescriptionLabel || '',
+              };
+            })
+          : [])
+      : undefined;
+
+    const rawMistakesInput = common_mistakes !== undefined ? common_mistakes : req.body.commonMistakes;
+    const finalMistakes = rawMistakesInput !== undefined
+      ? (Array.isArray(rawMistakesInput)
+          ? rawMistakesInput.map((m) => {
+              const desc = combineMistakeDescription(m);
+              return {
+                ...m,
+                description: desc,
+                mistake: desc,
+                descriptionLabel: m.descriptionLabel || m.mistakeDescriptionLabel || '',
+              };
+            })
+          : [])
+      : undefined;
+
     await query(
       `UPDATE project_details
        SET project_id = COALESCE(?, project_id),
@@ -346,14 +529,14 @@ export const updateProjectDetails = async (req, res, next) => {
         duration ?? null,
         domain ?? null,
         project_type ?? null,
-        about_text_1 ?? null,
-        about_text_2 ?? null,
-        about_text_3 ?? null,
+        finalAbout1,
+        finalAbout2,
+        finalAbout3,
         prerequisites !== undefined ? JSON.stringify(prerequisites) : null,
         objectives !== undefined ? JSON.stringify(objectives) : null,
         architecture_steps !== undefined ? JSON.stringify(architecture_steps) : null,
         architecture_details !== undefined ? JSON.stringify(architecture_details) : null,
-        implementation_steps !== undefined ? JSON.stringify(implementation_steps) : null,
+        finalImplSteps !== undefined ? JSON.stringify(finalImplSteps) : null,
         technologies !== undefined ? JSON.stringify(technologies) : null,
         (dataset_resources !== undefined || req.body.datasetResources !== undefined)
           ? JSON.stringify(dataset_resources !== undefined ? dataset_resources : req.body.datasetResources)
@@ -364,8 +547,8 @@ export const updateProjectDetails = async (req, res, next) => {
         (practical_learnings !== undefined || req.body.practicalLearnings !== undefined)
           ? JSON.stringify(practical_learnings !== undefined ? practical_learnings : req.body.practicalLearnings)
           : null,
-        (common_mistakes !== undefined || req.body.commonMistakes !== undefined)
-          ? JSON.stringify(common_mistakes !== undefined ? common_mistakes : req.body.commonMistakes)
+        finalMistakes !== undefined
+          ? JSON.stringify(finalMistakes)
           : null,
         (section_headers !== undefined || req.body.sectionHeaders !== undefined)
           ? JSON.stringify(section_headers !== undefined ? section_headers : req.body.sectionHeaders)

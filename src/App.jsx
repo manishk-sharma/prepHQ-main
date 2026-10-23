@@ -180,6 +180,11 @@ const hideLayout =
         
         {/* Blog Pages */}
         <Route path="/interviews" element={<InterviewsPage />} />
+        <Route path="/interview" element={<InterviewsPage />} />
+        <Route path="/interview-questions" element={<InterviewsPage />} />
+        <Route path="/interviews-questions" element={<InterviewsPage />} />
+        <Route path="/interviews/:postSlug" element={<InterviewsPage />} />
+        <Route path="/interview/:postSlug" element={<InterviewsPage />} />
         <Route path="/tutorials" element={<TutorialsPage />} />
         <Route path="/projects" element={<ProjectsPage />} />
         <Route path="/project" element={<ProjectsPage />} />

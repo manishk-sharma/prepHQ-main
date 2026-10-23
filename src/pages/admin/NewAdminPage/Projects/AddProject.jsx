@@ -30,7 +30,7 @@ const AddProject = () => {
     formState: { errors },
   } = useForm({
     resolver: yupResolver(PostSchema),
-    defaultValues: { post_content: "", feature_image: null, seo_tags: [] },
+    defaultValues: { post_content: "", feature_image: null, seo_tags: [], domain: "Data Science", project_type: "Machine Learning" },
   });
 
   const draft = useDraft(PROJECT_DRAFTS_KEY, {
@@ -62,6 +62,8 @@ const AddProject = () => {
       formData.append("author_image", selectedAuthor?.image || "");
       formData.append("author_quote", selectedAuthor?.quote || "");
       formData.append("author_linkedin", selectedAuthor?.author_linkedin || "");
+      formData.append("domain", data.domain || "Data Science");
+      formData.append("project_type", data.project_type || "Machine Learning");
       if (data.feature_image) formData.append("featured_image", data.feature_image);
 
       await addProject(formData);

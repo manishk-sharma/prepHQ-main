@@ -20,6 +20,7 @@ const dbConfig = {
   queueLimit: 0,
   enableKeepAlive: true,
   keepAliveInitialDelay: 0,
+  connectTimeout: 5000,
 };
 
 // Create the connection pool

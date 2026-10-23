@@ -747,8 +747,87 @@
 .step-field-text {
   font-size: 16px;
   color: #4b5563;
-  line-height: 1.45;
+  line-height: 1.5;
   margin: 0;
+}
+
+.step-rich-content p,
+.mistake-rich-content p {
+  margin: 0 0 10px 0;
+  line-height: 1.55;
+}
+
+.step-rich-content p:last-child,
+.mistake-rich-content p:last-child {
+  margin-bottom: 0;
+}
+
+.step-rich-content ul,
+.step-rich-content ol,
+.mistake-rich-content ul,
+.mistake-rich-content ol {
+  margin: 6px 0 10px 22px;
+  padding-left: 6px;
+}
+
+.step-rich-content li,
+.mistake-rich-content li {
+  margin-bottom: 4px;
+}
+
+.step-rich-content strong,
+.step-rich-content b,
+.mistake-rich-content strong,
+.mistake-rich-content b {
+  font-weight: 600;
+  color: #111827;
+}
+
+.step-rich-content em,
+.step-rich-content i,
+.mistake-rich-content em,
+.mistake-rich-content i {
+  font-style: italic;
+}
+
+.step-rich-content table,
+.mistake-rich-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+  font-size: 14px;
+}
+
+.step-rich-content table th,
+.step-rich-content table td,
+.mistake-rich-content table th,
+.mistake-rich-content table td {
+  border: 1px solid #e2e8f0;
+  padding: 8px 12px;
+}
+
+.step-rich-content table th,
+.mistake-rich-content table th {
+  background-color: #f8fafc;
+  color: #111827;
+  font-weight: 600;
+}
+
+.step-rich-content h1,
+.step-rich-content h2,
+.step-rich-content h3,
+.step-rich-content h4,
+.step-rich-content h5,
+.step-rich-content h6,
+.mistake-rich-content h1,
+.mistake-rich-content h2,
+.mistake-rich-content h3,
+.mistake-rich-content h4,
+.mistake-rich-content h5,
+.mistake-rich-content h6 {
+  color: #111827;
+  font-weight: 700;
+  margin: 12px 0 6px 0;
 }
 
 .step-tools-list {
@@ -937,6 +1016,15 @@
   color: #4b5563;
   line-height: 1.5;
   margin: 0;
+}
+
+.project-detail-page-wrapper .arch-detail-desc p {
+  margin: 0 0 6px 0;
+  line-height: 1.5;
+}
+
+.project-detail-page-wrapper .arch-detail-desc p:last-child {
+  margin-bottom: 0;
 }
 
 @media (max-width: 640px) {

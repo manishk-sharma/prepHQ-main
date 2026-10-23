@@ -8,6 +8,7 @@ import {
   Button,
   TextField,
   MenuItem,
+  Menu,
   CircularProgress,
   IconButton,
   Paper,
@@ -39,6 +40,8 @@ import {
   useProjectList,
 } from "../../../../services/projectsServices";
 import { useNotification } from "../../../../context/useNotificationContext";
+import { DOMAIN_OPTIONS, PROJECT_TYPE_OPTIONS } from "../commons/commons";
+import { Editor } from "@tinymce/tinymce-react";
 import {
   SortableContainer,
   SortableItem,
@@ -177,7 +180,7 @@ const SECTION_METAS = {
   "project-objectives": { defaultNum: "03", name: "Project Objectives", label: "03 · Objectives", tabIndex: 3 },
   "project-architecture": { defaultNum: "04", name: "Project Architecture", label: "04 · Architecture", tabIndex: 4 },
   "implementation-guide": { defaultNum: "05", name: "Step-by-Step Implementation", label: "05 · Implementation", tabIndex: 5 },
-  "technologies": { defaultNum: "06", name: "Technologies Used & Tools", label: "06 · Technologies / Tools", tabIndex: 6 },
+  "technologies": { defaultNum: "06", name: "Tools & Technologies Used ", label: "06 · Technologies / Tools", tabIndex: 6 },
   "dataset-resources": { defaultNum: "07", name: "Where to Get Data / Datasets", label: "07 · Dataset Resources", tabIndex: 7 },
   "project-learnings": { defaultNum: "08", name: "Project Learnings", label: "08 · Project Learnings", tabIndex: 8 },
   "common-mistakes": { defaultNum: "09", name: "Common Mistakes to Avoid", label: "09 · Common Mistakes", tabIndex: 9 },
@@ -261,6 +264,70 @@ const DEFAULT_SECTION_HEADERS = {
     title: "09 · Common Mistakes to Avoid",
     subtitle: "Save hours by knowing these pitfalls early.",
   },
+};
+
+export const combineStepDescription = (step) => {
+  if (!step) return "";
+  if (typeof step.description === "string" && step.description.trim()) {
+    return step.description.trim();
+  }
+  if (typeof step.implementationDescription === "string" && step.implementationDescription.trim()) {
+    return step.implementationDescription.trim();
+  }
+  if (typeof step.implementation_description === "string" && step.implementation_description.trim()) {
+    return step.implementation_description.trim();
+  }
+
+  const rawParts = [
+    step.whatYouDo || step.whatYoullDo,
+    step.matters || step.whyItMatters,
+    step.output || step.expectedOutput,
+  ];
+
+  const cleanParts = rawParts
+    .filter((p) => typeof p === "string" && p.trim().length > 0)
+    .map((p) => p.trim());
+
+  if (cleanParts.length === 0) return "";
+
+  return cleanParts.reduce((acc, part) => {
+    if (!acc) return part;
+    const endsWithPunct = /[.!?]$/.test(acc);
+    return endsWithPunct ? `${acc} ${part}` : `${acc}. ${part}`;
+  }, "");
+};
+
+export const combineMistakeDescription = (m) => {
+  if (!m) return "";
+  if (typeof m.description === "string" && m.description.trim()) {
+    return m.description.trim();
+  }
+  if (typeof m.mistakeDescription === "string" && m.mistakeDescription.trim()) {
+    return m.mistakeDescription.trim();
+  }
+  if (typeof m.mistake_description === "string" && m.mistake_description.trim()) {
+    return m.mistake_description.trim();
+  }
+
+  const rawParts = [
+    m.mistake || m.theMistake || m.theError || m.error,
+    m.why || m.whyItHappens || m.rootCause,
+    m.avoid || m.howToAvoid || m.solution || m.recommendedSolution,
+  ];
+
+  const cleanParts = rawParts
+    .filter((p) => typeof p === "string" && p.trim().length > 0)
+    .map((p) => p.trim());
+
+  if (cleanParts.length === 0) return "";
+
+  const joined = cleanParts.reduce((acc, part) => {
+    if (!acc) return part;
+    const endsWithPunct = /[.!?]$/.test(acc);
+    return endsWithPunct ? `${acc} ${part}` : `${acc}. ${part}`;
+  }, "");
+
+  return joined.startsWith("<") ? joined : `<p>${joined}</p>`;
 };
 
 function SectionHeaderEditCard({
@@ -1098,6 +1165,26 @@ export default function AdminProjectDetails() {
 
   // Local editable state for form
   const [formData, setFormData] = useState(null);
+  const [prereqItemKeys, setPrereqItemKeys] = useState({});
+  const [addPrereqMenuAnchor, setAddPrereqMenuAnchor] = useState(null);
+  const [openStepLabelEdit, setOpenStepLabelEdit] = useState(null);
+  const [openMistakeLabelEdit, setOpenMistakeLabelEdit] = useState(null);
+
+  const domainOptionsList = React.useMemo(() => {
+    const current = formData?.domain?.trim();
+    if (current && !DOMAIN_OPTIONS.includes(current)) {
+      return [current, ...DOMAIN_OPTIONS];
+    }
+    return DOMAIN_OPTIONS;
+  }, [formData?.domain]);
+
+  const projectTypeOptionsList = React.useMemo(() => {
+    const current = formData?.project_type?.trim();
+    if (current && !PROJECT_TYPE_OPTIONS.includes(current)) {
+      return [current, ...PROJECT_TYPE_OPTIONS];
+    }
+    return PROJECT_TYPE_OPTIONS;
+  }, [formData?.project_type]);
 
   useEffect(() => {
     if (idOrSlug && idOrSlug !== selectedSlug) {
@@ -1124,6 +1211,28 @@ export default function AdminProjectDetails() {
       cloned.sectionHeaders = cloned.section_headers;
       cloned.sections_order = activeOrder;
 
+      // ── Normalize Section 01: Combine Paragraphs into single Project Description ──
+      const legacyP1 = (cloned.about_text_1 || "").trim();
+      const legacyP2 = (cloned.about_text_2 || "").trim();
+      const legacyP3 = (cloned.about_text_3 || "").trim();
+
+      let initialDescription = (cloned.description || cloned.about_text || "").trim();
+      if (!initialDescription) {
+        if (legacyP1 && legacyP2 && !legacyP1.includes(legacyP2)) {
+          initialDescription = [legacyP1, legacyP2, legacyP3].filter(Boolean).join("\n\n");
+        } else if (legacyP1) {
+          initialDescription = legacyP1;
+        } else {
+          initialDescription = [legacyP2, legacyP3].filter(Boolean).join("\n\n");
+        }
+      }
+
+      cloned.about_text_1 = initialDescription;
+      cloned.description = initialDescription;
+      cloned.about_text = initialDescription;
+      cloned.about_text_2 = "";
+      cloned.about_text_3 = "";
+
       // ── Normalize Section 02: Prerequisites category_order, category_titles & section_2_design ──
       cloned.section_2_design = cloned.section_2_design || cloned.section_headers?.section_2_design || "grid";
       const rawPrereqCats = cloned.prerequisites?.category_order || cloned.prerequisites_order;
@@ -1149,6 +1258,16 @@ export default function AdminProjectDetails() {
       };
       cloned.prereq_category_titles = cloned.prerequisites.category_titles;
 
+      // Stable keys for prerequisite items across categories
+      const initialKeys = {};
+      activePrereqCats.forEach((cat) => {
+        const catItems = Array.isArray(cloned.prerequisites?.[cat]) ? cloned.prerequisites[cat] : [];
+        initialKeys[cat] = catItems.map(
+          (_, i) => `prereq-${cat}-${Date.now()}-${i}-${Math.random().toString(36).slice(2, 6)}`
+        );
+      });
+      setPrereqItemKeys(initialKeys);
+
       // ── Normalize Section 03: objectives ──
       if (Array.isArray(cloned.objectives)) {
         cloned.objectives = cloned.objectives.map((obj, idx) => ({
@@ -1172,13 +1291,40 @@ export default function AdminProjectDetails() {
         cloned.architecture_steps = [];
       }
 
+      // ── Normalize Section 04: architecture_details ──
+      if (Array.isArray(cloned.architecture_details)) {
+        cloned.architecture_details = cloned.architecture_details.map((detail, idx) => ({
+          ...detail,
+          id: detail.id || `arch-detail-${idx + 1}-${Math.random().toString(36).substring(2, 6)}`,
+          step: detail.step || "",
+          desc: detail.desc || detail.description || "",
+          description: detail.desc || detail.description || "",
+        }));
+      } else {
+        cloned.architecture_details = [];
+      }
+
       // ── Normalize Section 05: implementation_steps ──
       if (Array.isArray(cloned.implementation_steps)) {
-        cloned.implementation_steps = cloned.implementation_steps.map((step, idx) => ({
-          ...step,
-          id: step.id || `step-id-${idx + 1}`,
-          num: step.num || String(idx + 1).padStart(2, "0"),
-        }));
+        cloned.implementation_steps = cloned.implementation_steps.map((step, idx) => {
+          const desc = combineStepDescription(step);
+          return {
+            ...step,
+            id: step.id || `step-id-${idx + 1}`,
+            num: step.num || String(idx + 1).padStart(2, "0"),
+            title: step.title || "",
+            subtitle: step.subtitle || "",
+            description: desc,
+            whatYouDo: desc,
+            tools: Array.isArray(step.tools) ? step.tools : (step.toolsUsed || []),
+            command: step.command || step.codeSnippet || "",
+            titleLabel: step.titleLabel || "",
+            subtitleLabel: step.subtitleLabel || "",
+            descriptionLabel: step.descriptionLabel || step.implementationDescriptionLabel || "",
+            toolsLabel: step.toolsLabel || step.toolsUsedLabel || "",
+            commandLabel: step.commandLabel || step.codeSnippetLabel || "",
+          };
+        });
       } else {
         cloned.implementation_steps = [];
       }
@@ -1269,14 +1415,19 @@ export default function AdminProjectDetails() {
         }
       }
       const finalRawMistakes = uniqueMistakes.length > 0 ? uniqueMistakes : rawMistakes;
-      const normalizedMistakes = finalRawMistakes.map((m, idx) => ({
-        id: m.id || `mistake-id-${idx + 1}`,
-        num: m.num || String(idx + 1).padStart(2, "0"),
-        title: m.title || "",
-        mistake: m.mistake || "",
-        why: m.why || "",
-        avoid: m.avoid || "",
-      }));
+      const normalizedMistakes = finalRawMistakes.map((m, idx) => {
+        const desc = combineMistakeDescription(m);
+        return {
+          ...m,
+          id: m.id || `mistake-id-${idx + 1}`,
+          num: m.num || String(idx + 1).padStart(2, "0"),
+          title: m.title || "",
+          description: desc,
+          mistake: desc,
+          titleLabel: m.titleLabel || m.mistakeTitleLabel || "",
+          descriptionLabel: m.descriptionLabel || m.mistakeDescriptionLabel || "",
+        };
+      });
       cloned.common_mistakes = normalizedMistakes;
       cloned.commonMistakes = normalizedMistakes;
 
@@ -1332,6 +1483,17 @@ export default function AdminProjectDetails() {
 
   const handleFieldChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleProjectDescriptionChange = (value) => {
+    setFormData((prev) => ({
+      ...prev,
+      about_text_1: value,
+      description: value,
+      about_text: value,
+      about_text_2: "",
+      about_text_3: "",
+    }));
   };
 
   const handleSectionHeaderChange = (sectionId, field, value) => {
@@ -1438,15 +1600,25 @@ export default function AdminProjectDetails() {
   };
 
   const addPrereqItem = (category) => {
+    const newId = `prereq-${category}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    setPrereqItemKeys((prev) => ({
+      ...prev,
+      [category]: [...(prev[category] || []), newId],
+    }));
     setFormData((prev) => {
       const updated = { ...(prev.prerequisites || {}) };
-      const list = [...(updated[category] || []), "New requirement"];
+      const list = [...(updated[category] || []), ""];
       updated[category] = list;
       return { ...prev, prerequisites: updated };
     });
   };
 
   const removePrereqItem = (category, index) => {
+    setPrereqItemKeys((prev) => {
+      const list = [...(prev[category] || [])];
+      list.splice(index, 1);
+      return { ...prev, [category]: list };
+    });
     setFormData((prev) => {
       const updated = { ...(prev.prerequisites || {}) };
       const list = [...(updated[category] || [])];
@@ -1481,6 +1653,13 @@ export default function AdminProjectDetails() {
     const targetIndex = index + direction;
     if (targetIndex < 0 || targetIndex >= list.length) return;
     const reordered = arrayMove(list, index, targetIndex);
+
+    setPrereqItemKeys((prev) => {
+      const keys = [...(prev[category] || [])];
+      if (targetIndex < 0 || targetIndex >= keys.length) return prev;
+      return { ...prev, [category]: arrayMove(keys, index, targetIndex) };
+    });
+
     handleReorderPrereq(category, reordered);
   };
 
@@ -1692,7 +1871,12 @@ export default function AdminProjectDetails() {
   const handleArchDetailChange = (index, field, value) => {
     setFormData((prev) => {
       const list = [...(prev.architecture_details || [])];
-      list[index] = { ...list[index], [field]: value };
+      list[index] = {
+        ...list[index],
+        [field]: value,
+        ...(field === "desc" ? { description: value } : {}),
+        ...(field === "description" ? { desc: value } : {}),
+      };
       return { ...prev, architecture_details: list };
     });
   };
@@ -1701,7 +1885,13 @@ export default function AdminProjectDetails() {
     setFormData((prev) => {
       const list = [...(prev.architecture_details || [])];
       const nextNum = String(list.length + 1).padStart(2, "0");
-      list.push({ step: `${nextNum} · Component`, desc: "Description of this component." });
+      const newId = `arch-detail-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      list.push({
+        id: newId,
+        step: `${nextNum} · Component`,
+        desc: "",
+        description: "",
+      });
       return { ...prev, architecture_details: list };
     });
   };
@@ -1732,11 +1922,14 @@ export default function AdminProjectDetails() {
         num: nextNum,
         title: "Implementation Step Title",
         subtitle: "Short summary subtitle",
-        whatYouDo: "Actionable steps taken in this phase.",
-        matters: "Why this phase is important.",
-        output: "Artifact or output produced.",
+        description: "<p>Actionable steps taken in this phase. Why this phase is important. Artifact or output produced.</p>",
         tools: ["Python", "Jupyter"],
         command: "pip install package-name",
+        titleLabel: "",
+        subtitleLabel: "",
+        descriptionLabel: "",
+        toolsLabel: "",
+        commandLabel: "",
       });
       return { ...prev, implementation_steps: list };
     });
@@ -2100,7 +2293,11 @@ export default function AdminProjectDetails() {
       const list = currentList.map((item, idx) => {
         const match = item.id ? item.id === idOrIndex : idx === idOrIndex;
         if (!match) return item;
-        return { ...item, [field]: value };
+        return {
+          ...item,
+          [field]: value,
+          ...(field === "description" ? { mistake: value } : {}),
+        };
       });
       return { ...prev, common_mistakes: list, commonMistakes: list };
     });
@@ -2115,9 +2312,10 @@ export default function AdminProjectDetails() {
         id: newId,
         num: nextNum,
         title: "",
+        description: "",
         mistake: "",
-        why: "",
-        avoid: "",
+        titleLabel: "",
+        descriptionLabel: "",
       });
       return { ...prev, common_mistakes: list, commonMistakes: list };
     });
@@ -2242,14 +2440,38 @@ export default function AdminProjectDetails() {
         desc: ds.description || ds.desc || "",
       }));
 
-      const finalMistakes = (formData.common_mistakes || formData.commonMistakes || []).map((m, idx) => ({
-        id: m.id || `mistake-${idx + 1}`,
-        num: m.num || String(idx + 1).padStart(2, "0"),
-        title: m.title || "",
-        mistake: m.mistake || "",
-        why: m.why || "",
-        avoid: m.avoid || "",
-      }));
+      const finalMistakes = (formData.common_mistakes || formData.commonMistakes || []).map((m, idx) => {
+        const desc = combineMistakeDescription(m);
+        return {
+          ...m,
+          id: m.id || `mistake-${idx + 1}`,
+          num: m.num || String(idx + 1).padStart(2, "0"),
+          title: m.title || "",
+          description: desc,
+          mistake: desc,
+          titleLabel: m.titleLabel || "",
+          descriptionLabel: m.descriptionLabel || "",
+        };
+      });
+
+      const finalImplSteps = (formData.implementation_steps || []).map((step, idx) => {
+        const desc = combineStepDescription(step);
+        return {
+          ...step,
+          num: step.num || String(idx + 1).padStart(2, "0"),
+          title: step.title || "",
+          subtitle: step.subtitle || "",
+          description: desc,
+          whatYouDo: desc,
+          tools: Array.isArray(step.tools) ? step.tools : [],
+          command: step.command || "",
+          titleLabel: step.titleLabel || "",
+          subtitleLabel: step.subtitleLabel || "",
+          descriptionLabel: step.descriptionLabel || "",
+          toolsLabel: step.toolsLabel || "",
+          commandLabel: step.commandLabel || "",
+        };
+      });
 
       const finalPrereq = {
         ...(formData.prerequisites || {}),
@@ -2263,6 +2485,16 @@ export default function AdminProjectDetails() {
           PREREQ_CATEGORY_LABELS,
       };
 
+      // Clean prerequisite category items into clean strings
+      const prereqCats = finalPrereq.category_order || DEFAULT_PREREQ_CATEGORIES_ORDER;
+      for (const catKey of prereqCats) {
+        if (Array.isArray(finalPrereq[catKey])) {
+          finalPrereq[catKey] = finalPrereq[catKey].map((it) =>
+            typeof it === "string" ? it : (it?.text || "")
+          );
+        }
+      }
+
       const finalHeaders = {
         ...(formData.section_headers || formData.sectionHeaders || DEFAULT_SECTION_HEADERS),
         learnings_order:
@@ -2275,8 +2507,26 @@ export default function AdminProjectDetails() {
           DEFAULT_LEARNING_CATEGORY_TITLES,
       };
 
+      const finalDescription = formData.about_text_1 ?? formData.description ?? formData.about_text ?? "";
+
+      const finalDomain = formData.domain === "Other" && formData.custom_domain?.trim()
+        ? formData.custom_domain.trim()
+        : (formData.domain || "Data Science");
+
+      const finalProjectType = formData.project_type === "Other" && formData.custom_project_type?.trim()
+        ? formData.custom_project_type.trim()
+        : (formData.project_type || "Machine Learning");
+
       const payload = {
         ...formData,
+        domain: finalDomain,
+        project_type: finalProjectType,
+        about_text_1: finalDescription,
+        about_text_2: "",
+        about_text_3: "",
+        description: finalDescription,
+        about_text: finalDescription,
+        project_description: finalDescription,
         section_2_design: formData.section_2_design || "grid",
         prerequisites: finalPrereq,
         technologies: finalTech,
@@ -2289,6 +2539,14 @@ export default function AdminProjectDetails() {
         learnings_order: finalHeaders.learnings_order,
         learning_category_titles: finalHeaders.learning_category_titles,
         prereq_category_titles: finalPrereq.category_titles,
+        architecture_details: (formData.architecture_details || []).map((ad, idx) => ({
+          ...ad,
+          id: ad.id || `arch-detail-${idx + 1}`,
+          step: ad.step || "",
+          desc: ad.desc || ad.description || "",
+          description: ad.desc || ad.description || "",
+        })),
+        implementation_steps: finalImplSteps,
         common_mistakes: finalMistakes,
         commonMistakes: finalMistakes,
         section_headers: finalHeaders,
@@ -2346,7 +2604,7 @@ export default function AdminProjectDetails() {
               Section 01 · About the Project Content
             </Typography>
             <Typography variant="body2" sx={{ color: "#666" }}>
-              These 3 paragraphs render inside the primary summary card in Section 01.
+              This description renders inside the primary summary card in Section 01. Paragraph breaks are preserved on the public project page.
             </Typography>
 
             <SectionHeaderEditCard
@@ -2361,33 +2619,21 @@ export default function AdminProjectDetails() {
             />
 
             <TextField
-              label="Paragraph 1 (The Problem Context)"
+              label="Project Description"
               fullWidth
               multiline
-              rows={3}
-              value={formData.about_text_1 || ""}
-              onChange={(e) => handleFieldChange("about_text_1", e.target.value)}
-              placeholder="Explain what the project addresses in real-world terms..."
-            />
-
-            <TextField
-              label="Paragraph 2 (What the Learner Builds)"
-              fullWidth
-              multiline
-              rows={3}
-              value={formData.about_text_2 || ""}
-              onChange={(e) => handleFieldChange("about_text_2", e.target.value)}
-              placeholder="Explain the dataset and models used..."
-            />
-
-            <TextField
-              label="Paragraph 3 (Key Takeaway / Final Deliverable)"
-              fullWidth
-              multiline
-              rows={3}
-              value={formData.about_text_3 || ""}
-              onChange={(e) => handleFieldChange("about_text_3", e.target.value)}
-              placeholder="Explain the working end-to-end outcome..."
+              minRows={6}
+              rows={8}
+              value={formData?.about_text_1 ?? formData?.description ?? formData?.about_text ?? ""}
+              onChange={(e) => handleProjectDescriptionChange(e.target.value)}
+              placeholder="Enter the complete project description. Combine the problem context, what the learner builds, and the working deliverable (use blank lines to separate paragraphs)..."
+              helperText="Full-width project description. Use line breaks or blank lines to separate paragraphs."
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  fontSize: "0.95rem",
+                  lineHeight: 1.65,
+                },
+              }}
             />
           </Box>
         );
@@ -2400,9 +2646,76 @@ export default function AdminProjectDetails() {
 
         return (
           <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-            <Typography variant="h6" sx={{ fontWeight: 700, color: "#074568" }}>
-              Section 02 · Prerequisites & What to Know Before Starting
-            </Typography>
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 1 }}>
+              <Box>
+                <Typography variant="h6" sx={{ fontWeight: 700, color: "#074568" }}>
+                  Section 02 · Prerequisites & What to Know Before Starting
+                </Typography>
+                <Typography variant="caption" sx={{ color: "#64748b" }}>
+                  Add and manage prerequisites by category. Drag category cards or items to reorder.
+                </Typography>
+              </Box>
+
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<AddIcon />}
+                onClick={(e) => setAddPrereqMenuAnchor(e.currentTarget)}
+                sx={{
+                  borderColor: "#37AB79",
+                  color: "#37AB79",
+                  textTransform: "none",
+                  fontWeight: 600,
+                  "&:hover": { borderColor: "#2e8b62", backgroundColor: "#f0fdf4" },
+                }}
+              >
+                + Add Prerequisite
+              </Button>
+
+              <Menu
+                anchorEl={addPrereqMenuAnchor}
+                open={Boolean(addPrereqMenuAnchor)}
+                onClose={() => setAddPrereqMenuAnchor(null)}
+                PaperProps={{
+                  sx: {
+                    minWidth: 230,
+                    boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
+                    borderRadius: 2,
+                    border: "1px solid #e0e6ed",
+                    py: 0.5,
+                  },
+                }}
+              >
+                <Box sx={{ px: 2, py: 1, borderBottom: "1px solid #f1f5f9" }}>
+                  <Typography variant="caption" sx={{ fontWeight: 700, color: "#074568", textTransform: "uppercase", letterSpacing: 0.5 }}>
+                    Select Category
+                  </Typography>
+                </Box>
+                {prereqCategoryOrder.map((catKey) => {
+                  const catTitle =
+                    formData?.prerequisites?.category_titles?.[catKey] ||
+                    formData?.prereq_category_titles?.[catKey] ||
+                    PREREQ_CATEGORY_LABELS[catKey] ||
+                    catKey;
+                  return (
+                    <MenuItem
+                      key={catKey}
+                      onClick={() => {
+                        addPrereqItem(catKey);
+                        setAddPrereqMenuAnchor(null);
+                      }}
+                      sx={{
+                        fontSize: "0.875rem",
+                        py: 1,
+                        "&:hover": { backgroundColor: "#f0fdf4", color: "#37AB79" },
+                      }}
+                    >
+                      {catTitle}
+                    </MenuItem>
+                  );
+                })}
+              </Menu>
+            </Box>
 
             <SectionHeaderEditCard
               sectionId="prerequisites"
@@ -2434,7 +2747,12 @@ export default function AdminProjectDetails() {
                 {prereqCategoryOrder.map((cat, catIdx) => {
                   const catSortId = `cat-${cat}`;
                   const items = formData.prerequisites?.[cat] || [];
-                  const sortableItems = items.map((text, idx) => ({ id: `prereq-${cat}-${idx}`, text, idx }));
+                  const catKeys = prereqItemKeys[cat] || [];
+                  const sortableItems = items.map((text, idx) => ({
+                    id: catKeys[idx] || `prereq-${cat}-${idx}`,
+                    text,
+                    idx,
+                  }));
 
                   return (
                     <SortableItem key={catSortId} id={catSortId}>
@@ -2483,16 +2801,26 @@ export default function AdminProjectDetails() {
                               size="small"
                               startIcon={<AddIcon />}
                               onClick={() => addPrereqItem(cat)}
-                              sx={{ color: "#37AB79", textTransform: "none", fontWeight: 600 }}
+                              sx={{
+                                color: "#37AB79",
+                                textTransform: "none",
+                                fontWeight: 600,
+                                "&:hover": { backgroundColor: "#f0fdf4" },
+                              }}
                             >
-                              Add Item
+                              + Add Item
                             </Button>
                           </Box>
 
                           {/* Child Items Drag & Drop */}
                           <SortableContainer
                             items={sortableItems}
-                            onReorder={(reordered) => handleReorderPrereq(cat, reordered.map((r) => r.text))}
+                            onReorder={(reordered) => {
+                              const newTexts = reordered.map((r) => r.text);
+                              const newKeys = reordered.map((r) => r.id);
+                              setPrereqItemKeys((prev) => ({ ...prev, [cat]: newKeys }));
+                              handleReorderPrereq(cat, newTexts);
+                            }}
                           >
                             <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                               {sortableItems.map(({ id, text }, idx) => (
@@ -2518,20 +2846,28 @@ export default function AdminProjectDetails() {
                                       />
                                       <AccessibleReorderButtons
                                         isFirst={idx === 0}
-                                        isLast={idx === items.length - 1}
+                                        isLast={items.length - 1}
                                         onMoveUp={() => handleMovePrereq(cat, idx, -1)}
                                         onMoveDown={() => handleMovePrereq(cat, idx, 1)}
                                       />
                                       <TextField
                                         size="small"
                                         fullWidth
+                                        placeholder="Enter prerequisite requirement..."
                                         value={text}
                                         onChange={(e) => handlePrereqChange(cat, idx, e.target.value)}
+                                        sx={{
+                                          backgroundColor: "#ffffff",
+                                          "& .MuiOutlinedInput-root": {
+                                            borderRadius: 1.5,
+                                          },
+                                        }}
                                       />
                                       <IconButton
                                         size="small"
                                         onClick={() => removePrereqItem(cat, idx)}
-                                        sx={{ color: "#dc2626" }}
+                                        sx={{ color: "#dc2626", "&:hover": { backgroundColor: "#fef2f2" } }}
+                                        title="Delete prerequisite"
                                       >
                                         <DeleteIcon fontSize="small" />
                                       </IconButton>
@@ -2539,6 +2875,30 @@ export default function AdminProjectDetails() {
                                   )}
                                 </SortableItem>
                               ))}
+
+                              {items.length === 0 && (
+                                <Box
+                                  sx={{
+                                    p: 2,
+                                    textAlign: "center",
+                                    border: "1px dashed #cbd5e1",
+                                    borderRadius: 1.5,
+                                    backgroundColor: "#f8fafc",
+                                  }}
+                                >
+                                  <Typography variant="body2" sx={{ color: "#64748b", mb: 0.5 }}>
+                                    No prerequisites added in this category yet.
+                                  </Typography>
+                                  <Button
+                                    size="small"
+                                    startIcon={<AddIcon />}
+                                    onClick={() => addPrereqItem(cat)}
+                                    sx={{ color: "#37AB79", textTransform: "none", fontWeight: 600 }}
+                                  >
+                                    + Add Item
+                                  </Button>
+                                </Box>
+                              )}
                             </Box>
                           </SortableContainer>
                         </Paper>
@@ -2776,27 +3136,123 @@ export default function AdminProjectDetails() {
                 </Button>
               </Box>
 
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 {(formData.architecture_details || []).map((item, idx) => (
-                  <Box key={idx} sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
-                    <TextField
-                      size="small"
-                      label="Step Label"
-                      sx={{ width: 220 }}
-                      value={item.step || ""}
-                      onChange={(e) => handleArchDetailChange(idx, "step", e.target.value)}
-                    />
-                    <TextField
-                      size="small"
-                      label="Description"
-                      fullWidth
-                      value={item.desc || ""}
-                      onChange={(e) => handleArchDetailChange(idx, "desc", e.target.value)}
-                    />
-                    <IconButton size="small" onClick={() => removeArchDetail(idx)} sx={{ color: "#dc2626" }}>
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
-                  </Box>
+                  <Paper
+                    key={item.id || `arch-detail-${idx}`}
+                    variant="outlined"
+                    sx={{
+                      p: 2,
+                      borderColor: "#e2e8f0",
+                      borderRadius: 1.5,
+                      backgroundColor: "#ffffff",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 1.5,
+                    }}
+                  >
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 1.5 }}>
+                      <TextField
+                        size="small"
+                        label="Step Label"
+                        placeholder="e.g. 01 · Dataset"
+                        sx={{ width: { xs: "100%", sm: 260 } }}
+                        value={item.step || ""}
+                        onChange={(e) => handleArchDetailChange(idx, "step", e.target.value)}
+                      />
+                      <IconButton
+                        size="small"
+                        onClick={() => removeArchDetail(idx)}
+                        sx={{ color: "#dc2626" }}
+                        title="Delete breakdown item"
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
+
+                    <Box sx={{ width: "100%" }}>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          display: "block",
+                          mb: 0.6,
+                          fontWeight: 600,
+                          color: "#475569",
+                          fontSize: "0.8rem",
+                        }}
+                      >
+                        Description
+                      </Typography>
+                      <Box
+                        sx={{
+                          borderRadius: "8px",
+                          overflow: "hidden",
+                          border: "1px solid #cbd5e1",
+                          backgroundColor: "#fff",
+                          boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
+                          "&:focus-within": {
+                            borderColor: "#0284c7",
+                            boxShadow: "0 0 0 1px #0284c7",
+                          },
+                        }}
+                      >
+                        <Editor
+                          key={`arch-editor-${item.id || idx}`}
+                          id={`arch-desc-editor-${item.id || idx}`}
+                          apiKey="9upr0hixy7g4w8g9mazmhkqgyl0m4kjvz623rjwvekg4l86k"
+                          value={item.desc || item.description || ""}
+                          onEditorChange={(content) => handleArchDetailChange(idx, "desc", content)}
+                          init={{
+                            height: 240,
+                            menubar: true,
+                            branding: false,
+                            promotion: false,
+                            statusbar: true,
+                            elementpath: true,
+                            language: "en",
+                            plugins: [
+                              "advlist",
+                              "autolink",
+                              "lists",
+                              "link",
+                              "image",
+                              "charmap",
+                              "preview",
+                              "anchor",
+                              "searchreplace",
+                              "visualblocks",
+                              "code",
+                              "fullscreen",
+                              "insertdatetime",
+                              "media",
+                              "table",
+                              "help",
+                              "wordcount",
+                              "emoticons",
+                              "codesample",
+                            ],
+                            toolbar:
+                              "undo redo | blocks | bold italic underline strikethrough | forecolor backcolor | " +
+                              "alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | " +
+                              "table | link codesample removeformat code fullscreen | help",
+                            table_toolbar:
+                              "tableprops tabledelete | tableinsertrowbefore tableinsertrowafter tabledeleterow | " +
+                              "tableinsertcolbefore tableinsertcolafter tabledeletecol | " +
+                              "tablecellprops tablerowprops tablemergecells tablesplitcells",
+                            content_style: `
+                              body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; line-height: 1.6; color: #1e293b; padding: 12px 14px; }
+                              p { margin: 0 0 10px 0; }
+                              p:last-child { margin-bottom: 0; }
+                              table { border-collapse: collapse; width: 100%; border: 1px solid #E2E8F0; }
+                              table td, table th { border: 1px solid #E2E8F0; padding: 6px 10px; }
+                              table th { background-color: #f1f5f9; color: #0f172a; font-weight: 600; }
+                              pre { background: #0F172A; color: #E2E8F0; padding: 10px; border-radius: 6px; overflow-x: auto; }
+                            `,
+                          }}
+                        />
+                      </Box>
+                    </Box>
+                  </Paper>
                 ))}
               </Box>
             </Paper>
@@ -2872,10 +3328,118 @@ export default function AdminProjectDetails() {
                               Step
                             </Typography>
                           </Box>
-                          <IconButton size="small" onClick={() => removeImplStep(idx)} sx={{ color: "#dc2626" }}>
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
+                          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                            <Button
+                              size="small"
+                              variant={openStepLabelEdit === (step.id || idx) ? "contained" : "outlined"}
+                              startIcon={<EditIcon sx={{ fontSize: 13 }} />}
+                              onClick={() => setOpenStepLabelEdit(openStepLabelEdit === (step.id || idx) ? null : (step.id || idx))}
+                              sx={{
+                                textTransform: "none",
+                                fontSize: "0.75rem",
+                                py: 0.3,
+                                px: 1.2,
+                                fontWeight: 600,
+                                borderColor: openStepLabelEdit === (step.id || idx) ? "#37AB79" : "#c7ebda",
+                                backgroundColor: openStepLabelEdit === (step.id || idx) ? "#37AB79" : "transparent",
+                                color: openStepLabelEdit === (step.id || idx) ? "#fff" : "#166534",
+                                "&:hover": {
+                                  backgroundColor: openStepLabelEdit === (step.id || idx) ? "#2e8b62" : "#f0fdf4",
+                                  borderColor: "#37AB79",
+                                },
+                              }}
+                            >
+                              {openStepLabelEdit === (step.id || idx) ? "Close Label Editor" : "Edit Field Labels"}
+                            </Button>
+                            <IconButton size="small" onClick={() => removeImplStep(idx)} sx={{ color: "#dc2626" }}>
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </Box>
                         </Box>
+
+                        {/* Collapsible Label Editor Panel */}
+                        {openStepLabelEdit === (step.id || idx) && (
+                          <Paper
+                            elevation={0}
+                            sx={{
+                              p: 2,
+                              mb: 2,
+                              backgroundColor: "#f0fdf4",
+                              border: "1px solid #bbf7d0",
+                              borderRadius: 1.5,
+                            }}
+                          >
+                            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1.5 }}>
+                              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#166534" }}>
+                                🏷️ Custom Field Labels for Step {step.num || String(idx + 1).padStart(2, "0")}
+                              </Typography>
+                              <Button
+                                size="small"
+                                variant="text"
+                                onClick={() => {
+                                  handleImplStepChange(idx, "titleLabel", "");
+                                  handleImplStepChange(idx, "subtitleLabel", "");
+                                  handleImplStepChange(idx, "descriptionLabel", "");
+                                  handleImplStepChange(idx, "toolsLabel", "");
+                                  handleImplStepChange(idx, "commandLabel", "");
+                                }}
+                                sx={{ textTransform: "none", fontSize: "0.72rem", color: "#64748b" }}
+                              >
+                                Reset to Defaults
+                              </Button>
+                            </Box>
+                            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 1.2 }}>
+                              <TextField
+                                size="small"
+                                label="Title Field Label"
+                                placeholder="Title"
+                                value={step.titleLabel || ""}
+                                onChange={(e) => handleImplStepChange(idx, "titleLabel", e.target.value)}
+                                helperText="Default: Title"
+                                sx={{ backgroundColor: "#fff" }}
+                              />
+                              <TextField
+                                size="small"
+                                label="Subtitle Field Label"
+                                placeholder="Subtitle"
+                                value={step.subtitleLabel || ""}
+                                onChange={(e) => handleImplStepChange(idx, "subtitleLabel", e.target.value)}
+                                helperText="Default: Subtitle"
+                                sx={{ backgroundColor: "#fff" }}
+                              />
+                              <Box sx={{ gridColumn: { xs: "1fr", sm: "span 2" } }}>
+                                <TextField
+                                  size="small"
+                                  fullWidth
+                                  label="Implementation Description Field Label"
+                                  placeholder="Implementation Description"
+                                  value={step.descriptionLabel || ""}
+                                  onChange={(e) => handleImplStepChange(idx, "descriptionLabel", e.target.value)}
+                                  helperText="Default: Implementation Description"
+                                  sx={{ backgroundColor: "#fff" }}
+                                />
+                              </Box>
+                              <TextField
+                                size="small"
+                                label="Tools Used Field Label"
+                                placeholder="Tools Used (comma separated)"
+                                value={step.toolsLabel || ""}
+                                onChange={(e) => handleImplStepChange(idx, "toolsLabel", e.target.value)}
+                                helperText="Default: Tools Used (comma separated)"
+                                sx={{ backgroundColor: "#fff" }}
+                              />
+                              <TextField
+                                size="small"
+                                label="Shell Command / Code snippet Field Label"
+                                placeholder="Shell Command / Code snippet"
+                                value={step.commandLabel || ""}
+                                onChange={(e) => handleImplStepChange(idx, "commandLabel", e.target.value)}
+                                helperText="Default: Shell Command / Code snippet"
+                                sx={{ backgroundColor: "#fff" }}
+                              />
+                            </Box>
+                          </Paper>
+                        )}
 
                         <Box sx={{ display: "grid", gridTemplateColumns: { xs: "80px 1fr 1fr" }, gap: 1.5, mb: 1.5 }}>
                           <TextField
@@ -2886,61 +3450,120 @@ export default function AdminProjectDetails() {
                           />
                           <TextField
                             size="small"
-                            label="Title"
+                            label={step.titleLabel || "Title"}
                             value={step.title || ""}
                             onChange={(e) => handleImplStepChange(idx, "title", e.target.value)}
                           />
                           <TextField
                             size="small"
-                            label="Subtitle"
+                            label={step.subtitleLabel || "Subtitle"}
                             value={step.subtitle || ""}
                             onChange={(e) => handleImplStepChange(idx, "subtitle", e.target.value)}
                           />
                         </Box>
 
-                        <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 1.5, mb: 1.5 }}>
-                          <TextField
-                            size="small"
-                            label="What you'll do"
-                            multiline
-                            rows={2}
-                            value={step.whatYouDo || ""}
-                            onChange={(e) => handleImplStepChange(idx, "whatYouDo", e.target.value)}
-                          />
-                          <TextField
-                            size="small"
-                            label="Why it matters"
-                            multiline
-                            rows={2}
-                            value={step.matters || ""}
-                            onChange={(e) => handleImplStepChange(idx, "matters", e.target.value)}
-                          />
-                        </Box>
-
-                        <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 1.5, mb: 1.5 }}>
-                          <TextField
-                            size="small"
-                            label="Expected output"
-                            value={step.output || ""}
-                            onChange={(e) => handleImplStepChange(idx, "output", e.target.value)}
-                          />
-                          <TextField
-                            size="small"
-                            label="Tools Used (comma separated)"
-                            value={Array.isArray(step.tools) ? step.tools.join(", ") : (step.tools || "")}
-                            onChange={(e) =>
-                              handleImplStepChange(
-                                idx,
-                                "tools",
-                                e.target.value.split(",").map((s) => s.trim())
-                              )
-                            }
-                          />
+                        <Box sx={{ mb: 1.5 }}>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              display: "block",
+                              mb: 0.6,
+                              fontWeight: 600,
+                              color: "#475569",
+                              fontSize: "0.8rem",
+                            }}
+                          >
+                            {step.descriptionLabel || "Implementation Description"}
+                          </Typography>
+                          <Box
+                            sx={{
+                              borderRadius: "8px",
+                              overflow: "hidden",
+                              border: "1px solid #cbd5e1",
+                              backgroundColor: "#fff",
+                              boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
+                              "&:focus-within": {
+                                borderColor: "#0284c7",
+                                boxShadow: "0 0 0 1px #0284c7",
+                              },
+                            }}
+                          >
+                            <Editor
+                              key={`editor-${step.id || idx}`}
+                              id={`impl-desc-editor-${step.id || idx}`}
+                              apiKey="9upr0hixy7g4w8g9mazmhkqgyl0m4kjvz623rjwvekg4l86k"
+                              value={step.description || ""}
+                              onEditorChange={(content) => handleImplStepChange(idx, "description", content)}
+                              init={{
+                                height: 300,
+                                menubar: true,
+                                branding: false,
+                                promotion: false,
+                                statusbar: true,
+                                elementpath: true,
+                                language: "en",
+                                plugins: [
+                                  "advlist",
+                                  "autolink",
+                                  "lists",
+                                  "link",
+                                  "image",
+                                  "charmap",
+                                  "preview",
+                                  "anchor",
+                                  "searchreplace",
+                                  "visualblocks",
+                                  "code",
+                                  "fullscreen",
+                                  "insertdatetime",
+                                  "media",
+                                  "table",
+                                  "help",
+                                  "wordcount",
+                                  "emoticons",
+                                  "codesample",
+                                ],
+                                toolbar:
+                                  "undo redo | blocks | bold italic underline strikethrough | forecolor backcolor | " +
+                                  "alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | " +
+                                  "table | link codesample removeformat code fullscreen | help",
+                                table_toolbar:
+                                  "tableprops tabledelete | tableinsertrowbefore tableinsertrowafter tabledeleterow | " +
+                                  "tableinsertcolbefore tableinsertcolafter tabledeletecol | " +
+                                  "tablecellprops tablerowprops tablemergecells tablesplitcells",
+                                content_style: `
+                                  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; line-height: 1.6; color: #1e293b; padding: 12px 14px; }
+                                  p { margin: 0 0 10px 0; }
+                                  p:last-child { margin-bottom: 0; }
+                                  table { border-collapse: collapse; width: 100%; border: 1px solid #E2E8F0; }
+                                  table td, table th { border: 1px solid #E2E8F0; padding: 6px 10px; }
+                                  table th { background-color: #f1f5f9; color: #0f172a; font-weight: 600; }
+                                  pre { background: #0F172A; color: #E2E8F0; padding: 10px; border-radius: 6px; overflow-x: auto; }
+                                `,
+                              }}
+                            />
+                          </Box>
                         </Box>
 
                         <TextField
                           size="small"
-                          label="Shell Command / Code snippet"
+                          label={step.toolsLabel || "Tools Used (comma separated)"}
+                          placeholder="Python, Jupyter"
+                          fullWidth
+                          value={Array.isArray(step.tools) ? step.tools.join(", ") : (step.tools || "")}
+                          onChange={(e) =>
+                            handleImplStepChange(
+                              idx,
+                              "tools",
+                              e.target.value.split(",").map((s) => s.trim())
+                            )
+                          }
+                          sx={{ mb: 1.5 }}
+                        />
+
+                        <TextField
+                          size="small"
+                          label={step.commandLabel || "Shell Command / Code snippet"}
                           fullWidth
                           multiline
                           rows={2}
@@ -3402,10 +4025,88 @@ export default function AdminProjectDetails() {
                                 Pitfall
                               </Typography>
                             </Box>
-                            <IconButton size="small" onClick={() => removeMistake(m.id || idx)} sx={{ color: "#dc2626" }}>
-                              <DeleteIcon fontSize="small" />
-                            </IconButton>
+                            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                              <Button
+                                size="small"
+                                variant={openMistakeLabelEdit === (m.id || idx) ? "contained" : "outlined"}
+                                startIcon={<EditIcon sx={{ fontSize: 13 }} />}
+                                onClick={() => setOpenMistakeLabelEdit(openMistakeLabelEdit === (m.id || idx) ? null : (m.id || idx))}
+                                sx={{
+                                  textTransform: "none",
+                                  fontSize: "0.75rem",
+                                  py: 0.3,
+                                  px: 1.2,
+                                  fontWeight: 600,
+                                  borderColor: openMistakeLabelEdit === (m.id || idx) ? "#dc2626" : "#fecdd3",
+                                  backgroundColor: openMistakeLabelEdit === (m.id || idx) ? "#dc2626" : "transparent",
+                                  color: openMistakeLabelEdit === (m.id || idx) ? "#fff" : "#991b1b",
+                                  "&:hover": {
+                                    backgroundColor: openMistakeLabelEdit === (m.id || idx) ? "#b91c1c" : "#fff1f2",
+                                    borderColor: "#dc2626",
+                                  },
+                                }}
+                              >
+                                {openMistakeLabelEdit === (m.id || idx) ? "Close Label Editor" : "Edit Field Labels"}
+                              </Button>
+                              <IconButton size="small" onClick={() => removeMistake(m.id || idx)} sx={{ color: "#dc2626" }}>
+                                <DeleteIcon fontSize="small" />
+                              </IconButton>
+                            </Box>
                           </Box>
+
+                          {/* Collapsible Mistake Label Editor Panel */}
+                          {openMistakeLabelEdit === (m.id || idx) && (
+                            <Paper
+                              elevation={0}
+                              sx={{
+                                p: 2,
+                                mb: 2,
+                                backgroundColor: "#fff1f2",
+                                border: "1px solid #fecdd3",
+                                borderRadius: 1.5,
+                              }}
+                            >
+                              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1.5 }}>
+                                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#991b1b" }}>
+                                  🏷️ Custom Field Labels for Pitfall {m.num || String(idx + 1).padStart(2, "0")}
+                                </Typography>
+                                <Button
+                                  size="small"
+                                  variant="text"
+                                  onClick={() => {
+                                    handleMistakeChange(m.id || idx, "titleLabel", "");
+                                    handleMistakeChange(m.id || idx, "descriptionLabel", "");
+                                    handleMistakeChange(m.id || idx, "mistakeLabel", "");
+                                    handleMistakeChange(m.id || idx, "whyLabel", "");
+                                    handleMistakeChange(m.id || idx, "avoidLabel", "");
+                                  }}
+                                  sx={{ textTransform: "none", fontSize: "0.72rem", color: "#64748b" }}
+                                >
+                                  Reset to Defaults
+                                </Button>
+                              </Box>
+                              <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 1.2 }}>
+                                <TextField
+                                  size="small"
+                                  label="Mistake Title Field Label"
+                                  placeholder="Mistake Title"
+                                  value={m.titleLabel || ""}
+                                  onChange={(e) => handleMistakeChange(m.id || idx, "titleLabel", e.target.value)}
+                                  helperText="Default: Mistake Title"
+                                  sx={{ backgroundColor: "#fff" }}
+                                />
+                                <TextField
+                                  size="small"
+                                  label="Mistake Description Field Label"
+                                  placeholder="Mistake Description"
+                                  value={m.descriptionLabel || ""}
+                                  onChange={(e) => handleMistakeChange(m.id || idx, "descriptionLabel", e.target.value)}
+                                  helperText="Default: Mistake Description"
+                                  sx={{ backgroundColor: "#fff" }}
+                                />
+                              </Box>
+                            </Paper>
+                          )}
 
                           <Box sx={{ display: "grid", gridTemplateColumns: { xs: "80px 1fr" }, gap: 1.5, mb: 1.5 }}>
                             <TextField
@@ -3416,35 +4117,94 @@ export default function AdminProjectDetails() {
                             />
                             <TextField
                               size="small"
-                              label="Mistake Title"
+                              label={m.titleLabel || "Mistake Title"}
                               value={m.title || ""}
                               onChange={(e) => handleMistakeChange(m.id || idx, "title", e.target.value)}
                             />
                           </Box>
 
-                          <TextField
-                            size="small"
-                            label="The Mistake"
-                            fullWidth
-                            sx={{ mb: 1.5 }}
-                            value={m.mistake || ""}
-                            onChange={(e) => handleMistakeChange(m.id || idx, "mistake", e.target.value)}
-                          />
-                          <TextField
-                            size="small"
-                            label="Why It Happens"
-                            fullWidth
-                            sx={{ mb: 1.5 }}
-                            value={m.why || ""}
-                            onChange={(e) => handleMistakeChange(m.id || idx, "why", e.target.value)}
-                          />
-                          <TextField
-                            size="small"
-                            label="How to Avoid It"
-                            fullWidth
-                            value={m.avoid || ""}
-                            onChange={(e) => handleMistakeChange(m.id || idx, "avoid", e.target.value)}
-                          />
+                          <Box sx={{ mb: 1 }}>
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                display: "block",
+                                mb: 0.6,
+                                fontWeight: 600,
+                                color: "#475569",
+                                fontSize: "0.8rem",
+                              }}
+                            >
+                              {m.descriptionLabel || "Mistake Description"}
+                            </Typography>
+                            <Box
+                              sx={{
+                                borderRadius: "8px",
+                                overflow: "hidden",
+                                border: "1px solid #cbd5e1",
+                                backgroundColor: "#fff",
+                                boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
+                                "&:focus-within": {
+                                  borderColor: "#dc2626",
+                                  boxShadow: "0 0 0 1px #dc2626",
+                                },
+                              }}
+                            >
+                              <Editor
+                                key={`mistake-editor-${m.id || idx}`}
+                                id={`mistake-desc-editor-${m.id || idx}`}
+                                apiKey="9upr0hixy7g4w8g9mazmhkqgyl0m4kjvz623rjwvekg4l86k"
+                                value={m.description || ""}
+                                onEditorChange={(content) => handleMistakeChange(m.id || idx, "description", content)}
+                                init={{
+                                  height: 300,
+                                  menubar: true,
+                                  branding: false,
+                                  promotion: false,
+                                  statusbar: true,
+                                  elementpath: true,
+                                  language: "en",
+                                  plugins: [
+                                    "advlist",
+                                    "autolink",
+                                    "lists",
+                                    "link",
+                                    "image",
+                                    "charmap",
+                                    "preview",
+                                    "anchor",
+                                    "searchreplace",
+                                    "visualblocks",
+                                    "code",
+                                    "fullscreen",
+                                    "insertdatetime",
+                                    "media",
+                                    "table",
+                                    "help",
+                                    "wordcount",
+                                    "emoticons",
+                                    "codesample",
+                                  ],
+                                  toolbar:
+                                    "undo redo | blocks | bold italic underline strikethrough | forecolor backcolor | " +
+                                    "alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | " +
+                                    "table | link codesample removeformat code fullscreen | help",
+                                  table_toolbar:
+                                    "tableprops tabledelete | tableinsertrowbefore tableinsertrowafter tabledeleterow | " +
+                                    "tableinsertcolbefore tableinsertcolafter tabledeletecol | " +
+                                    "tablecellprops tablerowprops tablemergecells tablesplitcells",
+                                  content_style: `
+                                    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; line-height: 1.6; color: #1e293b; padding: 12px 14px; }
+                                    p { margin: 0 0 10px 0; }
+                                    p:last-child { margin-bottom: 0; }
+                                    table { border-collapse: collapse; width: 100%; border: 1px solid #E2E8F0; }
+                                    table td, table th { border: 1px solid #E2E8F0; padding: 6px 10px; }
+                                    table th { background-color: #f1f5f9; color: #0f172a; font-weight: 600; }
+                                    pre { background: #0F172A; color: #E2E8F0; padding: 10px; border-radius: 6px; overflow-x: auto; }
+                                  `,
+                                }}
+                              />
+                            </Box>
+                          </Box>
                         </Paper>
                       )}
                     </SortableItem>
@@ -3912,19 +4672,85 @@ export default function AdminProjectDetails() {
                         helperText="e.g. 8–12 Hours, 2 Weeks, etc."
                       />
 
-                      <TextField
-                        label="Domain"
-                        value={formData.domain || "Data Science"}
-                        onChange={(e) => handleFieldChange("domain", e.target.value)}
-                        helperText="e.g. Data Science, Web Development, IoT & Embedded"
-                      />
+                      <Box sx={{ display: "flex", flexDirection: "column" }}>
+                        <TextField
+                          select
+                          fullWidth
+                          label="Domain"
+                          value={formData.domain || ""}
+                          onChange={(e) => handleFieldChange("domain", e.target.value)}
+                          helperText="e.g. Data Science, Web Development, IoT & Embedded"
+                          SelectProps={{
+                            displayEmpty: true,
+                          }}
+                          sx={{
+                            backgroundColor: "#fff",
+                            "& .MuiOutlinedInput-root": { backgroundColor: "#fff" },
+                          }}
+                        >
+                          <MenuItem value="" disabled>
+                            <span style={{ color: "#94a3b8" }}>Select Domain</span>
+                          </MenuItem>
+                          {domainOptionsList.map((opt) => (
+                            <MenuItem key={opt} value={opt}>
+                              {opt}
+                              {opt === formData?.domain && !DOMAIN_OPTIONS.includes(opt) ? " (Custom / Legacy)" : ""}
+                            </MenuItem>
+                          ))}
+                        </TextField>
 
-                      <TextField
-                        label="Project Type"
-                        value={formData.project_type || "Machine Learning"}
-                        onChange={(e) => handleFieldChange("project_type", e.target.value)}
-                        helperText="e.g. Machine Learning, Full Stack App, Computer Vision"
-                      />
+                        {formData.domain === "Other" && (
+                          <TextField
+                            size="small"
+                            label="Specify Other Domain"
+                            placeholder="Enter custom domain"
+                            value={formData.custom_domain || ""}
+                            onChange={(e) => handleFieldChange("custom_domain", e.target.value)}
+                            helperText="Specify the domain name"
+                            sx={{ mt: 1.5, backgroundColor: "#fff" }}
+                          />
+                        )}
+                      </Box>
+
+                      <Box sx={{ display: "flex", flexDirection: "column" }}>
+                        <TextField
+                          select
+                          fullWidth
+                          label="Project Type"
+                          value={formData.project_type || ""}
+                          onChange={(e) => handleFieldChange("project_type", e.target.value)}
+                          helperText="e.g. Machine Learning, Full Stack App, Computer Vision"
+                          SelectProps={{
+                            displayEmpty: true,
+                          }}
+                          sx={{
+                            backgroundColor: "#fff",
+                            "& .MuiOutlinedInput-root": { backgroundColor: "#fff" },
+                          }}
+                        >
+                          <MenuItem value="" disabled>
+                            <span style={{ color: "#94a3b8" }}>Select Project Type</span>
+                          </MenuItem>
+                          {projectTypeOptionsList.map((opt) => (
+                            <MenuItem key={opt} value={opt}>
+                              {opt}
+                              {opt === formData?.project_type && !PROJECT_TYPE_OPTIONS.includes(opt) ? " (Custom / Legacy)" : ""}
+                            </MenuItem>
+                          ))}
+                        </TextField>
+
+                        {formData.project_type === "Other" && (
+                          <TextField
+                            size="small"
+                            label="Specify Other Project Type"
+                            placeholder="Enter custom project type"
+                            value={formData.custom_project_type || ""}
+                            onChange={(e) => handleFieldChange("custom_project_type", e.target.value)}
+                            helperText="Specify the project type"
+                            sx={{ mt: 1.5, backgroundColor: "#fff" }}
+                          />
+                        )}
+                      </Box>
                     </Box>
                   </Box>
                 )}

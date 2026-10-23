@@ -7,12 +7,12 @@ import Autocomplete from "@mui/material/Autocomplete";
 import Avatar from "@mui/material/Avatar";
 import CachedIcon from "@mui/icons-material/Cached";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import { TextField, Button, Box, CircularProgress } from "@mui/material";
+import { TextField, Button, Box, CircularProgress, MenuItem } from "@mui/material";
 import PublishIcon from "@mui/icons-material/Publish";
 import PreviewIcon from "@mui/icons-material/Preview";
 
 import { categoryList, processImage, formatSlug } from "../../../../../utils/helper";
-import { AUTHORS } from "../../commons/commons";
+import { AUTHORS, DOMAIN_OPTIONS, PROJECT_TYPE_OPTIONS } from "../../commons/commons";
 import { PreviewModal } from "../PreviewModal";
 import { useNotification } from "../../../../../context/useNotificationContext";
 import placeholderImg from "../../../../../assets/img/prepHq_placeholder_image.webp";
@@ -38,6 +38,7 @@ const EditForm = ({
   const formValues = watch();
 
   const [previewBlobUrl, setPreviewBlobUrl] = useState(null);
+  const [isExistingRemoved, setIsExistingRemoved] = useState(false);
 
   useEffect(() => {
     if (featureImage instanceof File) {
@@ -54,6 +55,12 @@ const EditForm = ({
   const getFullImageUrl = (url) => {
     if (!url) return placeholderImg;
     if (
+      typeof url === "string" &&
+      url.includes("prephq.theiotacademy.co/project/wp-content/uploads/")
+    ) {
+      return placeholderImg;
+    }
+    if (
       url.startsWith("http://") ||
       url.startsWith("https://") ||
       url.startsWith("blob:") ||
@@ -66,7 +73,13 @@ const EditForm = ({
 
   // 3-state image logic
   const showNewPreview = !!featureImage && !!previewBlobUrl;
-  const showExistingPreview = !featureImage && !!existingImageUrl;
+  const showExistingPreview = !featureImage && !!existingImageUrl && !isExistingRemoved;
+
+  const handleRemoveExisting = () => {
+    setIsExistingRemoved(true);
+    setValue("feature_image", null);
+    setValue("remove_image", true, { shouldValidate: true });
+  };
 
   // ─── Alt-label fix for TinyMCE ───────────────────────────────────────────
   useEffect(() => {
@@ -92,8 +105,11 @@ const EditForm = ({
         { maxSizeMB: 0.8, format: "webp" },
         showNotification,
       );
-      if (processed)
+      if (processed) {
+        setIsExistingRemoved(false);
+        setValue("remove_image", false);
         setValue("feature_image", processed, { shouldValidate: true });
+      }
     },
   };
 
@@ -264,6 +280,88 @@ const EditForm = ({
             </div>
           </div>
 
+          {/* ── Card 1.2: Project Description (Project Edit only) ── */}
+          {isProject && (
+            <div className="admin-card">
+              <div className="admin-card-header">
+                <div>
+                  <h3 className="admin-card-title">Project Description</h3>
+                  <div style={{ fontSize: "12px", color: "var(--admin-text-secondary)" }}>
+                    Write a short introduction that explains the project and what users will learn.
+                  </div>
+                </div>
+              </div>
+
+              <div className="admin-card-body p-2 p-sm-3">
+                <label
+                  style={{
+                    display: "block",
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    marginBottom: "8px",
+                    color: "var(--admin-text-primary, #0f172a)",
+                  }}
+                >
+                  Project Description
+                </label>
+                <Controller
+                  name="post_excerpt"
+                  control={control}
+                  render={({ field }) => (
+                    <Box
+                      sx={{
+                        borderRadius: "10px",
+                        overflow: "hidden",
+                        border: errors.post_excerpt
+                          ? "1px solid #EF4444"
+                          : "1px solid var(--admin-border, #E2E8F0)",
+                      }}
+                    >
+                      <Editor
+                        apiKey="9upr0hixy7g4w8g9mazmhkqgyl0m4kjvz623rjwvekg4l86k"
+                        value={field.value || ""}
+                        onEditorChange={(content) => {
+                          field.onChange(content);
+                          setValue("description", content);
+                        }}
+                        init={{
+                          height: 220,
+                          menubar: false,
+                          language: "en",
+                          plugins: [
+                            "advlist",
+                            "autolink",
+                            "lists",
+                            "link",
+                            "charmap",
+                            "preview",
+                            "searchreplace",
+                            "visualblocks",
+                            "code",
+                            "fullscreen",
+                            "wordcount",
+                          ],
+                          toolbar:
+                            "undo redo | blocks | bold italic | " +
+                            "bullist numlist | link | removeformat",
+                          content_style:
+                            "body { font-family:Helvetica,Arial,sans-serif; font-size:14px }",
+                          placeholder:
+                            "Write a short introduction that explains the project and what users will learn...",
+                        }}
+                      />
+                    </Box>
+                  )}
+                />
+                {errors.post_excerpt && (
+                  <div className="text-danger small mt-2">
+                    {errors.post_excerpt.message}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* ── Card 1.5: Project Specifications (Project Edit only) ── */}
           {isProject && (
             <div className="admin-card">
@@ -312,6 +410,64 @@ const EditForm = ({
                       error={!!errors.project_duration}
                       helperText={errors.project_duration?.message || "Estimated duration to complete"}
                       InputLabelProps={{ shrink: !!watch("project_duration") }}
+                    />
+                  </div>
+
+                  {/* Row 2: Domain Dropdown */}
+                  <div className="col-12 col-md-6">
+                    <Controller
+                      name="domain"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          select
+                          fullWidth
+                          label="Domain"
+                          value={field.value || ""}
+                          onChange={(e) => field.onChange(e.target.value)}
+                          helperText="e.g. Data Science, Web Development, IoT & Embedded"
+                          SelectProps={{ displayEmpty: true }}
+                          sx={{ backgroundColor: "#fff" }}
+                        >
+                          <MenuItem value="" disabled>
+                            <span style={{ color: "#94a3b8" }}>Select Domain</span>
+                          </MenuItem>
+                          {DOMAIN_OPTIONS.map((opt) => (
+                            <MenuItem key={opt} value={opt}>
+                              {opt}
+                            </MenuItem>
+                          ))}
+                        </TextField>
+                      )}
+                    />
+                  </div>
+
+                  {/* Row 2: Project Type Dropdown */}
+                  <div className="col-12 col-md-6">
+                    <Controller
+                      name="project_type"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          select
+                          fullWidth
+                          label="Project Type"
+                          value={field.value || ""}
+                          onChange={(e) => field.onChange(e.target.value)}
+                          helperText="e.g. Machine Learning, Full Stack App, Computer Vision"
+                          SelectProps={{ displayEmpty: true }}
+                          sx={{ backgroundColor: "#fff" }}
+                        >
+                          <MenuItem value="" disabled>
+                            <span style={{ color: "#94a3b8" }}>Select Project Type</span>
+                          </MenuItem>
+                          {PROJECT_TYPE_OPTIONS.map((opt) => (
+                            <MenuItem key={opt} value={opt}>
+                              {opt}
+                            </MenuItem>
+                          ))}
+                        </TextField>
+                      )}
                     />
                   </div>
 
@@ -424,16 +580,29 @@ const EditForm = ({
                   <p style={{ margin: "12px 0 10px", fontSize: "13px", color: "var(--admin-text-secondary)" }}>
                     Current image — upload new file to replace
                   </p>
-                  <div {...getReplaceProps()} style={{ display: "inline-block" }}>
-                    <input {...getReplaceInputProps()} />
+                  <div className="d-flex align-items-center gap-2">
+                    <div {...getReplaceProps()} style={{ display: "inline-block" }}>
+                      <input {...getReplaceInputProps()} />
+                      <Button
+                        type="button"
+                        variant="outlined"
+                        size="small"
+                        startIcon={<CachedIcon />}
+                        className="admin-btn-secondary"
+                      >
+                        Replace Image
+                      </Button>
+                    </div>
                     <Button
                       type="button"
                       variant="outlined"
                       size="small"
-                      startIcon={<CachedIcon />}
-                      className="admin-btn-secondary"
+                      color="error"
+                      startIcon={<DeleteOutlineIcon />}
+                      onClick={handleRemoveExisting}
+                      sx={{ textTransform: "none", borderRadius: "8px" }}
                     >
-                      Replace Image
+                      Remove
                     </Button>
                   </div>
                 </div>

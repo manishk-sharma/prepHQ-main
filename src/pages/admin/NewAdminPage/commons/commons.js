@@ -12,5 +12,43 @@ export const AUTHORS = [
     quote:"An IITK Alumni, Founder & CEO of UniConverge Technologies Pvt. Ltd. and Chief Mentor at The IoT Academy a visionary technologist with over 25 years of experience in IoT, Embedded Systems, AI/ML and 4G/5G technologies. He has worked with global giants like Ericsson, Sweden and STMicroelectronics. Under his leadership, The IoT Academy is an institutional partner with E&ICT Academy at IIT Kanpur, IIT Guwahati, and IIT Roorkee for upskilling programs. He is also serving as Director at upSkill Campus.",
       image:"https://www.theiotacademy.co/assets/dit/images/advanced-generative-ai/kaushlendra.webp",
       author_linkedin :"https://www.linkedin.com/in/kaushlendrasinghsisodia/",
+  },
+  {
+    id: 3,
+    name: "Admin",
+    quote: "Platform Administrator and Curriculum Specialist at prepHQ.",
+    image: "https://www.theiotacademy.co/assets/dit/images/advanced-generative-ai/ashwani.webp",
+    author_linkedin: "",
   }
+];
+
+export const DOMAIN_OPTIONS = [
+  "Data Science",
+  "Web Development",
+  "AI/Generative AI",
+  "Machine Learning",
+  "Data Analytics",
+  "IoT & Embedded Systems",
+  "Cybersecurity",
+  "Cloud Computing",
+  "Blockchain",
+  "Mobile App Development",
+  "Internet of Things",
+  "Other",
+];
+
+export const PROJECT_TYPE_OPTIONS = [
+  "Machine Learning",
+  "Full Stack App",
+  "Computer Vision",
+  "Natural Language Processing",
+  "Data Analysis",
+  "Predictive Analytics",
+  "Generative AI Application",
+  "Dashboard / Visualization",
+  "Web Application",
+  "Mobile Application",
+  "IoT Application",
+  "Automation Tool",
+  "Other",
 ];

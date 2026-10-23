@@ -12,12 +12,13 @@ import {
   Button,
   Box,
   CircularProgress,
+  MenuItem,
 } from "@mui/material";
 import PublishIcon from "@mui/icons-material/Publish";
 import PreviewIcon from "@mui/icons-material/Preview";
 
 import { categoryList, processImage, formatSlug } from "../../../../../utils/helper";
-import { AUTHORS } from "../../commons/commons";
+import { AUTHORS, DOMAIN_OPTIONS, PROJECT_TYPE_OPTIONS } from "../../commons/commons";
 
 import DraftsMenu from "../DraftsMenu";
 import { PreviewModal } from "../PreviewModal";
@@ -303,6 +304,69 @@ const PostForm = ({
                     )}
                   />
                 </div>
+
+                {/* Optional Project-specific metadata: Domain & Project Type */}
+                {pageTitle && pageTitle.toLowerCase().includes("project") && (
+                  <>
+                    <div className="col-12 col-md-6">
+                      <Controller
+                        name="domain"
+                        control={control}
+                        defaultValue="Data Science"
+                        render={({ field }) => (
+                          <TextField
+                            select
+                            fullWidth
+                            label="Domain"
+                            value={field.value || ""}
+                            onChange={(e) => field.onChange(e.target.value)}
+                            helperText="e.g. Data Science, Web Development, IoT & Embedded"
+                            SelectProps={{ displayEmpty: true }}
+                            sx={{ backgroundColor: "#fff" }}
+                          >
+                            <MenuItem value="" disabled>
+                              <span style={{ color: "#94a3b8" }}>Select Domain</span>
+                            </MenuItem>
+                            {DOMAIN_OPTIONS.map((opt) => (
+                              <MenuItem key={opt} value={opt}>
+                                {opt}
+                              </MenuItem>
+                            ))}
+                          </TextField>
+                        )}
+                      />
+                    </div>
+
+                    <div className="col-12 col-md-6">
+                      <Controller
+                        name="project_type"
+                        control={control}
+                        defaultValue="Machine Learning"
+                        render={({ field }) => (
+                          <TextField
+                            select
+                            fullWidth
+                            label="Project Type"
+                            value={field.value || ""}
+                            onChange={(e) => field.onChange(e.target.value)}
+                            helperText="e.g. Machine Learning, Full Stack App, Computer Vision"
+                            SelectProps={{ displayEmpty: true }}
+                            sx={{ backgroundColor: "#fff" }}
+                          >
+                            <MenuItem value="" disabled>
+                              <span style={{ color: "#94a3b8" }}>Select Project Type</span>
+                            </MenuItem>
+                            {PROJECT_TYPE_OPTIONS.map((opt) => (
+                              <MenuItem key={opt} value={opt}>
+                                {opt}
+                              </MenuItem>
+                            ))}
+                          </TextField>
+                        )}
+                      />
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>

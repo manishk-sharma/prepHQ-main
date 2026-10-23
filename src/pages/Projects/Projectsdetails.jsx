@@ -12,6 +12,7 @@ import {
     FiLayers,
 } from "react-icons/fi";
 import { FolderGit2 } from "lucide-react";
+import parse from "html-react-parser";
 import "./Projectsdetails.css";
 
 // Custom SVG Icons
@@ -128,6 +129,78 @@ const ARCHITECTURE_DETAILS = [
     },
 ];
 
+export const sanitizeHtml = (html) => {
+    if (!html || typeof html !== "string") return "";
+    return html
+        .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+        .replace(/on\w+\s*=\s*(["'])[\s\S]*?\1/gi, "")
+        .replace(/javascript:/gi, "");
+};
+
+export const combineStepDescription = (step) => {
+    if (!step) return "";
+    if (typeof step.description === "string" && step.description.trim()) {
+        return step.description.trim();
+    }
+    if (typeof step.implementationDescription === "string" && step.implementationDescription.trim()) {
+        return step.implementationDescription.trim();
+    }
+    if (typeof step.implementation_description === "string" && step.implementation_description.trim()) {
+        return step.implementation_description.trim();
+    }
+
+    const rawParts = [
+        step.whatYouDo || step.whatYoullDo,
+        step.matters || step.whyItMatters,
+        step.output || step.expectedOutput,
+    ];
+
+    const cleanParts = rawParts
+        .filter((p) => typeof p === "string" && p.trim().length > 0)
+        .map((p) => p.trim());
+
+    if (cleanParts.length === 0) return "";
+
+    return cleanParts.reduce((acc, part) => {
+        if (!acc) return part;
+        const endsWithPunct = /[.!?]$/.test(acc);
+        return endsWithPunct ? `${acc} ${part}` : `${acc}. ${part}`;
+    }, "");
+};
+
+export const combineMistakeDescription = (m) => {
+    if (!m) return "";
+    if (typeof m.description === "string" && m.description.trim()) {
+        return m.description.trim();
+    }
+    if (typeof m.mistakeDescription === "string" && m.mistakeDescription.trim()) {
+        return m.mistakeDescription.trim();
+    }
+    if (typeof m.mistake_description === "string" && m.mistake_description.trim()) {
+        return m.mistake_description.trim();
+    }
+
+    const rawParts = [
+        m.mistake || m.theMistake || m.theError || m.error,
+        m.why || m.whyItHappens || m.rootCause,
+        m.avoid || m.howToAvoid || m.solution || m.recommendedSolution,
+    ];
+
+    const cleanParts = rawParts
+        .filter((p) => typeof p === "string" && p.trim().length > 0)
+        .map((p) => p.trim());
+
+    if (cleanParts.length === 0) return "";
+
+    const joined = cleanParts.reduce((acc, part) => {
+        if (!acc) return part;
+        const endsWithPunct = /[.!?]$/.test(acc);
+        return endsWithPunct ? `${acc} ${part}` : `${acc}. ${part}`;
+    }, "");
+
+    return joined.startsWith("<") ? joined : `<p>${joined}</p>`;
+};
+
 // Section 05 Step-by-Step Implementation Data matching Screenshot 5
 const IMPLEMENTATION_STEPS = [
     {
@@ -135,6 +208,7 @@ const IMPLEMENTATION_STEPS = [
         num: "01",
         title: "Set Up the Environment",
         subtitle: "Install Python and required libraries.",
+        description: "Create a virtual environment and install the libraries used throughout the project. A reproducible setup avoids version conflicts later. A working Jupyter notebook that imports every library without errors.",
         whatYouDo: "Create a virtual environment and install the libraries used throughout the project.",
         matters: "A reproducible setup avoids version conflicts later.",
         output: "A working Jupyter notebook that imports every library without errors.",
@@ -146,6 +220,7 @@ const IMPLEMENTATION_STEPS = [
         num: "02",
         title: "Set Up the Environment",
         subtitle: "Install Python and required libraries.",
+        description: "Create a virtual environment and install the libraries used throughout the project. A reproducible setup avoids version conflicts later. A working Jupyter notebook that imports every library without errors.",
         whatYouDo: "Create a virtual environment and install the libraries used throughout the project.",
         matters: "A reproducible setup avoids version conflicts later.",
         output: "A working Jupyter notebook that imports every library without errors.",
@@ -157,6 +232,7 @@ const IMPLEMENTATION_STEPS = [
         num: "03",
         title: "Set Up the Environment",
         subtitle: "Install Python and required libraries.",
+        description: "Create a virtual environment and install the libraries used throughout the project. A reproducible setup avoids version conflicts later. A working Jupyter notebook that imports every library without errors.",
         whatYouDo: "Create a virtual environment and install the libraries used throughout the project.",
         matters: "A reproducible setup avoids version conflicts later.",
         output: "A working Jupyter notebook that imports every library without errors.",
@@ -168,6 +244,7 @@ const IMPLEMENTATION_STEPS = [
         num: "04",
         title: "Set Up the Environment",
         subtitle: "Install Python and required libraries.",
+        description: "Create a virtual environment and install the libraries used throughout the project. A reproducible setup avoids version conflicts later. A working Jupyter notebook that imports every library without errors.",
         whatYouDo: "Create a virtual environment and install the libraries used throughout the project.",
         matters: "A reproducible setup avoids version conflicts later.",
         output: "A working Jupyter notebook that imports every library without errors.",
@@ -240,6 +317,7 @@ const COMMON_MISTAKES = [
         id: "mistake-1",
         num: "01",
         title: "Data Leakage",
+        description: "<p>Using information in training that wouldn't be available at prediction time. Scaling, encoding, or imputing before train-test split, or keeping target-proxy columns. Split first, fit transformers on training data only, and use scikit-learn Pipeline.</p>",
         mistake: "Using information in training that wouldn't be available at prediction time.",
         why: "Scaling, encoding, or imputing before train-test split, or keeping target-proxy columns.",
         avoid: "Split first, fit transformers on training data only, and use scikit-learn Pipeline.",
@@ -248,6 +326,7 @@ const COMMON_MISTAKES = [
         id: "mistake-2",
         num: "02",
         title: "Optimizing for Accuracy on Imbalanced Data",
+        description: "<p>Relying on raw accuracy when the majority of customers do not churn. A model predicting 'no churn' for everyone can score 80% accuracy while failing completely. Use ROC-AUC, Precision-Recall, F1-Score, and consider SMOTE or class weights.</p>",
         mistake: "Relying on raw accuracy when the majority of customers do not churn.",
         why: "A model predicting 'no churn' for everyone can score 80% accuracy while failing completely.",
         avoid: "Use ROC-AUC, Precision-Recall, F1-Score, and consider SMOTE or class weights.",
@@ -256,6 +335,7 @@ const COMMON_MISTAKES = [
         id: "mistake-3",
         num: "03",
         title: "Ignoring Feature Multicollinearity",
+        description: "<p>Feeding strongly correlated features without inspection or pruning. Features like 'TotalCharges' and 'Tenure' are collinear and destabilize model coefficients. Check correlation heatmaps, compute Variance Inflation Factor (VIF), or use regularized models.</p>",
         mistake: "Feeding strongly correlated features without inspection or pruning.",
         why: "Features like 'TotalCharges' and 'Tenure' are collinear and destabilize model coefficients.",
         avoid: "Check correlation heatmaps, compute Variance Inflation Factor (VIF), or use regularized models.",
@@ -264,6 +344,7 @@ const COMMON_MISTAKES = [
         id: "mistake-4",
         num: "04",
         title: "Evaluating Without Cross-Validation",
+        description: "<p>Evaluating model generalization on a single fixed train/test split. A single split can result in overly optimistic or pessimistic performance estimates. Apply Stratified 5-Fold Cross-Validation to assess true stability across folds.</p>",
         mistake: "Evaluating model generalization on a single fixed train/test split.",
         why: "A single split can result in overly optimistic or pessimistic performance estimates.",
         avoid: "Apply Stratified 5-Fold Cross-Validation to assess true stability across folds.",
@@ -380,15 +461,39 @@ const Projectsdetails = () => {
     };
 
     const projectTitle = dbData?.title || "Customer Churn Prediction Using Machine Learning";
-    const projectDesc = dbData?.subtitle || dbData?.description || "Build an end-to-end machine learning project to identify customers who are likely to churn using real-world customer data.";
+    const projectDesc = dbData?.subtitle || "Build an end-to-end machine learning project to identify customers who are likely to churn using real-world customer data.";
     const projectLevel = dbData?.level || "Intermediate";
     const projectDuration = dbData?.duration || "8–12 Hours";
     const projectDomain = dbData?.domain || "Data Science";
     const projectType = dbData?.project_type || "Machine Learning";
 
-    const aboutP1 = dbData?.about_text_1 || dbData?.about_p1 || "Customer churn is when a customer stops using a company's service. In subscription businesses such as telecom, losing customers is far more expensive than keeping them, so knowing who is about to leave is highly valuable.";
-    const aboutP2 = dbData?.about_text_2 || dbData?.about_p2 || "In this project you'll work with a real telecom dataset to find the patterns behind churn, then train classification models that flag at-risk customers before they leave.";
-    const aboutP3 = dbData?.about_text_3 || dbData?.about_p3 || "By the end you'll have built a complete workflow: cleaned data, insightful visualizations, a tuned and evaluated model, and a working prediction pipeline.";
+    // Resolve Section 01 Project Description (supports single description and legacy 3-paragraph split)
+    const rawDescription = dbData?.description || dbData?.about_text || dbData?.about_text_1 || "";
+    const legacyP2 = (dbData?.about_text_2 || "").trim();
+    const legacyP3 = (dbData?.about_text_3 || "").trim();
+
+    let fullAboutDescription = (rawDescription || "").trim();
+    if (legacyP2 || legacyP3) {
+        if (!fullAboutDescription.includes(legacyP2)) {
+            const parts = [fullAboutDescription, legacyP2, legacyP3]
+                .filter((p) => typeof p === "string" && p.trim().length > 0)
+                .map((p) => p.trim());
+            fullAboutDescription = parts.join("\n\n");
+        }
+    }
+
+    if (!fullAboutDescription) {
+        fullAboutDescription = [
+            "Customer churn is when a customer stops using a company's service. In subscription businesses such as telecom, losing customers is far more expensive than keeping them, so knowing who is about to leave is highly valuable.",
+            "In this project you'll work with a real telecom dataset to find the patterns behind churn, then train classification models that flag at-risk customers before they leave.",
+            "By the end you'll have built a complete workflow: cleaned data, insightful visualizations, a tuned and evaluated model, and a working prediction pipeline.",
+        ].join("\n\n");
+    }
+
+    const aboutParagraphs = fullAboutDescription
+        .split(/\n\s*\n/)
+        .map((p) => p.trim())
+        .filter((p) => p.length > 0);
 
     const section2Design = dbData?.section_2_design || dbData?.section_headers?.section_2_design || "grid";
 
@@ -461,9 +566,28 @@ const Projectsdetails = () => {
         ? dbData.architecture_details
         : ARCHITECTURE_DETAILS;
 
-    const implSteps = (dbData?.implementation_steps && Array.isArray(dbData.implementation_steps) && dbData.implementation_steps.length > 0)
+    const rawImplSteps = (dbData?.implementation_steps && Array.isArray(dbData.implementation_steps) && dbData.implementation_steps.length > 0)
         ? dbData.implementation_steps
         : IMPLEMENTATION_STEPS;
+    const implSteps = rawImplSteps.map((step, idx) => {
+        const desc = combineStepDescription(step);
+        return {
+            ...step,
+            id: step.id || `step-${idx + 1}`,
+            num: step.num || String(idx + 1).padStart(2, "0"),
+            title: step.title || "",
+            subtitle: step.subtitle || "",
+            description: desc,
+            whatYouDo: desc,
+            tools: Array.isArray(step.tools) ? step.tools : (step.toolsUsed || []),
+            command: step.command || step.codeSnippet || "",
+            titleLabel: step.titleLabel || "",
+            subtitleLabel: step.subtitleLabel || "",
+            descriptionLabel: step.descriptionLabel || step.implementationDescriptionLabel || "",
+            toolsLabel: step.toolsLabel || step.toolsUsedLabel || "",
+            commandLabel: step.commandLabel || step.codeSnippetLabel || "",
+        };
+    });
 
     const rawTech = (dbData?.technologies && Array.isArray(dbData.technologies) && dbData.technologies.length > 0)
         ? dbData.technologies
@@ -519,14 +643,19 @@ const Projectsdetails = () => {
         : ((dbData?.commonMistakes && Array.isArray(dbData.commonMistakes) && dbData.commonMistakes.length > 0)
             ? dbData.commonMistakes
             : COMMON_MISTAKES);
-    const commonMistakes = rawMistakes.map((m, idx) => ({
-        id: m.id || `mistake-${idx + 1}`,
-        num: m.num || String(idx + 1).padStart(2, "0"),
-        title: m.title || "",
-        mistake: m.mistake || "",
-        why: m.why || "",
-        avoid: m.avoid || "",
-    }));
+    const commonMistakes = rawMistakes.map((m, idx) => {
+        const desc = combineMistakeDescription(m);
+        return {
+            ...m,
+            id: m.id || `mistake-${idx + 1}`,
+            num: m.num || String(idx + 1).padStart(2, "0"),
+            title: m.title || "",
+            description: desc,
+            mistake: desc,
+            titleLabel: m.titleLabel || m.mistakeTitleLabel || "",
+            descriptionLabel: m.descriptionLabel || m.mistakeDescriptionLabel || "",
+        };
+    });
 
     const DEFAULT_SECTION_ORDER = [
         "about-project",
@@ -725,9 +854,11 @@ const Projectsdetails = () => {
                         />
 
                         <div className="about-project-card">
-                            {aboutP1 && <p className="about-card-text">{aboutP1}</p>}
-                            {aboutP2 && <p className="about-card-text">{aboutP2}</p>}
-                            {aboutP3 && <p className="about-card-text">{aboutP3}</p>}
+                            {aboutParagraphs.map((para, idx) => (
+                                <p key={idx} className="about-card-text" style={{ whiteSpace: "pre-line" }}>
+                                    {para}
+                                </p>
+                            ))}
                         </div>
                     </section>
                 );
@@ -752,7 +883,7 @@ const Projectsdetails = () => {
                                         <h3 className="prereq-category-title">{p.category}</h3>
                                         <ul className="prereq-list">
                                             {(p.items || []).map((item, i) => (
-                                                <li key={i}>{item}</li>
+                                                <li key={i}>{typeof item === "string" ? item : (item?.text || item?.title || item?.name || "")}</li>
                                             ))}
                                         </ul>
                                     </div>
@@ -769,7 +900,7 @@ const Projectsdetails = () => {
                                         <h3 className="prereq-card-title">{p.category}</h3>
                                         <ul className="prereq-list">
                                             {(p.items || []).map((item, i) => (
-                                                <li key={i}>{item}</li>
+                                                <li key={i}>{typeof item === "string" ? item : (item?.text || item?.title || item?.name || "")}</li>
                                             ))}
                                         </ul>
                                     </div>
@@ -866,7 +997,11 @@ const Projectsdetails = () => {
                                     {archDetails.map((detail, idx) => (
                                         <div key={idx} className="arch-detail-row">
                                             <strong className="arch-detail-num">{detail.step}</strong>
-                                            <p className="arch-detail-desc">{detail.desc}</p>
+                                            <div className="arch-detail-desc step-rich-content">
+                                                {typeof (detail.desc || detail.description) === "string"
+                                                    ? parse(sanitizeHtml(detail.desc || detail.description))
+                                                    : (detail.desc || detail.description)}
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
@@ -915,30 +1050,24 @@ const Projectsdetails = () => {
 
                                         {isOpen && (
                                             <div id={`step-panel-${stepKey}`} className="accordion-body step-body">
-                                                {step.whatYouDo && (
+                                                {step.description && (
                                                     <div className="step-field">
-                                                        <span className="step-field-label">What you'll do</span>
-                                                        <p className="step-field-text">{step.whatYouDo}</p>
-                                                    </div>
-                                                )}
-
-                                                {step.matters && (
-                                                    <div className="step-field">
-                                                        <span className="step-field-label">Why it matters</span>
-                                                        <p className="step-field-text">{step.matters}</p>
-                                                    </div>
-                                                )}
-
-                                                {step.output && (
-                                                    <div className="step-field">
-                                                        <span className="step-field-label">Expected output</span>
-                                                        <p className="step-field-text">{step.output}</p>
+                                                        {step.descriptionLabel && (
+                                                            <span className="step-field-label">{step.descriptionLabel}</span>
+                                                        )}
+                                                        <div className="step-field-text step-rich-content">
+                                                            {typeof step.description === "string"
+                                                                ? parse(sanitizeHtml(step.description))
+                                                                : step.description}
+                                                        </div>
                                                     </div>
                                                 )}
 
                                                 {step.tools && step.tools.length > 0 && (
                                                     <div className="step-field">
-                                                        <span className="step-field-label">Tools used</span>
+                                                        <span className="step-field-label">
+                                                            {step.toolsLabel || step.toolsUsedLabel || "Tools used"}
+                                                        </span>
                                                         <div className="step-tools-list">
                                                             {step.tools.map((tool, tIdx) => (
                                                                 <span key={tIdx} className="step-tool-badge">{tool}</span>
@@ -948,17 +1077,22 @@ const Projectsdetails = () => {
                                                 )}
 
                                                 {step.command && (
-                                                    <div className="step-code-wrapper">
-                                                        <pre className="step-code-block">{step.command}</pre>
-                                                        <button
-                                                            type="button"
-                                                            className="step-code-copy-btn"
-                                                            onClick={() => handleCopyCommand(step.command)}
-                                                            title="Copy code to clipboard"
-                                                            aria-label="Copy code command"
-                                                        >
-                                                            {copiedCmd ? <FiCheck /> : <FiCopy />}
-                                                        </button>
+                                                    <div className="step-field">
+                                                        {step.commandLabel && (
+                                                            <span className="step-field-label">{step.commandLabel}</span>
+                                                        )}
+                                                        <div className="step-code-wrapper">
+                                                            <pre className="step-code-block">{step.command}</pre>
+                                                            <button
+                                                                type="button"
+                                                                className="step-code-copy-btn"
+                                                                onClick={() => handleCopyCommand(step.command)}
+                                                                title="Copy code to clipboard"
+                                                                aria-label="Copy code command"
+                                                            >
+                                                                {copiedCmd ? <FiCheck /> : <FiCopy />}
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 )}
                                             </div>
@@ -1102,22 +1236,19 @@ const Projectsdetails = () => {
 
                                         {isOpen && (
                                             <div id={`mistake-panel-${mistakeKey}`} className="accordion-body mistake-body">
-                                                {mistake.mistake && (
+                                                {mistake.description && (
                                                     <div className="mistake-field">
-                                                        <span className="mistake-label">The mistake</span>
-                                                        <p className="mistake-text">{mistake.mistake}</p>
-                                                    </div>
-                                                )}
-                                                {mistake.why && (
-                                                    <div className="mistake-field">
-                                                        <span className="mistake-label">Why it happens</span>
-                                                        <p className="mistake-text">{mistake.why}</p>
-                                                    </div>
-                                                )}
-                                                {mistake.avoid && (
-                                                    <div className="mistake-field">
-                                                        <span className="mistake-label">How to avoid it</span>
-                                                        <p className="mistake-text">{mistake.avoid}</p>
+                                                        {mistake.descriptionLabel &&
+                                                         !["the error", "the mistake", "mistake description", "error"].includes(mistake.descriptionLabel.trim().toLowerCase()) && (
+                                                            <span className="mistake-label">
+                                                                {mistake.descriptionLabel}
+                                                            </span>
+                                                        )}
+                                                        <div className="mistake-text mistake-rich-content step-rich-content">
+                                                            {typeof mistake.description === "string"
+                                                                ? parse(sanitizeHtml(mistake.description))
+                                                                : mistake.description}
+                                                        </div>
                                                     </div>
                                                 )}
                                             </div>

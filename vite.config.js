@@ -20,6 +20,9 @@ export default defineConfig({
   },
   server: {
     allowedHosts: true,
+    watch: {
+      ignored: ['**/*.~tmp*', '**/*.tmp*'],
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:5000',

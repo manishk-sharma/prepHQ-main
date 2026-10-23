@@ -53,10 +53,33 @@ export const EditSchema = yup.object({
   author_id: yup.number().required("Author is required"),
 
   feature_image: yup.mixed().nullable(), // optional only here
+  domain: yup.string().nullable().optional(),
+  project_type: yup.string().nullable().optional(),
 });
 
-export const EditProjectSchema = EditSchema.shape({
+export const EditProjectSchema = yup.object({
+  post_title: yup.string().required("Post title is required"),
+  post_name: yup.string().required("Post slug is required"),
+  category_name: yup.string().required("Category name required"),
+  category_slug: yup.string().nullable(),
+  post_content: yup
+    .string()
+    .test(
+      "not-empty",
+      "Content is required",
+      (value) => !!value && value.replace(/<(.|\n)*?>/g, "").trim().length > 0,
+    ),
+  seo_title: yup.string().nullable(),
+  seo_desc: yup.string().nullable(),
+  seo_focus_keyword: yup.string().nullable(),
+  seo_tags: yup.array().of(yup.string()).nullable().default([]),
+  author_id: yup.number().nullable(),
+  feature_image: yup.mixed().nullable(),
+  post_excerpt: yup.string().nullable().optional(),
+  description: yup.string().nullable().optional(),
   difficulty_level: yup.string().nullable(),
+  domain: yup.string().nullable().optional(),
+  project_type: yup.string().nullable().optional(),
   tech_stack: yup.string().nullable(),
   project_duration: yup.string().nullable(),
   github_url: yup.string().nullable(),

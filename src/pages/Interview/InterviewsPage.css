@@ -1,0 +1,772 @@
+/* ==========================================================================
+   PrepHQ Interview Questions Page CSS
+   Matching Target Reference Layout and Visual Appearance
+   ========================================================================== */
+
+.interview-page-wrapper {
+  width: 100%;
+  background-color: #ffffff;
+  color: #1e293b;
+  padding-bottom: 60px;
+  font-family: inherit;
+}
+
+/* ==========================================================================
+   MAIN THREE-COLUMN GRID LAYOUT
+   Left: Section Navigation (~200px)
+   Center: Main Interview Questions Content
+   Right: Related Content Sidebar (~260px)
+   ========================================================================== */
+.interview-main-grid {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr) 260px;
+  gap: 28px;
+  align-items: start;
+  margin-top: 24px;
+}
+
+/* ==========================================================================
+   LEFT SIDEBAR: "In This Project" Navigation
+   ========================================================================== */
+.interview-left-sidebar {
+  position: sticky;
+  top: 84px;
+  z-index: 10;
+}
+
+.left-sidebar-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sidebar-nav-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 4px 0;
+  letter-spacing: -0.2px;
+}
+
+.sidebar-nav-title svg {
+  color: #075174;
+}
+
+.sidebar-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sidebar-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  text-align: left;
+  cursor: pointer;
+  line-height: 1.35;
+  transition: all 0.15s ease;
+  width: 100%;
+  text-decoration: none;
+}
+
+.sidebar-nav-btn:hover {
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #075174;
+}
+
+.sidebar-nav-btn.active {
+  background-color: #e5fff5;
+  border-color: #52d39a;
+  color: #075174;
+  font-weight: 700;
+}
+
+.nav-num-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #64748b;
+  min-width: 18px;
+  flex-shrink: 0;
+}
+
+.sidebar-nav-btn.active .nav-num-badge {
+  color: #075174;
+}
+
+.download-pdf-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 14px;
+  border: 1.5px solid #52d39a;
+  border-radius: 8px;
+  background-color: #ffffff;
+  color: #075174;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 6px;
+}
+
+.download-pdf-btn:hover {
+  background-color: #e5fff5;
+  border-color: #35b779;
+}
+
+/* ==========================================================================
+   CENTER MAIN CONTENT AREA
+   ========================================================================== */
+.interview-center-content {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* ── Top Page Header ────────────────────────────────────────────── */
+.interview-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.header-text-col {
+  flex: 1;
+}
+
+.interview-page-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: #111111;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.3px;
+  line-height: 1.3;
+}
+
+.interview-page-desc {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: #64748b;
+  margin: 0;
+  max-width: 660px;
+}
+
+/* Share Controls */
+.header-share-col {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.share-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.share-buttons-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.share-icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background-color: #e6fff4;
+  border: 1px solid #57cc99;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #075174;
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+.share-icon-btn:hover {
+  background-color: #57cc99;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.copy-feedback-tooltip {
+  position: absolute;
+  top: -26px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #075174;
+  color: #ffffff;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+/* ── Content Section Layout ─────────────────────────────────────── */
+.interview-section {
+  scroll-margin-top: 90px;
+}
+
+.section-header-wrap {
+  margin-bottom: 16px;
+}
+
+.section-main-heading {
+  font-size: 17px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 4px 0;
+  letter-spacing: -0.2px;
+}
+
+.section-sub-desc {
+  font-size: 12.5px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.45;
+}
+
+/* ── Filter Tabs for Questions & Answers ────────────────────────── */
+.difficulty-filters-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.difficulty-filter-btn {
+  padding: 5px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.difficulty-filter-btn:hover {
+  border-color: #075174;
+  color: #075174;
+}
+
+.difficulty-filter-btn.active {
+  background-color: #075174;
+  border-color: #075174;
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   SHARED ACCORDION COMPONENT STYLES
+   ========================================================================== */
+.interview-accordion-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.interview-accordion-item {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background-color: #ffffff;
+  overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.interview-accordion-item.is-open {
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.accordion-header-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background-color: #f8fafc;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  user-select: none;
+  transition: background-color 0.15s ease;
+}
+
+.accordion-header-btn:hover {
+  background-color: #f1f5f9;
+}
+
+.interview-accordion-item.is-open .accordion-header-btn {
+  background-color: #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.accordion-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.accordion-num-badge {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background-color: #075174;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.accordion-title-text {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1e293b;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.accordion-chevron-icon {
+  font-size: 16px;
+  color: #64748b;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.accordion-chevron-icon.rotate {
+  transform: rotate(180deg);
+}
+
+/* ── Accordion Body Content ─────────────────────────────────────── */
+.accordion-body-content {
+  padding: 18px 20px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #334155;
+  background-color: #ffffff;
+}
+
+.content-block {
+  margin-bottom: 14px;
+}
+
+.content-block:last-child {
+  margin-bottom: 0;
+}
+
+.content-subtitle {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 6px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.content-bullet-list {
+  margin: 6px 0 10px 0;
+  padding-left: 20px;
+}
+
+.content-bullet-list li {
+  margin-bottom: 4px;
+  color: #334155;
+}
+
+.content-bullet-list li strong {
+  color: #0f172a;
+}
+
+/* Mint Highlight / Callout Box */
+.mint-callout-box {
+  background-color: #e5fff5;
+  border: 1px solid #52d39a;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin: 14px 0;
+  font-size: 12.5px;
+  color: #0f4035;
+  line-height: 1.55;
+}
+
+.mint-callout-box strong {
+  color: #0b342b;
+}
+
+/* Example Box */
+.example-box {
+  background-color: #f8fafc;
+  border-left: 3px solid #075174;
+  border-radius: 0 6px 6px 0;
+  padding: 10px 14px;
+  margin: 12px 0;
+  font-size: 12.5px;
+  color: #334155;
+  line-height: 1.5;
+}
+
+/* Interactive Pill Cards */
+.sub-question-pills-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.sub-question-pill {
+  border: 1px solid #cbd5e1;
+  border-radius: 20px;
+  padding: 8px 16px;
+  background-color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* ==========================================================================
+   CODE BLOCK CONTAINER (Dark Teal #075174)
+   ========================================================================== */
+.interview-code-container {
+  background-color: #075174;
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin: 14px 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.code-header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+}
+
+.code-lang-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #52d39a;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.code-copy-btn {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+}
+
+.code-copy-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.interview-code-pre {
+  margin: 0;
+  overflow-x: auto;
+  font-family: "JetBrains Mono", Consolas, "Courier New", monospace;
+  font-size: 12px;
+  line-height: 1.55;
+  color: #f8fafc;
+}
+
+.interview-code-pre code {
+  font-family: inherit;
+}
+
+.complexity-meta-bar {
+  display: flex;
+  gap: 16px;
+  font-size: 11.5px;
+  color: #64748b;
+  margin-top: 10px;
+  font-weight: 600;
+}
+
+.complexity-meta-bar span {
+  color: #075174;
+}
+
+/* ==========================================================================
+   QUICK REVISION TABLE
+   ========================================================================== */
+.revision-table-container {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+}
+
+.revision-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  text-align: left;
+}
+
+.revision-table thead {
+  background-color: #075174;
+  color: #ffffff;
+}
+
+.revision-table th {
+  padding: 10px 14px;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.2px;
+  border: none;
+}
+
+.revision-table td {
+  padding: 9px 14px;
+  border-bottom: 1px solid #e2e8f0;
+  color: #334155;
+  line-height: 1.45;
+  vertical-align: top;
+}
+
+.revision-table tr:last-child td {
+  border-bottom: none;
+}
+
+.revision-table tbody tr:nth-child(even) {
+  background-color: #f8fafc;
+}
+
+.revision-table tbody tr:hover {
+  background-color: #f1f5f9;
+}
+
+.concept-name-cell {
+  font-weight: 700;
+  color: #075174;
+  width: 25%;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   RIGHT SIDEBAR: Related Content Widgets
+   ========================================================================== */
+.interview-right-sidebar {
+  position: sticky;
+  top: 84px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.sidebar-widget {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.widget-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+  letter-spacing: -0.2px;
+}
+
+.widget-mint-box {
+  background-color: #f2fbf6;
+  border: 1.5px solid #a3e7cb;
+  border-radius: 12px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.widget-card-item {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 9px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.widget-card-item:hover {
+  border-color: #52d39a;
+  box-shadow: 0 2px 6px rgba(82, 211, 154, 0.15);
+}
+
+.widget-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.widget-card-title {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 3px 0;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.widget-card-meta {
+  font-size: 10px;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.widget-action-icon-wrap {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background-color: #e6fff4;
+  border: 1px solid #57cc99;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #37ab79;
+  flex-shrink: 0;
+  font-size: 11px;
+}
+
+/* Sidebar Promotional Banner */
+.sidebar-promo-banner {
+  background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+  border-radius: 12px;
+  height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px dashed #94a3b8;
+  padding: 16px;
+  text-align: center;
+}
+
+/* ==========================================================================
+   RESPONSIVE BEHAVIOR
+   ========================================================================== */
+@media (max-width: 1199px) {
+  .interview-main-grid {
+    grid-template-columns: 180px minmax(0, 1fr) 240px;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 991px) {
+  .interview-main-grid {
+    grid-template-columns: 180px minmax(0, 1fr);
+  }
+
+  .interview-right-sidebar {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    position: static;
+    margin-top: 20px;
+  }
+}
+
+@media (max-width: 767px) {
+  .interview-main-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .interview-left-sidebar {
+    position: static;
+    width: 100%;
+  }
+
+  .sidebar-nav-list {
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    gap: 8px;
+    scrollbar-width: thin;
+  }
+
+  .sidebar-nav-btn {
+    white-space: nowrap;
+    width: auto;
+  }
+
+  .interview-page-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .interview-page-title {
+    font-size: 20px;
+  }
+
+  .revision-table-container {
+    overflow-x: auto;
+  }
+
+  .concept-name-cell {
+    width: auto;
+    white-space: normal;
+  }
+
+  .interview-right-sidebar {
+    grid-template-columns: 1fr;
+  }
+}
