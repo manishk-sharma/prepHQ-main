@@ -1,3 +1,4 @@
+import React from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 
 const data = [
@@ -39,3 +40,5 @@ export function PieBreakdownChart() {
     </ResponsiveContainer>
   );
 }
+
+export default PieBreakdownChart;

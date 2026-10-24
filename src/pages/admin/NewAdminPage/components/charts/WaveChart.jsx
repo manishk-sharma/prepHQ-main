@@ -1,3 +1,4 @@
+import React from "react";
 import {
   AreaChart,
   Area,
@@ -54,3 +55,5 @@ export function WaveChart() {
     </ResponsiveContainer>
   );
 }
+
+export default WaveChart;

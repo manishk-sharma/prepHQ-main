@@ -1,11 +1,6 @@
-interface ProgressRingProps {
-  value: number;
-  label: string;
-  color?: string;
-  size?: number;
-}
+import React from "react";
 
-export function ProgressRing({ value, label, color = "#8b5cf6", size = 64 }: ProgressRingProps) {
+export function ProgressRing({ value, label, color = "#8b5cf6", size = 64 }) {
   const r = (size - 8) / 2;
   const circ = 2 * Math.PI * r;
   const offset = circ - (value / 100) * circ;
@@ -32,3 +27,5 @@ export function ProgressRing({ value, label, color = "#8b5cf6", size = 64 }: Pro
     </div>
   );
 }
+
+export default ProgressRing;

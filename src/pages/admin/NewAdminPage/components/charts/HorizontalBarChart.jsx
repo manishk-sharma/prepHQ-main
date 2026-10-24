@@ -1,3 +1,4 @@
+import React from "react";
 import {
   BarChart,
   Bar,
@@ -47,3 +48,5 @@ export function HorizontalBarChart() {
     </ResponsiveContainer>
   );
 }
+
+export default HorizontalBarChart;

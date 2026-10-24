@@ -1,3 +1,4 @@
+import React from "react";
 import { AreaChart, Area, ResponsiveContainer } from "recharts";
 
 const sparkData = [
@@ -8,11 +9,7 @@ const sparkData = [
 
 const colors = ["#8b5cf6", "#ec4899", "#3b82f6"];
 
-interface Props {
-  index?: number;
-}
-
-export function Sparkline({ index = 0 }: Props) {
+export function Sparkline({ index = 0 }) {
   const d = sparkData[index % sparkData.length].map((v, i) => ({ v, i }));
   const color = colors[index % colors.length];
   return (
@@ -29,3 +26,5 @@ export function Sparkline({ index = 0 }: Props) {
     </ResponsiveContainer>
   );
 }
+
+export default Sparkline;

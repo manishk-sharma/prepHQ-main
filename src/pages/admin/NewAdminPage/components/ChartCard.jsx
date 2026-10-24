@@ -1,13 +1,6 @@
-import { type ReactNode } from "react";
+import React from "react";
 
-interface ChartCardProps {
-  title: string;
-  subtitle?: string;
-  children: ReactNode;
-  className?: string;
-}
-
-export function ChartCard({ title, subtitle, children, className = "" }: ChartCardProps) {
+export function ChartCard({ title, subtitle, children, className = "" }) {
   return (
     <div className={`glass rounded-xl p-5 hover-lift ${className}`}>
       <div className="mb-4">
@@ -22,3 +15,5 @@ export function ChartCard({ title, subtitle, children, className = "" }: ChartCa
     </div>
   );
 }
+
+export default ChartCard;

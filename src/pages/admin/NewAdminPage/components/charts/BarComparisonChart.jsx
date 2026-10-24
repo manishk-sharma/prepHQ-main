@@ -1,3 +1,4 @@
+import React from "react";
 import {
   BarChart,
   Bar,
@@ -39,3 +40,5 @@ export function BarComparisonChart() {
     </ResponsiveContainer>
   );
 }
+
+export default BarComparisonChart;

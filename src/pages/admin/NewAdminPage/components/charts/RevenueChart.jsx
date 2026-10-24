@@ -1,3 +1,4 @@
+import React from "react";
 import {
   AreaChart,
   Area,
@@ -50,3 +51,5 @@ export function RevenueChart() {
     </ResponsiveContainer>
   );
 }
+
+export default RevenueChart;
