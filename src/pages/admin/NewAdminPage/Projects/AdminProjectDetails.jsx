@@ -264,6 +264,7 @@ const DEFAULT_SECTION_HEADERS = {
     title: "09 · Common Mistakes to Avoid",
     subtitle: "Save hours by knowing these pitfalls early.",
   },
+  architecture_section_heading: "View Architecture Details",
 };
 
 export const combineStepDescription = (step) => {
@@ -1203,9 +1204,17 @@ export default function AdminProjectDetails() {
         ? [...new Set([...rawOrder, ...DEFAULT_SECTION_ORDER])]
         : DEFAULT_SECTION_ORDER;
 
+      const rawArchHeading =
+        cloned.architecture_section_heading ||
+        cloned.section_headers?.architecture_section_heading ||
+        cloned.sectionHeaders?.architecture_section_heading ||
+        "View Architecture Details";
+
+      cloned.architecture_section_heading = rawArchHeading;
       cloned.section_headers = {
         ...DEFAULT_SECTION_HEADERS,
         ...(typeof rawHeaders === "object" ? rawHeaders : {}),
+        architecture_section_heading: rawArchHeading,
         sections_order: activeOrder,
       };
       cloned.sectionHeaders = cloned.section_headers;
@@ -2495,8 +2504,14 @@ export default function AdminProjectDetails() {
         }
       }
 
+      const archHeadingToSave =
+        formData.architecture_section_heading !== undefined
+          ? formData.architecture_section_heading
+          : (formData.section_headers?.architecture_section_heading || "View Architecture Details");
+
       const finalHeaders = {
         ...(formData.section_headers || formData.sectionHeaders || DEFAULT_SECTION_HEADERS),
+        architecture_section_heading: archHeadingToSave,
         learnings_order:
           formData.learnings_order ||
           formData.section_headers?.learnings_order ||
@@ -2539,6 +2554,7 @@ export default function AdminProjectDetails() {
         learnings_order: finalHeaders.learnings_order,
         learning_category_titles: finalHeaders.learning_category_titles,
         prereq_category_titles: finalPrereq.category_titles,
+        architecture_section_heading: archHeadingToSave,
         architecture_details: (formData.architecture_details || []).map((ad, idx) => ({
           ...ad,
           id: ad.id || `arch-detail-${idx + 1}`,
@@ -3136,6 +3152,37 @@ export default function AdminProjectDetails() {
                 </Button>
               </Box>
 
+              {/* Architecture Section Heading Field */}
+              <Box sx={{ mb: 2.5 }}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Architecture Section Heading"
+                  placeholder="e.g. View Architecture Details"
+                  value={
+                    formData.architecture_section_heading !== undefined
+                      ? formData.architecture_section_heading
+                      : (formData.section_headers?.architecture_section_heading || "View Architecture Details")
+                  }
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setFormData((prev) => ({
+                      ...prev,
+                      architecture_section_heading: val,
+                      section_headers: {
+                        ...(prev?.section_headers || {}),
+                        architecture_section_heading: val,
+                      },
+                      sectionHeaders: {
+                        ...(prev?.sectionHeaders || {}),
+                        architecture_section_heading: val,
+                      },
+                    }));
+                  }}
+                  helperText="Custom heading displayed above the architecture breakdown list on the public page"
+                />
+              </Box>
+
               <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 {(formData.architecture_details || []).map((item, idx) => (
                   <Paper
@@ -3148,18 +3195,20 @@ export default function AdminProjectDetails() {
                       backgroundColor: "#ffffff",
                       display: "flex",
                       flexDirection: "column",
-                      gap: 1.5,
+                      gap: 1,
                     }}
                   >
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 1.5 }}>
-                      <TextField
-                        size="small"
-                        label="Step Label"
-                        placeholder="e.g. 01 · Dataset"
-                        sx={{ width: { xs: "100%", sm: 260 } }}
-                        value={item.step || ""}
-                        onChange={(e) => handleArchDetailChange(idx, "step", e.target.value)}
-                      />
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          fontWeight: 600,
+                          color: "#475569",
+                          fontSize: "0.8rem",
+                        }}
+                      >
+                        Description
+                      </Typography>
                       <IconButton
                         size="small"
                         onClick={() => removeArchDetail(idx)}
@@ -3171,18 +3220,6 @@ export default function AdminProjectDetails() {
                     </Box>
 
                     <Box sx={{ width: "100%" }}>
-                      <Typography
-                        variant="caption"
-                        sx={{
-                          display: "block",
-                          mb: 0.6,
-                          fontWeight: 600,
-                          color: "#475569",
-                          fontSize: "0.8rem",
-                        }}
-                      >
-                        Description
-                      </Typography>
                       <Box
                         sx={{
                           borderRadius: "8px",

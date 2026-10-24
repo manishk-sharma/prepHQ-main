@@ -59,6 +59,7 @@ const menuConfig = [
     children: [
       { key: "interviews-add", label: "Add Interview", to: "/admin/interviews/add" },
       { key: "interviews-list", label: "All Interviews", to: "/admin/interviews/list" },
+      { key: "interviews-details", label: "Interview Questions Page", to: "/admin/interviews/details" },
     ],
   },
   {
@@ -157,6 +158,9 @@ export default function AdminLayout({ onLogout }) {
     }
     if (path.includes("/interviews/add")) {
       return { section: "Interviews", current: "Add Interview" };
+    }
+    if (path.includes("/interviews/details")) {
+      return { section: "Interviews", current: "Interview Questions Editor" };
     }
     if (path.includes("/interviews/list")) {
       return { section: "Interviews", current: "All Interviews" };

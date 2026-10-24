@@ -14,6 +14,7 @@ import jobsRoutes from './routes/jobsRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import codingRoutes from './routes/codingRoutes.js';
 import projectDetailsRoutes from './routes/projectDetailsRoutes.js';
+import interviewDetailsRoutes from './routes/interviewDetailsRoutes.js';
 import { createPostRouter } from './routes/postsRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -79,6 +80,7 @@ const mountRoutes = (prefix = '/api') => {
   router.use('/', dashboardRoutes);
   router.use('/', codingRoutes);
   router.use('/project-details', projectDetailsRoutes);
+  router.use('/interview-details', interviewDetailsRoutes);
 
   router.use('/blog', createPostRouter('blog'));
   router.use('/tutorial', createPostRouter('tutorial'));

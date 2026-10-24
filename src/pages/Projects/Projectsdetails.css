@@ -1027,6 +1027,41 @@
   margin-bottom: 0;
 }
 
+.project-detail-page-wrapper .arch-detail-rich-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  width: 100%;
+}
+
+.project-detail-page-wrapper .arch-detail-rich-wrapper p {
+  font-family: "Merriweather Sans", sans-serif;
+  font-size: 14px;
+  color: #4b5563;
+  line-height: 1.5;
+  margin: 0 0 22px 0;
+}
+
+.project-detail-page-wrapper .arch-detail-rich-wrapper p:last-child {
+  margin-bottom: 0;
+}
+
+.project-detail-page-wrapper .arch-detail-rich-wrapper strong,
+.project-detail-page-wrapper .arch-detail-rich-wrapper b {
+  font-family: "Merriweather Sans", sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #000000;
+  letter-spacing: -0.1px;
+  line-height: 1.35;
+}
+
+.project-detail-page-wrapper .arch-detail-rich-wrapper p strong,
+.project-detail-page-wrapper .arch-detail-rich-wrapper p b {
+  display: block;
+  margin-bottom: 4px;
+}
+
 @media (max-width: 640px) {
   .project-detail-page-wrapper .arch-details-card {
     padding: 20px 18px;

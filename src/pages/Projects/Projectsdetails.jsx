@@ -407,6 +407,7 @@ export const DEFAULT_SECTION_HEADERS = {
         title: "09 · Common Mistakes to Avoid",
         subtitle: "Save hours by knowing these pitfalls early.",
     },
+    architecture_section_heading: "View Architecture Details",
 };
 
 const Projectsdetails = () => {
@@ -982,31 +983,60 @@ const Projectsdetails = () => {
                             })}
                         </div>
 
-                        {archDetails.length > 0 && (
-                            <div className="arch-details-card">
-                                <div className="arch-details-header">
-                                    <div className="arch-icon-box">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                            <path d="M16.25 3.33333H6.66667V2.5C6.66667 1.12167 5.545 0 4.16667 0H3.33333C1.495 0 0 1.495 0 3.33333V16.6667C0 18.505 1.495 20 3.33333 20H7.91667C8.6075 20 9.16667 19.4408 9.16667 18.75C9.16667 18.0592 8.6075 17.5 7.91667 17.5H3.33333C2.87417 17.5 2.5 17.1258 2.5 16.6667C2.5 16.2075 2.87417 15.8333 3.33333 15.8333H4.16667C5.545 15.8333 6.66667 14.7117 6.66667 13.3333V5.83333H16.25C16.9392 5.83333 17.5 6.39417 17.5 7.08333V8.33333C17.5 9.02417 18.0592 9.58333 18.75 9.58333C19.4408 9.58333 20 9.02417 20 8.33333V7.08333C20 5.01583 18.3175 3.33333 16.25 3.33333ZM4.16667 13.3333H3.33333C3.04583 13.3333 2.76667 13.37 2.5 13.4383V3.33333C2.5 2.87417 2.87417 2.5 3.33333 2.5H4.16667V13.3333ZM19.2008 13.2325L16.7008 11.2758C15.9467 10.6858 14.8875 10.6858 14.1333 11.2758L11.6333 13.2325C11.1292 13.6275 10.8342 14.2325 10.8342 14.8733V17.9167C10.8342 19.0675 11.7667 20 12.9175 20H17.9175C19.0683 20 20.0008 19.0675 20.0008 17.9167V14.8733C20.0008 14.2325 19.705 13.6275 19.2008 13.2325ZM16.6667 16.6667C16.6667 17.1267 16.2933 17.5 15.8333 17.5H15C14.54 17.5 14.1667 17.1267 14.1667 16.6667V15.8333C14.1667 15.3733 14.54 15 15 15H15.8333C16.2933 15 16.6667 15.3733 16.6667 15.8333V16.6667ZM10.4167 12.0833C9.72583 12.0833 9.16667 11.5242 9.16667 10.8333V8.75C9.16667 8.05917 9.72583 7.5 10.4167 7.5H13.75C14.4408 7.5 15 8.05917 15 8.75C15 9.44083 14.4408 10 13.75 10H11.6667V10.8333C11.6667 11.5242 11.1075 12.0833 10.4167 12.0833Z" fill="white" />
-                                        </svg>
-                                    </div>
-                                    <h3 className="arch-details-title">View Architecture Details</h3>
-                                </div>
+                        {archDetails.length > 0 && (() => {
+                            const archSectionHeading =
+                                sectionHeaders?.architecture_section_heading ||
+                                dbData?.architecture_section_heading ||
+                                dbData?.section_headers?.architecture_section_heading ||
+                                "View Architecture Details";
 
-                                <div className="arch-details-list">
-                                    {archDetails.map((detail, idx) => (
-                                        <div key={idx} className="arch-detail-row">
-                                            <strong className="arch-detail-num">{detail.step}</strong>
-                                            <div className="arch-detail-desc step-rich-content">
-                                                {typeof (detail.desc || detail.description) === "string"
-                                                    ? parse(sanitizeHtml(detail.desc || detail.description))
-                                                    : (detail.desc || detail.description)}
-                                            </div>
+                            return (
+                                <div className="arch-details-card">
+                                    <div className="arch-details-header">
+                                        <div className="arch-icon-box">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                <path d="M16.25 3.33333H6.66667V2.5C6.66667 1.12167 5.545 0 4.16667 0H3.33333C1.495 0 0 1.495 0 3.33333V16.6667C0 18.505 1.495 20 3.33333 20H7.91667C8.6075 20 9.16667 19.4408 9.16667 18.75C9.16667 18.0592 8.6075 17.5 7.91667 17.5H3.33333C2.87417 17.5 2.5 17.1258 2.5 16.6667C2.5 16.2075 2.87417 15.8333 3.33333 15.8333H4.16667C5.545 15.8333 6.66667 14.7117 6.66667 13.3333V5.83333H16.25C16.9392 5.83333 17.5 6.39417 17.5 7.08333V8.33333C17.5 9.02417 18.0592 9.58333 18.75 9.58333C19.4408 9.58333 20 9.02417 20 8.33333V7.08333C20 5.01583 18.3175 3.33333 16.25 3.33333ZM4.16667 13.3333H3.33333C3.04583 13.3333 2.76667 13.37 2.5 13.4383V3.33333C2.5 2.87417 2.87417 2.5 3.33333 2.5H4.16667V13.3333ZM19.2008 13.2325L16.7008 11.2758C15.9467 10.6858 14.8875 10.6858 14.1333 11.2758L11.6333 13.2325C11.1292 13.6275 10.8342 14.2325 10.8342 14.8733V17.9167C10.8342 19.0675 11.7667 20 12.9175 20H17.9175C19.0683 20 20.0008 19.0675 20.0008 17.9167V14.8733C20.0008 14.2325 19.705 13.6275 19.2008 13.2325ZM16.6667 16.6667C16.6667 17.1267 16.2933 17.5 15.8333 17.5H15C14.54 17.5 14.1667 17.1267 14.1667 16.6667V15.8333C14.1667 15.3733 14.54 15 15 15H15.8333C16.2933 15 16.6667 15.3733 16.6667 15.8333V16.6667ZM10.4167 12.0833C9.72583 12.0833 9.16667 11.5242 9.16667 10.8333V8.75C9.16667 8.05917 9.72583 7.5 10.4167 7.5H13.75C14.4408 7.5 15 8.05917 15 8.75C15 9.44083 14.4408 10 13.75 10H11.6667V10.8333C11.6667 11.5242 11.1075 12.0833 10.4167 12.0833Z" fill="white" />
+                                            </svg>
                                         </div>
-                                    ))}
+                                        <h3 className="arch-details-title">{archSectionHeading}</h3>
+                                    </div>
+
+                                    <div className="arch-details-list">
+                                        {archDetails.map((detail, idx) => {
+                                            const rawStep = (detail.step || "").trim();
+                                            const isHeadingMatch =
+                                                !rawStep ||
+                                                rawStep.toLowerCase() === archSectionHeading.trim().toLowerCase() ||
+                                                /^view\s+architecture\s+details?$/i.test(rawStep) ||
+                                                /^architecture\s+details?$/i.test(rawStep);
+
+                                            const rawContent = detail.desc || detail.description || "";
+                                            const renderedContent =
+                                                typeof rawContent === "string"
+                                                    ? parse(sanitizeHtml(rawContent))
+                                                    : rawContent;
+
+                                            if (isHeadingMatch) {
+                                                return (
+                                                    <div key={detail.id || idx} className="arch-detail-rich-wrapper">
+                                                        {renderedContent}
+                                                    </div>
+                                                );
+                                            }
+
+                                            return (
+                                                <div key={detail.id || idx} className="arch-detail-row">
+                                                    <strong className="arch-detail-num">{rawStep}</strong>
+                                                    <div className="arch-detail-desc step-rich-content">
+                                                        {renderedContent}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
                                 </div>
-                            </div>
-                        )}
+                            );
+                        })()}
                     </section>
                 );
 

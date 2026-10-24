@@ -331,6 +331,7 @@ async function initProjectDetailsTable() {
         title: '09 · Common Mistakes to Avoid',
         subtitle: 'Save hours by knowing these pitfalls early.',
       },
+      architecture_section_heading: 'View Architecture Details',
     };
 
     if (existing.length === 0) {

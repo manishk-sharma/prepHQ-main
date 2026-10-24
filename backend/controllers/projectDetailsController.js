@@ -114,6 +114,12 @@ const formatProjectDetail = (row) => {
       })
     : [];
 
+  const secHeaders = parseJsonField(row.section_headers, {});
+  const archHeading =
+    secHeaders?.architecture_section_heading ||
+    secHeaders?.architecture_details_heading ||
+    'View Architecture Details';
+
   return {
     id: row.id,
     project_id: row.project_id,
@@ -130,35 +136,37 @@ const formatProjectDetail = (row) => {
     description: combinedAbout,
     about_text: combinedAbout,
     project_description: combinedAbout,
-  prerequisites: parseJsonField(row.prerequisites, {
-    programming: [],
-    data: [],
-    statistics: [],
-    machineLearning: [],
-  }),
-  objectives: parseJsonField(row.objectives, []),
-  architecture_steps: parseJsonField(row.architecture_steps, []),
-  architecture_details: parseJsonField(row.architecture_details, []),
-  implementation_steps: formattedImplSteps,
-  technologies: parseJsonField(row.technologies, []),
-  dataset_resources: parseJsonField(row.dataset_resources, []),
-  datasetResources: parseJsonField(row.dataset_resources, []),
-  technical_learnings: parseJsonField(row.technical_learnings, []),
-  technicalLearnings: parseJsonField(row.technical_learnings, []),
-  practical_learnings: parseJsonField(row.practical_learnings, []),
-  practicalLearnings: parseJsonField(row.practical_learnings, []),
-  common_mistakes: formattedMistakes,
-  commonMistakes: formattedMistakes,
-  section_headers: parseJsonField(row.section_headers, {}),
-  sectionHeaders: parseJsonField(row.section_headers, {}),
-  section_2_design: row.section_2_design || parseJsonField(row.section_headers, {})?.section_2_design || 'grid',
-  sidebar_cards: parseJsonField(row.sidebar_cards, {
-    related_projects: [],
-    tutorials: [],
-    mini_guides: [],
-  }),
-  created_at: row.created_at,
-  updated_at: row.updated_at,
+    prerequisites: parseJsonField(row.prerequisites, {
+      programming: [],
+      data: [],
+      statistics: [],
+      machineLearning: [],
+    }),
+    objectives: parseJsonField(row.objectives, []),
+    architecture_steps: parseJsonField(row.architecture_steps, []),
+    architecture_details: parseJsonField(row.architecture_details, []),
+    architecture_section_heading: archHeading,
+    architecture_details_heading: archHeading,
+    implementation_steps: formattedImplSteps,
+    technologies: parseJsonField(row.technologies, []),
+    dataset_resources: parseJsonField(row.dataset_resources, []),
+    datasetResources: parseJsonField(row.dataset_resources, []),
+    technical_learnings: parseJsonField(row.technical_learnings, []),
+    technicalLearnings: parseJsonField(row.technical_learnings, []),
+    practical_learnings: parseJsonField(row.practical_learnings, []),
+    practicalLearnings: parseJsonField(row.practical_learnings, []),
+    common_mistakes: formattedMistakes,
+    commonMistakes: formattedMistakes,
+    section_headers: secHeaders,
+    sectionHeaders: secHeaders,
+    section_2_design: row.section_2_design || secHeaders?.section_2_design || 'grid',
+    sidebar_cards: parseJsonField(row.sidebar_cards, {
+      related_projects: [],
+      tutorials: [],
+      mini_guides: [],
+    }),
+    created_at: row.created_at,
+    updated_at: row.updated_at,
   };
 };
 
@@ -358,6 +366,16 @@ export const createProjectDetails = async (req, res, next) => {
         })
       : [];
 
+    const rawHeadersInput = section_headers || req.body.sectionHeaders || {};
+    const parsedHeaders = typeof rawHeadersInput === 'object' && rawHeadersInput !== null
+      ? { ...rawHeadersInput }
+      : parseJsonField(rawHeadersInput, {});
+    const finalArchHeading =
+      req.body.architecture_section_heading ||
+      parsedHeaders?.architecture_section_heading ||
+      'View Architecture Details';
+    parsedHeaders.architecture_section_heading = finalArchHeading;
+
     const result = await query(
       `INSERT INTO project_details (
         project_id, slug, title, subtitle, level, duration, domain, project_type,
@@ -389,7 +407,7 @@ export const createProjectDetails = async (req, res, next) => {
         JSON.stringify(technical_learnings || req.body.technicalLearnings || []),
         JSON.stringify(practical_learnings || req.body.practicalLearnings || []),
         JSON.stringify(finalMistakes),
-        JSON.stringify(section_headers || req.body.sectionHeaders || {}),
+        JSON.stringify(parsedHeaders),
         validSection2Design,
         JSON.stringify(sidebar_cards || {}),
       ]
@@ -493,6 +511,28 @@ export const updateProjectDetails = async (req, res, next) => {
           : [])
       : undefined;
 
+    let finalSectionHeaders = section_headers !== undefined ? section_headers : req.body.sectionHeaders;
+    const archHeadingInput = req.body.architecture_section_heading;
+    if (archHeadingInput !== undefined) {
+      if (finalSectionHeaders !== undefined) {
+        const parsed = typeof finalSectionHeaders === 'object' && finalSectionHeaders !== null
+          ? { ...finalSectionHeaders }
+          : parseJsonField(finalSectionHeaders, {});
+        parsed.architecture_section_heading = archHeadingInput;
+        finalSectionHeaders = parsed;
+      } else {
+        const existingRows = await query(
+          isNumeric ? 'SELECT section_headers FROM project_details WHERE id = ? LIMIT 1' : 'SELECT section_headers FROM project_details WHERE slug = ? LIMIT 1',
+          [slugOrId]
+        );
+        const existingHeaders = existingRows.length > 0 ? parseJsonField(existingRows[0].section_headers, {}) : {};
+        finalSectionHeaders = {
+          ...existingHeaders,
+          architecture_section_heading: archHeadingInput,
+        };
+      }
+    }
+
     await query(
       `UPDATE project_details
        SET project_id = COALESCE(?, project_id),
@@ -550,8 +590,8 @@ export const updateProjectDetails = async (req, res, next) => {
         finalMistakes !== undefined
           ? JSON.stringify(finalMistakes)
           : null,
-        (section_headers !== undefined || req.body.sectionHeaders !== undefined)
-          ? JSON.stringify(section_headers !== undefined ? section_headers : req.body.sectionHeaders)
+        finalSectionHeaders !== undefined
+          ? JSON.stringify(finalSectionHeaders)
           : null,
         section_2_design ?? null,
         req.body.sidebar_cards !== undefined ? JSON.stringify(req.body.sidebar_cards) : null,

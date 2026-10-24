@@ -254,3 +254,151 @@ export const useDeleteInterview = () => {
         },
     });
 };
+
+// ── Interview Details (Curriculum & Questions) Services ─────────────────────
+const getInterviewDetails = async ({ queryKey }) => {
+    const [_key, slugOrId] = queryKey;
+    try {
+        const response = await publicApi.get(`/interview-details/${slugOrId}`);
+        if (response?.status === 200 && response?.data?.status === 1) {
+            return response?.data?.data;
+        }
+        throw new Error(response?.data?.error || "Failed to fetch interview details.");
+    } catch (error) {
+        console.error("getInterviewDetails error:", error);
+        throw error;
+    }
+};
+
+const getAllInterviewDetails = async () => {
+    try {
+        const response = await publicApi.get("/interview-details");
+        if (response?.status === 200 && response?.data?.status === 1) {
+            return response?.data?.data || [];
+        }
+        return [];
+    } catch (error) {
+        console.error("getAllInterviewDetails error:", error);
+        return [];
+    }
+};
+
+const saveInterviewDetails = async ({ slugOrId, data }) => {
+    try {
+        const response = await adminApi.put(`/interview-details/${slugOrId}`, data, {
+            headers: { "Content-Type": "application/json" },
+        });
+        if (response?.status === 200 && response?.data?.status === 1) {
+            return response?.data;
+        }
+        throw new Error(response?.data?.message || "Failed to update interview details.");
+    } catch (error) {
+        console.error("saveInterviewDetails error:", error);
+        throw error;
+    }
+};
+
+const createInterviewDetailsApi = async (data) => {
+    try {
+        const response = await adminApi.post("/interview-details", data, {
+            headers: { "Content-Type": "application/json" },
+        });
+        if (response?.status === 201 && response?.data?.status === 1) {
+            return response?.data;
+        }
+        throw new Error(response?.data?.message || "Failed to create interview details.");
+    } catch (error) {
+        console.error("createInterviewDetails error:", error);
+        throw error;
+    }
+};
+
+const deleteInterviewDetailsApi = async (slugOrId) => {
+    try {
+        const response = await adminApi.delete(`/interview-details/${slugOrId}`);
+        if (response?.status === 200 && response?.data?.status === 1) {
+            return response?.data;
+        }
+        throw new Error(response?.data?.message || "Failed to delete interview details.");
+    } catch (error) {
+        console.error("deleteInterviewDetails error:", error);
+        throw error;
+    }
+};
+
+export const useInterviewDetails = (slugOrId) => {
+    return useQuery({
+        queryKey: ["interviewDetails", slugOrId],
+        queryFn: getInterviewDetails,
+        enabled: !!slugOrId,
+        staleTime: 5 * 60 * 1000,
+        gcTime: 10 * 60 * 1000,
+    });
+};
+
+export const useInterviewDetailsList = () => {
+    return useQuery({
+        queryKey: ["interviewDetailsList"],
+        queryFn: getAllInterviewDetails,
+        staleTime: 5 * 60 * 1000,
+        gcTime: 10 * 60 * 1000,
+    });
+};
+
+export const useUpdateInterviewDetails = () => {
+    const queryClient = useQueryClient();
+    const { showNotification } = useNotification();
+
+    return useMutation({
+        mutationFn: saveInterviewDetails,
+        onSuccess: (data, variables) => {
+            queryClient.invalidateQueries({
+                queryKey: ["interviewDetails"],
+            });
+            queryClient.invalidateQueries({
+                queryKey: ["interviewDetailsList"],
+            });
+            showNotification(data?.message || "Interview page updated successfully!", "success");
+        },
+        onError: (error) => {
+            showNotification(error?.message || "Failed to save interview page", "danger");
+        },
+    });
+};
+
+export const useCreateInterviewDetails = () => {
+    const queryClient = useQueryClient();
+    const { showNotification } = useNotification();
+
+    return useMutation({
+        mutationFn: createInterviewDetailsApi,
+        onSuccess: (data) => {
+            queryClient.invalidateQueries({
+                queryKey: ["interviewDetailsList"],
+            });
+            showNotification(data?.message || "Interview page created successfully!", "success");
+        },
+        onError: (error) => {
+            showNotification(error?.message || "Failed to create interview page", "danger");
+        },
+    });
+};
+
+export const useDeleteInterviewDetails = () => {
+    const queryClient = useQueryClient();
+    const { showNotification } = useNotification();
+
+    return useMutation({
+        mutationFn: deleteInterviewDetailsApi,
+        onSuccess: (data) => {
+            queryClient.invalidateQueries({
+                queryKey: ["interviewDetailsList"],
+            });
+            showNotification(data?.message || "Interview page deleted successfully!", "success");
+        },
+        onError: (error) => {
+            showNotification(error?.message || "Failed to delete interview page", "danger");
+        },
+    });
+};
+
