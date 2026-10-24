@@ -580,7 +580,7 @@ export default function AdminInterviewDetails() {
   };
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3 }, backgroundColor: "#f4f6f8", minHeight: "100vh" }}>
+    <div style={{ maxWidth: "1440px", margin: "0 auto", width: "100%", boxSizing: "border-box" }}>
       {/* ── Top Header Bar ── */}
       <Box
         sx={{
@@ -1838,6 +1838,6 @@ export default function AdminInterviewDetails() {
           </Box>
         )}
       </Paper>
-    </Box>
+    </div>
   );
 }
