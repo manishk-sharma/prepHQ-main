@@ -143,15 +143,9 @@
 
 /* ── Top Page Header ────────────────────────────────────────────── */
 .interview-page-header {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: start;
-  gap: 14px 20px;
+  display: flex;
+  flex-direction: column;
   margin-bottom: 24px;
-}
-
-.header-text-col {
-  min-width: 0;
 }
 
 .interview-page-title {
@@ -171,14 +165,12 @@
   max-width: 720px;
 }
 
-/* Share Controls */
-.header-share-col {
+/* ── Right Sidebar Share Controls (Matching Reference Image) ─────── */
+.sidebar-share-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  white-space: nowrap;
-  flex-shrink: 0;
-  margin-top: 3px;
+  gap: 10px;
+  margin-bottom: 22px;
 }
 
 .share-label {
@@ -194,8 +186,8 @@
 }
 
 .share-icon-btn {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border-radius: 6px;
   background-color: #e6fff4;
   border: 1px solid #57cc99;
@@ -203,7 +195,7 @@
   align-items: center;
   justify-content: center;
   color: #10b981;
-  font-size: 13px;
+  font-size: 13.5px;
   cursor: pointer;
   text-decoration: none;
   transition: all 0.15s ease;
@@ -216,14 +208,6 @@
   color: #ffffff;
   border-color: #35b779;
   transform: translateY(-1px);
-}
-
-.interview-header-divider {
-  grid-column: 1 / -1;
-  border: 0;
-  border-top: 1px solid #e2e8f0;
-  margin: 10px 0 0 0;
-  width: 100%;
 }
 
 /* ── Content Section Layout ─────────────────────────────────────── */
@@ -718,6 +702,11 @@
     position: static;
     margin-top: 20px;
   }
+
+  .sidebar-share-row {
+    grid-column: 1 / -1;
+    margin-bottom: 8px;
+  }
 }
 
 @media (max-width: 767px) {
@@ -746,8 +735,7 @@
   }
 
   .interview-page-header {
-    grid-template-columns: 1fr;
-    gap: 12px;
+    margin-bottom: 20px;
   }
 
   .interview-page-title {
@@ -1088,6 +1076,7 @@
 @media print {
   .interview-left-sidebar,
   .interview-right-sidebar,
+  .sidebar-share-row,
   .header-share-col,
   .download-pdf-btn,
   .qa-difficulty-tabs,

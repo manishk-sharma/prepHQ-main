@@ -1390,69 +1390,10 @@ const InterviewsPage = () => {
               ========================================================= */}
           <main className="interview-center-content">
 
-            {/* ── Page Header Matching Reference Image 1 ─────────────── */}
+            {/* ── Page Header Matching Reference Design ─────────────── */}
             <header className="interview-page-header">
-              <div className="header-text-col">
-                <h1 className="interview-page-title">{pageTitle}</h1>
-                <p className="interview-page-desc">{pageDesc}</p>
-              </div>
-
-              {/* Share Controls: [Share:] [WhatsApp] [LinkedIn] [Facebook] [Instagram] */}
-              <div className="header-share-col" aria-label="Share Controls">
-                <span className="share-label">Share:</span>
-                <div className="share-buttons-group">
-                  <a
-                    href={`https://api.whatsapp.com/send?text=${shareTitle}%20${currentUrl}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="share-icon-btn whatsapp-btn"
-                    title="Share on WhatsApp"
-                    aria-label="Share on WhatsApp"
-                  >
-                    <FaWhatsapp />
-                  </a>
-
-                  <a
-                    href={`https://www.linkedin.com/sharing/share-offsite/?url=${currentUrl}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="share-icon-btn linkedin-btn"
-                    title="Share on LinkedIn"
-                    aria-label="Share on LinkedIn"
-                  >
-                    <FaLinkedinIn />
-                  </a>
-
-                  <a
-                    href={`https://www.facebook.com/sharer/sharer.php?u=${currentUrl}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="share-icon-btn facebook-btn"
-                    title="Share on Facebook"
-                    aria-label="Share on Facebook"
-                  >
-                    <FaFacebookF />
-                  </a>
-
-                  <a
-                    href="https://www.instagram.com/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="share-icon-btn instagram-btn"
-                    title="Share on Instagram"
-                    aria-label="Share on Instagram"
-                    onClick={() => {
-                      if (navigator.clipboard) {
-                        navigator.clipboard.writeText(window.location.href);
-                      }
-                    }}
-                  >
-                    <FaInstagram />
-                  </a>
-                </div>
-              </div>
-
-              <hr className="interview-header-divider" />
+              <h1 className="interview-page-title">{pageTitle}</h1>
+              <p className="interview-page-desc">{pageDesc}</p>
             </header>
 
             {/* ── Render Sections In Dynamically Configured Order ──────── */}
@@ -1469,9 +1410,64 @@ const InterviewsPage = () => {
           </main>
 
           {/* =========================================================
-              RIGHT COLUMN: Related Content Widgets Sidebar
+              RIGHT COLUMN: Share & Related Content Widgets Sidebar
               ========================================================= */}
           <aside className="interview-right-sidebar" aria-label="Related Resources">
+
+            {/* Share Controls Matching Reference Design */}
+            <div className="sidebar-share-row" role="region" aria-label="Share Controls">
+              <span className="share-label">Share:</span>
+              <div className="share-buttons-group">
+                <a
+                  href={`https://api.whatsapp.com/send?text=${shareTitle}%20${currentUrl}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="share-icon-btn whatsapp-btn"
+                  title="Share on WhatsApp"
+                  aria-label="Share on WhatsApp"
+                >
+                  <FaWhatsapp />
+                </a>
+
+                <a
+                  href={`https://www.linkedin.com/sharing/share-offsite/?url=${currentUrl}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="share-icon-btn linkedin-btn"
+                  title="Share on LinkedIn"
+                  aria-label="Share on LinkedIn"
+                >
+                  <FaLinkedinIn />
+                </a>
+
+                <a
+                  href={`https://www.facebook.com/sharer/sharer.php?u=${currentUrl}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="share-icon-btn facebook-btn"
+                  title="Share on Facebook"
+                  aria-label="Share on Facebook"
+                >
+                  <FaFacebookF />
+                </a>
+
+                <a
+                  href="https://www.instagram.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="share-icon-btn instagram-btn"
+                  title="Share on Instagram"
+                  aria-label="Share on Instagram"
+                  onClick={() => {
+                    if (navigator.clipboard) {
+                      navigator.clipboard.writeText(window.location.href);
+                    }
+                  }}
+                >
+                  <FaInstagram />
+                </a>
+              </div>
+            </div>
 
             {/* 1. Related Interview Questions */}
             <div className="sidebar-widget">
