@@ -76,16 +76,19 @@ const DEFAULT_SECTION_HEADERS = {
     subtitle: "Questions that test how you apply concepts to real-world problems.",
   },
   "coding-questions": {
-    title: "04 · Practical & Coding Questions",
-    subtitle: "Core algorithmic patterns and practical Python/NumPy implementations.",
+    title: "Practical & Coding Questions",
+    subtitle:
+      "Questions where you apply your skills to write code, explain an approach or solve a technical problem.",
   },
   "common-mistakes": {
-    title: "05 · Common Interview Mistakes",
-    subtitle: "Pitfalls to avoid and recommended interview practices that interviewers look for.",
+    title: "Common Interview Mistakes",
+    subtitle: "Small habits that quietly weaken good answers.",
   },
   "quick-revision": {
-    title: "06 · Quick Revision",
-    subtitle: "Fast memory refresher of essential terminology, formulas, and definitions.",
+    title: "Quick Revision",
+    subtitle: "Refresh the most important concepts at a glance.",
+    column1_label: "Concept",
+    column2_label: "Concise Explanation",
   },
 };
 
@@ -121,6 +124,8 @@ export default function AdminInterviewDetails() {
   const [expandedMustKnowIds, setExpandedMustKnowIds] = useState({});
   const [expandedQaIds, setExpandedQaIds] = useState({});
   const [expandedScenarioIds, setExpandedScenarioIds] = useState({});
+  const [expandedCodingIds, setExpandedCodingIds] = useState({});
+  const [expandedMistakesIds, setExpandedMistakesIds] = useState({});
 
   const { data: interviewList = [], refetch: refetchList } = useInterviewDetailsList();
   const { data: currentData, isLoading, refetch } = useInterviewDetails(selectedSlug);
@@ -249,6 +254,63 @@ export default function AdminInterviewDetails() {
       });
       setExpandedScenarioIds(initialScenarioExpanded);
 
+      // Normalize Coding questions
+      const sanitizedCoding = (currentData.coding_questions || []).map((q, idx) => ({
+        id: q.id || `code-${idx + 1}-${Date.now()}`,
+        num: q.num || String(idx + 1).padStart(2, "0"),
+        question: q.question || q.title || "",
+        title: q.title || q.question || "",
+        default_open: q.default_open !== undefined ? Boolean(q.default_open) : idx === 0,
+        difficulty: q.difficulty || "Easy",
+        language: (q.language || "python").toLowerCase(),
+        approach: q.approach || q.expected_approach || "",
+        expected_approach: q.expected_approach || q.approach || "",
+        code: q.code || q.solution || "",
+        solution: q.solution || q.code || "",
+        explanation: q.explanation || "",
+        time_complexity: q.time_complexity || "",
+        space_complexity: q.space_complexity || "",
+        follow_up_questions: (q.follow_up_questions || q.follow_ups || q.followUps || (q.follow_up ? [q.follow_up] : [])).map((fq, fidx) => ({
+          id: typeof fq === "object" ? fq.id || `code-fu-${fidx + 1}-${Date.now()}` : `code-fu-${fidx + 1}-${Date.now()}`,
+          question: typeof fq === "string" ? fq : fq.question || fq.text || "",
+          hint: typeof fq === "object" ? fq.hint || "" : "",
+        })),
+      }));
+
+      const initialCodingExpanded = {};
+      sanitizedCoding.forEach((q, i) => {
+        initialCodingExpanded[q.id] = i === 0;
+      });
+      setExpandedCodingIds(initialCodingExpanded);
+
+      // Normalize Common Mistakes
+      const sanitizedMistakes = (currentData.common_mistakes || []).map((m, idx) => ({
+        id: m.id || `cm-${idx + 1}-${Date.now()}`,
+        num: m.num || String(idx + 1).padStart(2, "0"),
+        title: m.title || m.question || "",
+        default_open: m.default_open !== undefined ? Boolean(m.default_open) : idx === 0,
+        problem: m.problem || m.mistake || "",
+        mistake: m.mistake || m.problem || "",
+        why_it_hurts: m.why_it_hurts || m.why_it_happens || m.whyItMatters || "",
+        why_it_happens: m.why_it_happens || m.why_it_hurts || m.whyItMatters || "",
+        better_approach: m.better_approach || m.how_to_avoid || m.howToAvoid || "",
+        how_to_avoid: m.how_to_avoid || m.better_approach || m.howToAvoid || "",
+        recommendation: m.recommendation || "",
+      }));
+
+      const initialMistakesExpanded = {};
+      sanitizedMistakes.forEach((m, i) => {
+        initialMistakesExpanded[m.id] = i === 0;
+      });
+      setExpandedMistakesIds(initialMistakesExpanded);
+
+      // Normalize Quick Revision
+      const sanitizedQuickRevision = (currentData.quick_revision || []).map((r, idx) => ({
+        id: r.id || `rev-${idx + 1}-${Date.now()}`,
+        concept: r.concept || "",
+        explanation: r.explanation || r.definition || r.summary || "",
+      }));
+
       setFormData({
         title: currentData.title || "",
         slug: currentData.slug || selectedSlug,
@@ -265,9 +327,9 @@ export default function AdminInterviewDetails() {
         must_know_questions: sanitizedMustKnow,
         qa_questions: sanitizedQA,
         scenario_questions: sanitizedScenario,
-        coding_questions: currentData.coding_questions || [],
-        common_mistakes: currentData.common_mistakes || [],
-        quick_revision: currentData.quick_revision || [],
+        coding_questions: sanitizedCoding,
+        common_mistakes: sanitizedMistakes,
+        quick_revision: sanitizedQuickRevision,
         section_headers: {
           ...DEFAULT_SECTION_HEADERS,
           ...(currentData.section_headers || {}),
@@ -960,34 +1022,69 @@ export default function AdminInterviewDetails() {
   };
 
   // ── 4. Coding Handlers ─────────────────────────────────────────────────────
+  const toggleCodingExpand = (id) => {
+    setExpandedCodingIds((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
+
+  const expandAllCoding = () => {
+    const nextState = {};
+    (formData.coding_questions || []).forEach((q) => {
+      nextState[q.id] = true;
+    });
+    setExpandedCodingIds(nextState);
+  };
+
+  const collapseAllCoding = () => {
+    setExpandedCodingIds({});
+  };
+
   const addCoding = () => {
+    const newId = `code-${Date.now()}`;
     setFormData((prev) => {
       const list = [...(prev.coding_questions || [])];
       const nextNum = String(list.length + 1).padStart(2, "0");
       list.push({
-        id: `code-${Date.now()}`,
+        id: newId,
         num: nextNum,
-        question: "New Coding Challenge",
-        default_open: false,
-        problem_statement: "",
+        question: "New Coding Question",
+        title: "New Coding Question",
+        default_open: list.length === 0,
         difficulty: "Easy",
         language: "python",
         approach: "",
+        expected_approach: "",
         code: `# Write solution here\n`,
+        solution: `# Write solution here\n`,
         explanation: "",
         time_complexity: "O(n)",
         space_complexity: "O(1)",
-        sample_input: "",
-        sample_output: "",
+        follow_up_questions: [
+          {
+            id: `code-fu-${Date.now()}-1`,
+            question: "How would you optimize this approach if memory is strictly limited?",
+            hint: "",
+          },
+        ],
       });
       return { ...prev, coding_questions: list };
     });
+    setExpandedCodingIds((prev) => ({ ...prev, [newId]: true }));
   };
 
   const updateCoding = (idx, field, val) => {
     setFormData((prev) => {
       const list = [...(prev.coding_questions || [])];
-      list[idx] = { ...list[idx], [field]: val };
+      const updated = { ...list[idx], [field]: val };
+      if (field === "question") updated.title = val;
+      if (field === "title") updated.question = val;
+      if (field === "approach") updated.expected_approach = val;
+      if (field === "expected_approach") updated.approach = val;
+      if (field === "code") updated.solution = val;
+      if (field === "solution") updated.code = val;
+      list[idx] = updated;
       return { ...prev, coding_questions: list };
     });
   };
@@ -996,33 +1093,176 @@ export default function AdminInterviewDetails() {
     setFormData((prev) => {
       const list = [...(prev.coding_questions || [])];
       list.splice(idx, 1);
+      const renumbered = list.map((item, i) => ({
+        ...item,
+        num: String(i + 1).padStart(2, "0"),
+      }));
+      return { ...prev, coding_questions: renumbered };
+    });
+  };
+
+  const duplicateCoding = (idx) => {
+    const newId = `code-${Date.now()}`;
+    setFormData((prev) => {
+      const list = [...(prev.coding_questions || [])];
+      const source = list[idx];
+      if (!source) return prev;
+      const copy = JSON.parse(JSON.stringify(source));
+      copy.id = newId;
+      copy.question = `${copy.question || copy.title} (Copy)`;
+      copy.title = copy.question;
+      copy.default_open = false;
+      copy.follow_up_questions = (copy.follow_up_questions || []).map((fq, fi) => ({
+        ...fq,
+        id: `code-fu-${Date.now()}-${fi}`,
+      }));
+      list.splice(idx + 1, 0, copy);
+      const renumbered = list.map((item, i) => ({
+        ...item,
+        num: String(i + 1).padStart(2, "0"),
+      }));
+      return { ...prev, coding_questions: renumbered };
+    });
+    setExpandedCodingIds((prev) => ({ ...prev, [newId]: true }));
+  };
+
+  const handleReorderCoding = (reorderedList) => {
+    const renumbered = reorderedList.map((item, i) => ({
+      ...item,
+      num: String(i + 1).padStart(2, "0"),
+    }));
+    setFormData((prev) => ({
+      ...prev,
+      coding_questions: renumbered,
+    }));
+  };
+
+  const moveCodingItem = (index, direction) => {
+    setFormData((prev) => {
+      const list = [...(prev.coding_questions || [])];
+      const targetIdx = index + direction;
+      if (targetIdx < 0 || targetIdx >= list.length) return prev;
+      const temp = list[index];
+      list[index] = list[targetIdx];
+      list[targetIdx] = temp;
+      const renumbered = list.map((item, i) => ({
+        ...item,
+        num: String(i + 1).padStart(2, "0"),
+      }));
+      return { ...prev, coding_questions: renumbered };
+    });
+  };
+
+  const addCodingFollowUp = (codingIdx) => {
+    setFormData((prev) => {
+      const list = [...(prev.coding_questions || [])];
+      const codeItem = { ...list[codingIdx] };
+      const followUps = [...(codeItem.follow_up_questions || [])];
+      followUps.push({
+        id: `code-fu-${Date.now()}-${followUps.length + 1}`,
+        question: "",
+        hint: "",
+      });
+      codeItem.follow_up_questions = followUps;
+      list[codingIdx] = codeItem;
+      return { ...prev, coding_questions: list };
+    });
+  };
+
+  const updateCodingFollowUp = (codingIdx, fIdx, field, val) => {
+    setFormData((prev) => {
+      const list = [...(prev.coding_questions || [])];
+      const codeItem = { ...list[codingIdx] };
+      const followUps = [...(codeItem.follow_up_questions || [])];
+      followUps[fIdx] = { ...followUps[fIdx], [field]: val };
+      codeItem.follow_up_questions = followUps;
+      list[codingIdx] = codeItem;
+      return { ...prev, coding_questions: list };
+    });
+  };
+
+  const deleteCodingFollowUp = (codingIdx, fIdx) => {
+    setFormData((prev) => {
+      const list = [...(prev.coding_questions || [])];
+      const codeItem = { ...list[codingIdx] };
+      const followUps = [...(codeItem.follow_up_questions || [])];
+      followUps.splice(fIdx, 1);
+      codeItem.follow_up_questions = followUps;
+      list[codingIdx] = codeItem;
+      return { ...prev, coding_questions: list };
+    });
+  };
+
+  const moveCodingFollowUp = (codingIdx, fIdx, direction) => {
+    setFormData((prev) => {
+      const list = [...(prev.coding_questions || [])];
+      const codeItem = { ...list[codingIdx] };
+      const followUps = [...(codeItem.follow_up_questions || [])];
+      const targetIdx = fIdx + direction;
+      if (targetIdx < 0 || targetIdx >= followUps.length) return prev;
+      const temp = followUps[fIdx];
+      followUps[fIdx] = followUps[targetIdx];
+      followUps[targetIdx] = temp;
+      codeItem.follow_up_questions = followUps;
+      list[codingIdx] = codeItem;
       return { ...prev, coding_questions: list };
     });
   };
 
   // ── 5. Common Mistakes Handlers ────────────────────────────────────────────
+  const toggleMistakesExpand = (id) => {
+    setExpandedMistakesIds((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
+
+  const expandAllMistakes = () => {
+    const nextState = {};
+    (formData.common_mistakes || []).forEach((m) => {
+      nextState[m.id] = true;
+    });
+    setExpandedMistakesIds(nextState);
+  };
+
+  const collapseAllMistakes = () => {
+    setExpandedMistakesIds({});
+  };
+
   const addMistake = () => {
+    const newId = `cm-${Date.now()}`;
     setFormData((prev) => {
       const list = [...(prev.common_mistakes || [])];
       const nextNum = String(list.length + 1).padStart(2, "0");
       list.push({
-        id: `cm-${Date.now()}`,
+        id: newId,
         num: nextNum,
         title: "New Common Mistake",
-        default_open: false,
+        default_open: list.length === 0,
+        problem: "",
         mistake: "",
+        why_it_hurts: "",
         why_it_happens: "",
+        better_approach: "",
         how_to_avoid: "",
         recommendation: "",
       });
       return { ...prev, common_mistakes: list };
     });
+    setExpandedMistakesIds((prev) => ({ ...prev, [newId]: true }));
   };
 
   const updateMistake = (idx, field, val) => {
     setFormData((prev) => {
       const list = [...(prev.common_mistakes || [])];
-      list[idx] = { ...list[idx], [field]: val };
+      const updated = { ...list[idx], [field]: val };
+      if (field === "problem") updated.mistake = val;
+      if (field === "mistake") updated.problem = val;
+      if (field === "why_it_hurts") updated.why_it_happens = val;
+      if (field === "why_it_happens") updated.why_it_hurts = val;
+      if (field === "better_approach") updated.how_to_avoid = val;
+      if (field === "how_to_avoid") updated.better_approach = val;
+      list[idx] = updated;
       return { ...prev, common_mistakes: list };
     });
   };
@@ -1031,16 +1271,68 @@ export default function AdminInterviewDetails() {
     setFormData((prev) => {
       const list = [...(prev.common_mistakes || [])];
       list.splice(idx, 1);
-      return { ...prev, common_mistakes: list };
+      const renumbered = list.map((item, i) => ({
+        ...item,
+        num: String(i + 1).padStart(2, "0"),
+      }));
+      return { ...prev, common_mistakes: renumbered };
+    });
+  };
+
+  const duplicateMistake = (idx) => {
+    const newId = `cm-${Date.now()}`;
+    setFormData((prev) => {
+      const list = [...(prev.common_mistakes || [])];
+      const source = list[idx];
+      if (!source) return prev;
+      const copy = JSON.parse(JSON.stringify(source));
+      copy.id = newId;
+      copy.title = `${copy.title} (Copy)`;
+      copy.default_open = false;
+      list.splice(idx + 1, 0, copy);
+      const renumbered = list.map((item, i) => ({
+        ...item,
+        num: String(i + 1).padStart(2, "0"),
+      }));
+      return { ...prev, common_mistakes: renumbered };
+    });
+    setExpandedMistakesIds((prev) => ({ ...prev, [newId]: true }));
+  };
+
+  const handleReorderMistakes = (reorderedList) => {
+    const renumbered = reorderedList.map((item, i) => ({
+      ...item,
+      num: String(i + 1).padStart(2, "0"),
+    }));
+    setFormData((prev) => ({
+      ...prev,
+      common_mistakes: renumbered,
+    }));
+  };
+
+  const moveMistakeItem = (index, direction) => {
+    setFormData((prev) => {
+      const list = [...(prev.common_mistakes || [])];
+      const targetIdx = index + direction;
+      if (targetIdx < 0 || targetIdx >= list.length) return prev;
+      const temp = list[index];
+      list[index] = list[targetIdx];
+      list[targetIdx] = temp;
+      const renumbered = list.map((item, i) => ({
+        ...item,
+        num: String(i + 1).padStart(2, "0"),
+      }));
+      return { ...prev, common_mistakes: renumbered };
     });
   };
 
   // ── 6. Quick Revision Handlers ─────────────────────────────────────────────
   const addRevisionRow = () => {
+    const newId = `rev-${Date.now()}`;
     setFormData((prev) => {
       const list = [...(prev.quick_revision || [])];
       list.push({
-        id: `rev-${Date.now()}`,
+        id: newId,
         concept: "",
         explanation: "",
       });
@@ -1062,6 +1354,25 @@ export default function AdminInterviewDetails() {
       list.splice(idx, 1);
       return { ...prev, quick_revision: list };
     });
+  };
+
+  const moveRevisionRow = (index, direction) => {
+    setFormData((prev) => {
+      const list = [...(prev.quick_revision || [])];
+      const targetIdx = index + direction;
+      if (targetIdx < 0 || targetIdx >= list.length) return prev;
+      const temp = list[index];
+      list[index] = list[targetIdx];
+      list[targetIdx] = temp;
+      return { ...prev, quick_revision: list };
+    });
+  };
+
+  const handleReorderRevision = (reorderedList) => {
+    setFormData((prev) => ({
+      ...prev,
+      quick_revision: reorderedList,
+    }));
   };
 
   // ── 7. Sidebar Card Handlers ───────────────────────────────────────────────
@@ -2891,339 +3202,992 @@ export default function AdminInterviewDetails() {
             {/* ── TAB 4: 04 · Practical & Coding ── */}
             {(activeMode === "all" || activeTab === 4) && (
               <Box sx={{ mb: activeMode === "all" ? 4 : 0 }}>
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+                {/* Section Toolbar */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    mb: 2,
+                    flexWrap: "wrap",
+                    gap: 1.5,
+                  }}
+                >
                   <Box>
-                    <Typography variant="h6" sx={{ fontWeight: 700, color: "#074568" }}>
-                      Section 04 · Practical & Coding Questions ({formData.coding_questions?.length || 0})
-                    </Typography>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <Typography variant="h6" sx={{ fontWeight: 700, color: "#074568" }}>
+                        Section 04 · Practical & Coding Questions
+                      </Typography>
+                      <Chip
+                        label={`${formData.coding_questions?.length || 0} questions`}
+                        size="small"
+                        sx={{ backgroundColor: "#DEF7EC", color: "#03543F", fontWeight: 700 }}
+                      />
+                    </Box>
                     <Typography variant="caption" sx={{ color: "#64748b" }}>
-                      Algorithmic implementation, syntax-highlighted code blocks, and time/space complexity analysis.
+                      Questions where you apply your skills to write code, explain an approach or solve a technical problem.
                     </Typography>
                   </Box>
-                  <Button
-                    variant="contained"
-                    size="small"
-                    startIcon={<AddIcon />}
-                    onClick={addCoding}
-                    sx={{ backgroundColor: "#37AB79", "&:hover": { backgroundColor: "#2d8a62" }, textTransform: "none" }}
-                  >
-                    + Add Coding Challenge
-                  </Button>
+
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={expandAllCoding}
+                      sx={{ textTransform: "none", fontSize: "0.8rem", borderColor: "#cbd5e1", color: "#475569" }}
+                    >
+                      Expand All
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={collapseAllCoding}
+                      sx={{ textTransform: "none", fontSize: "0.8rem", borderColor: "#cbd5e1", color: "#475569" }}
+                    >
+                      Collapse All
+                    </Button>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      startIcon={<AddIcon />}
+                      onClick={addCoding}
+                      sx={{
+                        backgroundColor: "#075174",
+                        "&:hover": { backgroundColor: "#053d57" },
+                        textTransform: "none",
+                        fontWeight: 600,
+                      }}
+                    >
+                      + Add Coding Question
+                    </Button>
+                  </Box>
                 </Box>
 
+                {/* Editable Section Title & Subtitle */}
                 {renderSectionHeaderBox("coding-questions", "04 · Practical & Coding Questions")}
 
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                  {(formData.coding_questions || []).map((item, idx) => (
-                    <Paper key={item.id || idx} variant="outlined" sx={{ p: 2, borderRadius: 2, backgroundColor: "#ffffff" }}>
-                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1.5 }}>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                          <Chip label={item.language || "python"} size="small" sx={{ fontWeight: 700, backgroundColor: "#0284c7", color: "#fff" }} />
-                          <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#074568" }}>
-                            {item.question || "Untitled Coding Question"}
-                          </Typography>
-                        </Box>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                          <IconButton size="small" disabled={idx === 0} onClick={() => moveItem("coding_questions", idx, -1)}>
-                            <ArrowUpwardIcon fontSize="small" />
-                          </IconButton>
-                          <IconButton size="small" disabled={idx === (formData.coding_questions || []).length - 1} onClick={() => moveItem("coding_questions", idx, 1)}>
-                            <ArrowDownwardIcon fontSize="small" />
-                          </IconButton>
-                          <IconButton size="small" onClick={() => deleteCoding(idx)} sx={{ color: "#dc2626" }}>
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </Box>
-                      </Box>
+                {/* Sortable Coding Cards List */}
+                {(formData.coding_questions || []).length === 0 ? (
+                  <Paper variant="outlined" sx={{ p: 4, textAlign: "center", borderRadius: 3, backgroundColor: "#f8fafc" }}>
+                    <Typography variant="body1" sx={{ color: "#64748b", mb: 1.5, fontWeight: 500 }}>
+                      No practical & coding questions yet.
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      startIcon={<AddIcon />}
+                      onClick={addCoding}
+                      sx={{ backgroundColor: "#075174", "&:hover": { backgroundColor: "#053d57" }, textTransform: "none" }}
+                    >
+                      + Add First Coding Question
+                    </Button>
+                  </Paper>
+                ) : (
+                  <SortableContainer
+                    items={formData.coding_questions || []}
+                    onReorder={handleReorderCoding}
+                  >
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                      {(formData.coding_questions || []).map((item, idx) => {
+                        const isCardExpanded = expandedCodingIds[item.id] ?? false;
 
-                      <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-                        <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 1.5 }}>
-                          <TextField
-                            fullWidth
-                            size="small"
-                            label="Question Title"
-                            value={item.question || ""}
-                            onChange={(e) => updateCoding(idx, "question", e.target.value)}
-                            sx={{ flex: 3 }}
-                          />
-                          <FormControl size="small" sx={{ flex: 1, minWidth: 120 }}>
-                            <InputLabel>Language</InputLabel>
-                            <Select
-                              value={item.language || "python"}
-                              label="Language"
-                              onChange={(e) => updateCoding(idx, "language", e.target.value)}
-                            >
-                              <MenuItem value="python">Python</MenuItem>
-                              <MenuItem value="javascript">JavaScript</MenuItem>
-                              <MenuItem value="sql">SQL</MenuItem>
-                              <MenuItem value="cpp">C++</MenuItem>
-                            </Select>
-                          </FormControl>
-                          <FormControl size="small" sx={{ flex: 1, minWidth: 120 }}>
-                            <InputLabel>Difficulty</InputLabel>
-                            <Select
-                              value={item.difficulty || "Easy"}
-                              label="Difficulty"
-                              onChange={(e) => updateCoding(idx, "difficulty", e.target.value)}
-                            >
-                              <MenuItem value="Easy">Easy</MenuItem>
-                              <MenuItem value="Medium">Medium</MenuItem>
-                              <MenuItem value="Hard">Hard</MenuItem>
-                            </Select>
-                          </FormControl>
-                        </Box>
+                        return (
+                          <SortableItem key={item.id} id={item.id}>
+                            {({ listeners, isDragging }) => (
+                              <Paper
+                                variant="outlined"
+                                sx={{
+                                  borderRadius: 2.5,
+                                  backgroundColor: "#ffffff",
+                                  borderColor: isDragging ? "#075174" : "#e2e8f0",
+                                  boxShadow: isDragging ? 3 : 0,
+                                  borderLeft: "4px solid #075174",
+                                  overflow: "hidden",
+                                  transition: "box-shadow 0.2s ease, border-color 0.2s ease",
+                                }}
+                              >
+                                {/* Card Header */}
+                                <Box
+                                  sx={{
+                                    p: { xs: 1.5, sm: 2 },
+                                    backgroundColor: isCardExpanded ? "#f8fafc" : "#ffffff",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "space-between",
+                                    gap: 1,
+                                    borderBottom: isCardExpanded ? "1px solid #e2e8f0" : "none",
+                                  }}
+                                >
+                                  {/* Left: Drag Handle, Number Badge, Title, Chips */}
+                                  <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, minWidth: 0, flex: 1 }}>
+                                    <DragHandle listeners={listeners} isDragging={isDragging} />
+                                    <Chip
+                                      label={`#${item.num || String(idx + 1).padStart(2, "0")}`}
+                                      size="small"
+                                      sx={{
+                                        fontWeight: 700,
+                                        backgroundColor: isCardExpanded ? "#0B3553" : "#E2E8F0",
+                                        color: isCardExpanded ? "#ffffff" : "#1e293b",
+                                        borderRadius: 1.5,
+                                        fontSize: "0.75rem",
+                                        height: 24,
+                                      }}
+                                    />
+                                    <Typography
+                                      variant="subtitle2"
+                                      sx={{
+                                        fontWeight: 700,
+                                        color: "#1e293b",
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                        whiteSpace: "nowrap",
+                                        cursor: "pointer",
+                                      }}
+                                      onClick={() => toggleCodingExpand(item.id)}
+                                    >
+                                      {item.question || item.title || "Untitled Coding Question"}
+                                    </Typography>
+                                    <Chip
+                                      label={item.language || "python"}
+                                      size="small"
+                                      sx={{
+                                        fontWeight: 700,
+                                        backgroundColor: "#0284c7",
+                                        color: "#fff",
+                                        fontSize: "0.7rem",
+                                        height: 20,
+                                        textTransform: "uppercase",
+                                      }}
+                                    />
+                                    {item.difficulty && (
+                                      <Chip
+                                        label={item.difficulty}
+                                        size="small"
+                                        sx={{
+                                          fontSize: "0.7rem",
+                                          height: 20,
+                                          fontWeight: 600,
+                                          backgroundColor:
+                                            item.difficulty === "Easy"
+                                              ? "#DEF7EC"
+                                              : item.difficulty === "Medium"
+                                              ? "#FEF3C7"
+                                              : "#FEE2E2",
+                                          color:
+                                            item.difficulty === "Easy"
+                                              ? "#03543F"
+                                              : item.difficulty === "Medium"
+                                              ? "#92400E"
+                                              : "#991B1B",
+                                        }}
+                                      />
+                                    )}
+                                    {item.default_open && (
+                                      <Chip
+                                        label="Default Open"
+                                        size="small"
+                                        sx={{
+                                          fontSize: "0.7rem",
+                                          height: 20,
+                                          backgroundColor: "#DEF7EC",
+                                          color: "#03543F",
+                                          fontWeight: 600,
+                                        }}
+                                      />
+                                    )}
+                                  </Box>
 
-                        <TextField
-                          fullWidth
-                          size="small"
-                          label="Interview Approach / Strategy"
-                          value={item.approach || ""}
-                          onChange={(e) => updateCoding(idx, "approach", e.target.value)}
-                        />
+                                  {/* Right: Actions */}
+                                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, flexShrink: 0 }}>
+                                    <AccessibleReorderButtons
+                                      onMoveUp={() => moveCodingItem(idx, -1)}
+                                      onMoveDown={() => moveCodingItem(idx, 1)}
+                                      isFirst={idx === 0}
+                                      isLast={idx === (formData.coding_questions || []).length - 1}
+                                    />
+                                    <Tooltip title="Duplicate Question">
+                                      <IconButton
+                                        size="small"
+                                        onClick={() => duplicateCoding(idx)}
+                                        sx={{ color: "#64748b", "&:hover": { color: "#074568" } }}
+                                      >
+                                        <ContentCopyIcon fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+                                    <Tooltip title="Delete Question">
+                                      <IconButton
+                                        size="small"
+                                        onClick={() => deleteCoding(idx)}
+                                        sx={{ color: "#ef4444", "&:hover": { backgroundColor: "#fee2e2" } }}
+                                      >
+                                        <DeleteIcon fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+                                    <IconButton
+                                      size="small"
+                                      onClick={() => toggleCodingExpand(item.id)}
+                                      sx={{ color: "#64748b" }}
+                                    >
+                                      {isCardExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                                    </IconButton>
+                                  </Box>
+                                </Box>
 
-                        {/* Code Editor Area */}
-                        <Box>
-                          <Typography variant="caption" sx={{ fontWeight: 600, color: "#475569", display: "block", mb: 0.5 }}>
-                            Source Code Solution (Monospace Code Block)
-                          </Typography>
-                          <TextField
-                            fullWidth
-                            multiline
-                            rows={8}
-                            value={item.code || ""}
-                            onChange={(e) => updateCoding(idx, "code", e.target.value)}
-                            sx={{
-                              backgroundColor: "#0f172a",
-                              borderRadius: 1.5,
-                              "& .MuiInputBase-input": {
-                                color: "#38bdf8",
-                                fontFamily: "Consolas, Monaco, 'Courier New', monospace",
-                                fontSize: "0.85rem",
-                                lineHeight: 1.5,
-                              },
-                            }}
-                          />
-                        </Box>
+                                {/* Card Body (Expanded) */}
+                                {isCardExpanded && (
+                                  <Box sx={{ p: { xs: 2, sm: 2.5 }, display: "flex", flexDirection: "column", gap: 2.5 }}>
+                                    {/* Top Row: Title, Language, Difficulty, Default Open Switch */}
+                                    <Box
+                                      sx={{
+                                        display: "grid",
+                                        gridTemplateColumns: { xs: "1fr", sm: "3fr 1.2fr 1.2fr auto" },
+                                        gap: 2,
+                                        alignItems: "center",
+                                      }}
+                                    >
+                                      <TextField
+                                        fullWidth
+                                        size="small"
+                                        label="Question Title"
+                                        placeholder="e.g. Write Python code to find duplicate values in a list."
+                                        value={item.question || ""}
+                                        onChange={(e) => updateCoding(idx, "question", e.target.value)}
+                                      />
+                                      <FormControl size="small" fullWidth>
+                                        <InputLabel>Language</InputLabel>
+                                        <Select
+                                          value={item.language || "python"}
+                                          label="Language"
+                                          onChange={(e) => updateCoding(idx, "language", e.target.value)}
+                                        >
+                                          <MenuItem value="python">Python</MenuItem>
+                                          <MenuItem value="javascript">JavaScript</MenuItem>
+                                          <MenuItem value="typescript">TypeScript</MenuItem>
+                                          <MenuItem value="sql">SQL</MenuItem>
+                                          <MenuItem value="cpp">C++</MenuItem>
+                                          <MenuItem value="java">Java</MenuItem>
+                                        </Select>
+                                      </FormControl>
+                                      <FormControl size="small" fullWidth>
+                                        <InputLabel>Difficulty</InputLabel>
+                                        <Select
+                                          value={item.difficulty || "Easy"}
+                                          label="Difficulty"
+                                          onChange={(e) => updateCoding(idx, "difficulty", e.target.value)}
+                                        >
+                                          <MenuItem value="Easy">Easy</MenuItem>
+                                          <MenuItem value="Medium">Medium</MenuItem>
+                                          <MenuItem value="Hard">Hard</MenuItem>
+                                        </Select>
+                                      </FormControl>
+                                      <FormControlLabel
+                                        control={
+                                          <Switch
+                                            size="small"
+                                            checked={item.default_open ?? false}
+                                            onChange={(e) => updateCoding(idx, "default_open", e.target.checked)}
+                                            color="success"
+                                          />
+                                        }
+                                        label={
+                                          <Typography variant="caption" sx={{ fontWeight: 600, color: "#475569" }}>
+                                            Open by default
+                                          </Typography>
+                                        }
+                                        sx={{ m: 0 }}
+                                      />
+                                    </Box>
 
-                        <TextField
-                          fullWidth
-                          size="small"
-                          label="Solution Explanation"
-                          value={item.explanation || ""}
-                          onChange={(e) => updateCoding(idx, "explanation", e.target.value)}
-                        />
+                                    {/* Field 1: Expected Approach */}
+                                    <Box>
+                                      <Typography variant="caption" sx={{ fontWeight: 700, color: "#1e293b", display: "block", mb: 0.5, fontSize: "0.8rem" }}>
+                                        A. Expected approach (Short explanation of algorithm or strategy)
+                                      </Typography>
+                                      <TextField
+                                        fullWidth
+                                        multiline
+                                        rows={2}
+                                        size="small"
+                                        placeholder="Track values already seen; when a value appears again, record it as a duplicate. One pass, O(n)."
+                                        value={item.approach || item.expected_approach || ""}
+                                        onChange={(e) => updateCoding(idx, "approach", e.target.value)}
+                                        sx={{ backgroundColor: "#f8fafc", borderRadius: 1.5 }}
+                                      />
+                                    </Box>
 
-                        <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 1.5 }}>
-                          <TextField
-                            fullWidth
-                            size="small"
-                            label="Time Complexity"
-                            value={item.time_complexity || ""}
-                            onChange={(e) => updateCoding(idx, "time_complexity", e.target.value)}
-                          />
-                          <TextField
-                            fullWidth
-                            size="small"
-                            label="Space Complexity"
-                            value={item.space_complexity || ""}
-                            onChange={(e) => updateCoding(idx, "space_complexity", e.target.value)}
-                          />
-                        </Box>
-                      </Box>
-                    </Paper>
-                  ))}
-                </Box>
+                                    {/* Field 2: Solution Code (Monospace Code Block) */}
+                                    <Box>
+                                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 0.5 }}>
+                                        <Typography variant="caption" sx={{ fontWeight: 700, color: "#1e293b", fontSize: "0.8rem" }}>
+                                          B. Solution code (Syntax-highlighted monospace code block, preserves indentation)
+                                        </Typography>
+                                        <Chip
+                                          label={item.language || "python"}
+                                          size="small"
+                                          sx={{ height: 20, fontSize: "0.7rem", backgroundColor: "#075174", color: "#fff", fontWeight: 700 }}
+                                        />
+                                      </Box>
+                                      <TextField
+                                        fullWidth
+                                        multiline
+                                        rows={9}
+                                        placeholder={`def find_duplicates(nums):\n    seen, dups = set(), set()\n    for x in nums:\n        if x in seen:\n            dups.add(x)\n        seen.add(x)\n    return list(dups)`}
+                                        value={item.code || item.solution || ""}
+                                        onChange={(e) => updateCoding(idx, "code", e.target.value)}
+                                        sx={{
+                                          backgroundColor: "#075174",
+                                          borderRadius: 2,
+                                          p: 1,
+                                          "& .MuiInputBase-root": {
+                                            backgroundColor: "transparent",
+                                            color: "#e2e8f0",
+                                            fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
+                                            fontSize: "0.875rem",
+                                            lineHeight: 1.6,
+                                          },
+                                          "& .MuiOutlinedInput-notchedOutline": {
+                                            borderColor: "rgba(255, 255, 255, 0.2)",
+                                          },
+                                          "&:hover .MuiOutlinedInput-notchedOutline": {
+                                            borderColor: "#38bdf8",
+                                          },
+                                          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                                            borderColor: "#38bdf8",
+                                          },
+                                        }}
+                                      />
+                                    </Box>
+
+                                    {/* Field 3: Explanation */}
+                                    <Box>
+                                      <Typography variant="caption" sx={{ fontWeight: 700, color: "#1e293b", display: "block", mb: 0.5, fontSize: "0.8rem" }}>
+                                        C. Explanation (Detailed breakdown of how the solution works)
+                                      </Typography>
+                                      <TextField
+                                        fullWidth
+                                        multiline
+                                        rows={3}
+                                        size="small"
+                                        placeholder="seen stores everything visited. If x is already in seen, it is a repeat and goes into dups. A set gives O(1) lookups, so the loop is linear."
+                                        value={item.explanation || ""}
+                                        onChange={(e) => updateCoding(idx, "explanation", e.target.value)}
+                                        sx={{ backgroundColor: "#f8fafc", borderRadius: 1.5 }}
+                                      />
+                                    </Box>
+
+                                    {/* Field 4: Time and Space Complexity */}
+                                    <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2 }}>
+                                      <TextField
+                                        fullWidth
+                                        size="small"
+                                        label="Time Complexity (e.g. O(n))"
+                                        value={item.time_complexity || ""}
+                                        onChange={(e) => updateCoding(idx, "time_complexity", e.target.value)}
+                                        sx={{ backgroundColor: "#f8fafc" }}
+                                      />
+                                      <TextField
+                                        fullWidth
+                                        size="small"
+                                        label="Space Complexity (e.g. O(n) or O(1))"
+                                        value={item.space_complexity || ""}
+                                        onChange={(e) => updateCoding(idx, "space_complexity", e.target.value)}
+                                        sx={{ backgroundColor: "#f8fafc" }}
+                                      />
+                                    </Box>
+
+                                    {/* Field 5: Interviewer follow-up questions */}
+                                    <Paper
+                                      variant="outlined"
+                                      sx={{
+                                        p: 2,
+                                        borderRadius: 2,
+                                        backgroundColor: "#f8fafc",
+                                        borderColor: "#e2e8f0",
+                                      }}
+                                    >
+                                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1.5 }}>
+                                        <Box>
+                                          <Typography variant="caption" sx={{ fontWeight: 700, color: "#1e293b", display: "block", fontSize: "0.8rem" }}>
+                                            D. Interviewer follow-up questions ({item.follow_up_questions?.length || 0})
+                                          </Typography>
+                                          <Typography variant="caption" sx={{ color: "#64748b" }}>
+                                            Follow-up questions or alternative constraints an interviewer might ask.
+                                          </Typography>
+                                        </Box>
+                                        <Button
+                                          variant="outlined"
+                                          size="small"
+                                          startIcon={<AddIcon />}
+                                          onClick={() => addCodingFollowUp(idx)}
+                                          sx={{
+                                            textTransform: "none",
+                                            borderColor: "#075174",
+                                            color: "#075174",
+                                            "&:hover": { borderColor: "#053d57", backgroundColor: "#DEF7EC" },
+                                          }}
+                                        >
+                                          + Add Follow-up
+                                        </Button>
+                                      </Box>
+
+                                      {(item.follow_up_questions || []).length === 0 ? (
+                                        <Typography variant="body2" sx={{ color: "#94a3b8", fontStyle: "italic", textAlign: "center", py: 1 }}>
+                                          No follow-up questions yet. Click "+ Add Follow-up" to add one.
+                                        </Typography>
+                                      ) : (
+                                        <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                                          {(item.follow_up_questions || []).map((fq, fIdx) => (
+                                            <Paper
+                                              key={fq.id || fIdx}
+                                              variant="outlined"
+                                              sx={{
+                                                p: 1.25,
+                                                borderRadius: 1.5,
+                                                backgroundColor: "#ffffff",
+                                                borderColor: "#e2e8f0",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                gap: 1,
+                                              }}
+                                            >
+                                              <Box sx={{ display: "flex", alignItems: "center", gap: 0.25, flexShrink: 0 }}>
+                                                <IconButton
+                                                  size="small"
+                                                  disabled={fIdx === 0}
+                                                  onClick={() => moveCodingFollowUp(idx, fIdx, -1)}
+                                                  sx={{ p: 0.25 }}
+                                                >
+                                                  <ArrowUpwardIcon sx={{ fontSize: 16 }} />
+                                                </IconButton>
+                                                <IconButton
+                                                  size="small"
+                                                  disabled={fIdx === (item.follow_up_questions || []).length - 1}
+                                                  onClick={() => moveCodingFollowUp(idx, fIdx, 1)}
+                                                  sx={{ p: 0.25 }}
+                                                >
+                                                  <ArrowDownwardIcon sx={{ fontSize: 16 }} />
+                                                </IconButton>
+                                              </Box>
+                                              <TextField
+                                                fullWidth
+                                                size="small"
+                                                placeholder="e.g. How would you solve this without using a set? Sort the list and compare neighbours O(n log n)."
+                                                value={fq.question || ""}
+                                                onChange={(e) => updateCodingFollowUp(idx, fIdx, "question", e.target.value)}
+                                              />
+                                              <IconButton
+                                                size="small"
+                                                onClick={() => deleteCodingFollowUp(idx, fIdx)}
+                                                sx={{ p: 0.5, color: "#ef4444", "&:hover": { backgroundColor: "#fee2e2" }, flexShrink: 0 }}
+                                              >
+                                                <DeleteIcon sx={{ fontSize: 18 }} />
+                                              </IconButton>
+                                            </Paper>
+                                          ))}
+                                        </Box>
+                                      )}
+                                    </Paper>
+                                  </Box>
+                                )}
+                              </Paper>
+                            )}
+                          </SortableItem>
+                        );
+                      })}
+                    </Box>
+                  </SortableContainer>
+                )}
               </Box>
             )}
 
             {/* ── TAB 5: 05 · Common Mistakes ── */}
             {(activeMode === "all" || activeTab === 5) && (
               <Box sx={{ mb: activeMode === "all" ? 4 : 0 }}>
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+                {/* Section Toolbar */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    mb: 2,
+                    flexWrap: "wrap",
+                    gap: 1.5,
+                  }}
+                >
                   <Box>
-                    <Typography variant="h6" sx={{ fontWeight: 700, color: "#074568" }}>
-                      Section 05 · Common Interview Mistakes ({formData.common_mistakes?.length || 0})
-                    </Typography>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <Typography variant="h6" sx={{ fontWeight: 700, color: "#074568" }}>
+                        Section 05 · Common Interview Mistakes
+                      </Typography>
+                      <Chip
+                        label={`${formData.common_mistakes?.length || 0} mistakes`}
+                        size="small"
+                        sx={{ backgroundColor: "#DEF7EC", color: "#03543F", fontWeight: 700 }}
+                      />
+                    </Box>
                     <Typography variant="caption" sx={{ color: "#64748b" }}>
-                      What candidates commonly do wrong, why it matters, and how to avoid it.
+                      Small habits that quietly weaken good answers.
                     </Typography>
                   </Box>
-                  <Button
-                    variant="contained"
-                    size="small"
-                    startIcon={<AddIcon />}
-                    onClick={addMistake}
-                    sx={{ backgroundColor: "#37AB79", "&:hover": { backgroundColor: "#2d8a62" }, textTransform: "none" }}
-                  >
-                    + Add Common Mistake
-                  </Button>
+
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={expandAllMistakes}
+                      sx={{ textTransform: "none", fontSize: "0.8rem", borderColor: "#cbd5e1", color: "#475569" }}
+                    >
+                      Expand All
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={collapseAllMistakes}
+                      sx={{ textTransform: "none", fontSize: "0.8rem", borderColor: "#cbd5e1", color: "#475569" }}
+                    >
+                      Collapse All
+                    </Button>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      startIcon={<AddIcon />}
+                      onClick={addMistake}
+                      sx={{
+                        backgroundColor: "#075174",
+                        "&:hover": { backgroundColor: "#053d57" },
+                        textTransform: "none",
+                        fontWeight: 600,
+                      }}
+                    >
+                      + Add Common Mistake
+                    </Button>
+                  </Box>
                 </Box>
 
+                {/* Editable Section Title & Subtitle */}
                 {renderSectionHeaderBox("common-mistakes", "05 · Common Interview Mistakes")}
 
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                  {(formData.common_mistakes || []).map((item, idx) => (
-                    <Paper key={item.id || idx} variant="outlined" sx={{ p: 2, borderRadius: 2, backgroundColor: "#ffffff" }}>
-                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1.5 }}>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#074568" }}>
-                          #{item.num || idx + 1}: {item.title || "Untitled Mistake"}
-                        </Typography>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                          <IconButton size="small" disabled={idx === 0} onClick={() => moveItem("common_mistakes", idx, -1)}>
-                            <ArrowUpwardIcon fontSize="small" />
-                          </IconButton>
-                          <IconButton size="small" disabled={idx === (formData.common_mistakes || []).length - 1} onClick={() => moveItem("common_mistakes", idx, 1)}>
-                            <ArrowDownwardIcon fontSize="small" />
-                          </IconButton>
-                          <IconButton size="small" onClick={() => deleteMistake(idx)} sx={{ color: "#dc2626" }}>
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </Box>
-                      </Box>
+                {/* Sortable Mistakes Cards List */}
+                {(formData.common_mistakes || []).length === 0 ? (
+                  <Paper variant="outlined" sx={{ p: 4, textAlign: "center", borderRadius: 3, backgroundColor: "#f8fafc" }}>
+                    <Typography variant="body1" sx={{ color: "#64748b", mb: 1.5, fontWeight: 500 }}>
+                      No common interview mistakes added yet.
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      startIcon={<AddIcon />}
+                      onClick={addMistake}
+                      sx={{ backgroundColor: "#075174", "&:hover": { backgroundColor: "#053d57" }, textTransform: "none" }}
+                    >
+                      + Add First Common Mistake
+                    </Button>
+                  </Paper>
+                ) : (
+                  <SortableContainer
+                    items={formData.common_mistakes || []}
+                    onReorder={handleReorderMistakes}
+                  >
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                      {(formData.common_mistakes || []).map((item, idx) => {
+                        const isCardExpanded = expandedMistakesIds[item.id] ?? false;
 
-                      <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-                        <TextField
-                          fullWidth
-                          size="small"
-                          label="Mistake Title"
-                          value={item.title || ""}
-                          onChange={(e) => updateMistake(idx, "title", e.target.value)}
-                        />
-                        <TextField
-                          fullWidth
-                          multiline
-                          rows={2}
-                          size="small"
-                          label="What the Mistake Is"
-                          value={item.mistake || ""}
-                          onChange={(e) => updateMistake(idx, "mistake", e.target.value)}
-                        />
-                        <TextField
-                          fullWidth
-                          multiline
-                          rows={2}
-                          size="small"
-                          label="Why It Happens / Why It Matters"
-                          value={item.why_it_happens || ""}
-                          onChange={(e) => updateMistake(idx, "why_it_happens", e.target.value)}
-                        />
-                        <TextField
-                          fullWidth
-                          multiline
-                          rows={2}
-                          size="small"
-                          label="How to Avoid It"
-                          value={item.how_to_avoid || ""}
-                          onChange={(e) => updateMistake(idx, "how_to_avoid", e.target.value)}
-                        />
-                        <TextField
-                          fullWidth
-                          size="small"
-                          label="Recommended Practice / Advice"
-                          value={item.recommendation || ""}
-                          onChange={(e) => updateMistake(idx, "recommendation", e.target.value)}
-                          sx={{ backgroundColor: "#f0fdf4" }}
-                        />
-                      </Box>
-                    </Paper>
-                  ))}
-                </Box>
+                        return (
+                          <SortableItem key={item.id} id={item.id}>
+                            {({ listeners, isDragging }) => (
+                              <Paper
+                                variant="outlined"
+                                sx={{
+                                  borderRadius: 2.5,
+                                  backgroundColor: "#ffffff",
+                                  borderColor: isDragging ? "#075174" : "#e2e8f0",
+                                  boxShadow: isDragging ? 3 : 0,
+                                  borderLeft: "4px solid #075174",
+                                  overflow: "hidden",
+                                  transition: "box-shadow 0.2s ease, border-color 0.2s ease",
+                                }}
+                              >
+                                {/* Card Header */}
+                                <Box
+                                  sx={{
+                                    p: { xs: 1.5, sm: 2 },
+                                    backgroundColor: isCardExpanded ? "#f8fafc" : "#ffffff",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "space-between",
+                                    gap: 1,
+                                    borderBottom: isCardExpanded ? "1px solid #e2e8f0" : "none",
+                                  }}
+                                >
+                                  {/* Left: Drag Handle, Number Badge, Title, Default Open */}
+                                  <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, minWidth: 0, flex: 1 }}>
+                                    <DragHandle listeners={listeners} isDragging={isDragging} />
+                                    <Chip
+                                      label={`#${item.num || String(idx + 1).padStart(2, "0")}`}
+                                      size="small"
+                                      sx={{
+                                        fontWeight: 700,
+                                        backgroundColor: isCardExpanded ? "#0B3553" : "#E2E8F0",
+                                        color: isCardExpanded ? "#ffffff" : "#1e293b",
+                                        borderRadius: 1.5,
+                                        fontSize: "0.75rem",
+                                        height: 24,
+                                      }}
+                                    />
+                                    <Typography
+                                      variant="subtitle2"
+                                      sx={{
+                                        fontWeight: 700,
+                                        color: "#1e293b",
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                        whiteSpace: "nowrap",
+                                        cursor: "pointer",
+                                      }}
+                                      onClick={() => toggleMistakesExpand(item.id)}
+                                    >
+                                      {item.title || "Untitled Mistake"}
+                                    </Typography>
+                                    {item.default_open && (
+                                      <Chip
+                                        label="Default Open"
+                                        size="small"
+                                        sx={{
+                                          fontSize: "0.7rem",
+                                          height: 20,
+                                          backgroundColor: "#DEF7EC",
+                                          color: "#03543F",
+                                          fontWeight: 600,
+                                        }}
+                                      />
+                                    )}
+                                  </Box>
+
+                                  {/* Right: Actions */}
+                                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, flexShrink: 0 }}>
+                                    <AccessibleReorderButtons
+                                      onMoveUp={() => moveMistakeItem(idx, -1)}
+                                      onMoveDown={() => moveMistakeItem(idx, 1)}
+                                      isFirst={idx === 0}
+                                      isLast={idx === (formData.common_mistakes || []).length - 1}
+                                    />
+                                    <Tooltip title="Duplicate Mistake">
+                                      <IconButton
+                                        size="small"
+                                        onClick={() => duplicateMistake(idx)}
+                                        sx={{ color: "#64748b", "&:hover": { color: "#074568" } }}
+                                      >
+                                        <ContentCopyIcon fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+                                    <Tooltip title="Delete Mistake">
+                                      <IconButton
+                                        size="small"
+                                        onClick={() => deleteMistake(idx)}
+                                        sx={{ color: "#ef4444", "&:hover": { backgroundColor: "#fee2e2" } }}
+                                      >
+                                        <DeleteIcon fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+                                    <IconButton
+                                      size="small"
+                                      onClick={() => toggleMistakesExpand(item.id)}
+                                      sx={{ color: "#64748b" }}
+                                    >
+                                      {isCardExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                                    </IconButton>
+                                  </Box>
+                                </Box>
+
+                                {/* Card Body (Expanded) */}
+                                {isCardExpanded && (
+                                  <Box sx={{ p: { xs: 2, sm: 2.5 }, display: "flex", flexDirection: "column", gap: 2.5 }}>
+                                    {/* Top Row: Title & Default Open Switch */}
+                                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2 }}>
+                                      <TextField
+                                        fullWidth
+                                        size="small"
+                                        label="Mistake Title"
+                                        placeholder="e.g. Memorizing Definitions"
+                                        value={item.title || ""}
+                                        onChange={(e) => updateMistake(idx, "title", e.target.value)}
+                                        sx={{ flex: 1 }}
+                                      />
+                                      <FormControlLabel
+                                        control={
+                                          <Switch
+                                            size="small"
+                                            checked={item.default_open ?? false}
+                                            onChange={(e) => updateMistake(idx, "default_open", e.target.checked)}
+                                            color="success"
+                                          />
+                                        }
+                                        label={
+                                          <Typography variant="caption" sx={{ fontWeight: 600, color: "#475569" }}>
+                                            Open by default
+                                          </Typography>
+                                        }
+                                        sx={{ m: 0 }}
+                                      />
+                                    </Box>
+
+                                    {/* Field 1: The problem */}
+                                    <Box>
+                                      <Typography variant="caption" sx={{ fontWeight: 700, color: "#1e293b", display: "block", mb: 0.5, fontSize: "0.8rem" }}>
+                                        A. The problem (Concise explanation of the mistake)
+                                      </Typography>
+                                      <TextField
+                                        fullWidth
+                                        multiline
+                                        rows={2}
+                                        size="small"
+                                        placeholder="Reciting textbook lines word for word."
+                                        value={item.problem || item.mistake || ""}
+                                        onChange={(e) => updateMistake(idx, "problem", e.target.value)}
+                                        sx={{ backgroundColor: "#f8fafc", borderRadius: 1.5 }}
+                                      />
+                                    </Box>
+
+                                    {/* Field 2: Why it hurts */}
+                                    <Box>
+                                      <Typography variant="caption" sx={{ fontWeight: 700, color: "#1e293b", display: "block", mb: 0.5, fontSize: "0.8rem" }}>
+                                        B. Why it hurts (How the mistake affects interview performance)
+                                      </Typography>
+                                      <TextField
+                                        fullWidth
+                                        multiline
+                                        rows={2}
+                                        size="small"
+                                        placeholder="Interviewers can tell, and follow-up questions expose shallow understanding."
+                                        value={item.why_it_hurts || item.why_it_happens || ""}
+                                        onChange={(e) => updateMistake(idx, "why_it_hurts", e.target.value)}
+                                        sx={{ backgroundColor: "#f8fafc", borderRadius: 1.5 }}
+                                      />
+                                    </Box>
+
+                                    {/* Field 3: Better approach */}
+                                    <Box>
+                                      <Typography variant="caption" sx={{ fontWeight: 700, color: "#1e293b", display: "block", mb: 0.5, fontSize: "0.8rem" }}>
+                                        C. Better approach (How the candidate can improve)
+                                      </Typography>
+                                      <TextField
+                                        fullWidth
+                                        multiline
+                                        rows={2}
+                                        size="small"
+                                        placeholder="Explain in your own words, then connect it to a problem you have worked on."
+                                        value={item.better_approach || item.how_to_avoid || ""}
+                                        onChange={(e) => updateMistake(idx, "better_approach", e.target.value)}
+                                        sx={{ backgroundColor: "#f8fafc", borderRadius: 1.5 }}
+                                      />
+                                    </Box>
+
+                                    {/* Field 4: Recommendation tip (optional) */}
+                                    <Box>
+                                      <Typography variant="caption" sx={{ fontWeight: 600, color: "#64748b", display: "block", mb: 0.5, fontSize: "0.75rem" }}>
+                                        D. Optional Recommendation / Tip (Summary highlight)
+                                      </Typography>
+                                      <TextField
+                                        fullWidth
+                                        size="small"
+                                        placeholder="e.g. Always anchor your answers with a concrete project story or metric."
+                                        value={item.recommendation || ""}
+                                        onChange={(e) => updateMistake(idx, "recommendation", e.target.value)}
+                                        sx={{ backgroundColor: "#f0fdf4", borderRadius: 1.5 }}
+                                      />
+                                    </Box>
+                                  </Box>
+                                )}
+                              </Paper>
+                            )}
+                          </SortableItem>
+                        );
+                      })}
+                    </Box>
+                  </SortableContainer>
+                )}
               </Box>
             )}
 
             {/* ── TAB 6: 06 · Quick Revision ── */}
             {(activeMode === "all" || activeTab === 6) && (
               <Box sx={{ mb: activeMode === "all" ? 4 : 0 }}>
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+                {/* Section Toolbar */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    mb: 2,
+                    flexWrap: "wrap",
+                    gap: 1.5,
+                  }}
+                >
                   <Box>
-                    <Typography variant="h6" sx={{ fontWeight: 700, color: "#074568" }}>
-                      Section 06 · Quick Revision Table ({formData.quick_revision?.length || 0} rows)
-                    </Typography>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <Typography variant="h6" sx={{ fontWeight: 700, color: "#074568" }}>
+                        Section 06 · Quick Revision Table
+                      </Typography>
+                      <Chip
+                        label={`${formData.quick_revision?.length || 0} rows`}
+                        size="small"
+                        sx={{ backgroundColor: "#DEF7EC", color: "#03543F", fontWeight: 700 }}
+                      />
+                    </Box>
                     <Typography variant="caption" sx={{ color: "#64748b" }}>
-                      Responsive two-column revision table for fast memory refresh before interviews.
+                      Refresh the most important concepts at a glance.
                     </Typography>
                   </Box>
+
                   <Button
                     variant="contained"
                     size="small"
                     startIcon={<AddIcon />}
                     onClick={addRevisionRow}
-                    sx={{ backgroundColor: "#37AB79", "&:hover": { backgroundColor: "#2d8a62" }, textTransform: "none" }}
+                    sx={{
+                      backgroundColor: "#075174",
+                      "&:hover": { backgroundColor: "#053d57" },
+                      textTransform: "none",
+                      fontWeight: 600,
+                    }}
                   >
                     + Add Revision Row
                   </Button>
                 </Box>
 
-                {renderSectionHeaderBox("quick-revision", "06 · Quick Revision")}
+                {/* Section Header & Column Labels Editor */}
+                <Paper variant="outlined" sx={{ p: 2, mb: 2.5, backgroundColor: "#f8fafc", borderRadius: 2 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#074568", mb: 1 }}>
+                    Quick Revision Section Header & Table Columns
+                  </Typography>
+                  <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 1.5, mb: 1.5 }}>
+                    <TextField
+                      size="small"
+                      label="Section Title"
+                      value={formData.section_headers?.["quick-revision"]?.title || "Quick Revision"}
+                      onChange={(e) => handleSectionHeaderChange("quick-revision", "title", e.target.value)}
+                      sx={{ flex: 1 }}
+                    />
+                    <TextField
+                      size="small"
+                      label="Section Subtitle"
+                      value={formData.section_headers?.["quick-revision"]?.subtitle || "Refresh the most important concepts at a glance."}
+                      onChange={(e) => handleSectionHeaderChange("quick-revision", "subtitle", e.target.value)}
+                      sx={{ flex: 2 }}
+                    />
+                  </Box>
+                  <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 1.5 }}>
+                    <TextField
+                      size="small"
+                      label="Table Column 1 Header"
+                      value={formData.section_headers?.["quick-revision"]?.column1_label || "Concept"}
+                      onChange={(e) => handleSectionHeaderChange("quick-revision", "column1_label", e.target.value)}
+                      sx={{ flex: 1 }}
+                    />
+                    <TextField
+                      size="small"
+                      label="Table Column 2 Header"
+                      value={formData.section_headers?.["quick-revision"]?.column2_label || "Concise Explanation"}
+                      onChange={(e) => handleSectionHeaderChange("quick-revision", "column2_label", e.target.value)}
+                      sx={{ flex: 2 }}
+                    />
+                  </Box>
+                </Paper>
 
-                <Paper variant="outlined" sx={{ borderRadius: 2, overflow: "hidden" }}>
+                {/* Table Rows List */}
+                <Paper variant="outlined" sx={{ borderRadius: 2, overflow: "hidden", borderColor: "#e2e8f0" }}>
                   <Box
                     sx={{
                       display: "grid",
-                      gridTemplateColumns: "60px 1.2fr 2.5fr 100px",
+                      gridTemplateColumns: { xs: "50px 1fr 1.5fr 70px", sm: "80px 1.2fr 2.5fr 90px" },
                       backgroundColor: "#075174",
                       color: "#fff",
                       px: 2,
-                      py: 1.2,
+                      py: 1.4,
                       fontWeight: 700,
-                      fontSize: "0.85rem",
+                      fontSize: "0.875rem",
+                      alignItems: "center",
                     }}
                   >
                     <Box>#</Box>
-                    <Box>Concept</Box>
-                    <Box>Summary / Definition</Box>
+                    <Box>{formData.section_headers?.["quick-revision"]?.column1_label || "Concept"}</Box>
+                    <Box>{formData.section_headers?.["quick-revision"]?.column2_label || "Concise Explanation"}</Box>
                     <Box sx={{ textAlign: "right" }}>Actions</Box>
                   </Box>
 
-                  <Box sx={{ display: "flex", flexDirection: "column" }}>
-                    {(formData.quick_revision || []).map((row, idx) => (
-                      <Box
-                        key={row.id || idx}
-                        sx={{
-                          display: "grid",
-                          gridTemplateColumns: "60px 1.2fr 2.5fr 100px",
-                          alignItems: "center",
-                          px: 2,
-                          py: 1,
-                          borderBottom: "1px solid #f1f5f9",
-                          backgroundColor: idx % 2 === 0 ? "#ffffff" : "#f8fafc",
-                        }}
-                      >
-                        <Typography variant="caption" sx={{ fontWeight: 600, color: "#64748b" }}>
-                          {idx + 1}
-                        </Typography>
-                        <TextField
-                          size="small"
-                          placeholder="e.g. Precision"
-                          value={row.concept || ""}
-                          onChange={(e) => updateRevisionRow(idx, "concept", e.target.value)}
-                          sx={{ mr: 1 }}
-                        />
-                        <TextField
-                          size="small"
-                          placeholder="Short definition or formula"
-                          value={row.explanation || ""}
-                          onChange={(e) => updateRevisionRow(idx, "explanation", e.target.value)}
-                          sx={{ mr: 1 }}
-                        />
-                        <Box sx={{ display: "flex", justifyContent: "flex-end", alignItems: "center" }}>
-                          <IconButton size="small" disabled={idx === 0} onClick={() => moveItem("quick_revision", idx, -1)}>
-                            <ArrowUpwardIcon fontSize="small" />
-                          </IconButton>
-                          <IconButton
-                            size="small"
-                            disabled={idx === (formData.quick_revision || []).length - 1}
-                            onClick={() => moveItem("quick_revision", idx, 1)}
-                          >
-                            <ArrowDownwardIcon fontSize="small" />
-                          </IconButton>
-                          <IconButton size="small" onClick={() => deleteRevisionRow(idx)} sx={{ color: "#dc2626" }}>
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </Box>
+                  {(formData.quick_revision || []).length === 0 ? (
+                    <Box sx={{ p: 4, textAlign: "center", color: "#64748b" }}>
+                      <Typography variant="body2" sx={{ mb: 1.5 }}>
+                        No revision rows yet. Click "+ Add Revision Row" above.
+                      </Typography>
+                    </Box>
+                  ) : (
+                    <SortableContainer
+                      items={formData.quick_revision || []}
+                      onReorder={handleReorderRevision}
+                    >
+                      <Box sx={{ display: "flex", flexDirection: "column" }}>
+                        {(formData.quick_revision || []).map((row, idx) => (
+                          <SortableItem key={row.id || idx} id={row.id || `rev-${idx}`}>
+                            {({ listeners, isDragging }) => (
+                              <Box
+                                sx={{
+                                  display: "grid",
+                                  gridTemplateColumns: { xs: "50px 1fr 1.5fr 70px", sm: "80px 1.2fr 2.5fr 90px" },
+                                  alignItems: "center",
+                                  px: 2,
+                                  py: 1,
+                                  borderBottom: "1px solid #f1f5f9",
+                                  backgroundColor: isDragging
+                                    ? "#f0fdf4"
+                                    : idx % 2 === 0
+                                    ? "#ffffff"
+                                    : "#f8fafc",
+                                  gap: 1,
+                                }}
+                              >
+                                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                                  <DragHandle listeners={listeners} isDragging={isDragging} />
+                                  <Typography variant="caption" sx={{ fontWeight: 700, color: "#64748b" }}>
+                                    {String(idx + 1).padStart(2, "0")}
+                                  </Typography>
+                                </Box>
+                                <TextField
+                                  size="small"
+                                  placeholder="e.g. Overfitting"
+                                  value={row.concept || ""}
+                                  onChange={(e) => updateRevisionRow(idx, "concept", e.target.value)}
+                                  sx={{ mr: 0.5, "& .MuiInputBase-input": { fontWeight: 600 } }}
+                                />
+                                <TextField
+                                  size="small"
+                                  placeholder="e.g. Performs well on training data but poorly on unseen data"
+                                  value={row.explanation || ""}
+                                  onChange={(e) => updateRevisionRow(idx, "explanation", e.target.value)}
+                                  sx={{ mr: 0.5 }}
+                                />
+                                <Box sx={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 0.25 }}>
+                                  <AccessibleReorderButtons
+                                    onMoveUp={() => moveRevisionRow(idx, -1)}
+                                    onMoveDown={() => moveRevisionRow(idx, 1)}
+                                    isFirst={idx === 0}
+                                    isLast={idx === (formData.quick_revision || []).length - 1}
+                                  />
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => deleteRevisionRow(idx)}
+                                    sx={{ color: "#ef4444", "&:hover": { backgroundColor: "#fee2e2" } }}
+                                  >
+                                    <DeleteIcon sx={{ fontSize: 18 }} />
+                                  </IconButton>
+                                </Box>
+                              </Box>
+                            )}
+                          </SortableItem>
+                        ))}
                       </Box>
-                    ))}
-                  </Box>
+                    </SortableContainer>
+                  )}
                 </Paper>
               </Box>
             )}

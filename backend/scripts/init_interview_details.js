@@ -418,113 +418,113 @@ async function initInterviewDetailsTable() {
         num: "01",
         question: "Write Python code to find duplicate values in a list.",
         default_open: true,
-        problem_statement: "Given a list of integers or strings, write an optimal Python function to identify and return all values that appear more than once in the collection.",
         difficulty: "Easy",
         language: "python",
-        approach: "Iterate through the list while maintaining a `seen` set for O(1) average lookup. When an element is already present in `seen`, it is added to the `duplicates` set. Using a set for duplicates guarantees no repeated items in the output.",
+        approach: "Track values already seen; when a value appears again, record it as a duplicate. One pass, O(n).",
+        expected_approach: "Track values already seen; when a value appears again, record it as a duplicate. One pass, O(n).",
         code: `def find_duplicates(nums):
-    """
-    Finds all duplicate values in a list in O(n) time.
-    Uses a hash set for O(1) membership lookups.
-    """
-    seen = set()
-    duplicates = set()
-    
-    for item in nums:
-        if item in seen:
-            duplicates.add(item)
-        else:
-            seen.add(item)
-            
-    return list(duplicates)
-
-# Example Execution:
-input_data = [1, 2, 3, 2, 4, 5, 1, 6, 2]
-result = find_duplicates(input_data)
-print("Duplicate values:", result)  # Output: [1, 2]`,
-        explanation: "The solution runs in a single linear pass. Memory consumption is bounded by the number of unique elements stored in the auxiliary hash sets.",
-        time_complexity: "O(n) — single pass through the list",
-        space_complexity: "O(n) — hash set auxiliary memory",
-        sample_input: "[1, 2, 3, 2, 4, 5, 1, 6, 2]",
-        sample_output: "[1, 2]"
+    seen, dups = set(), set()
+    for x in nums:
+        if x in seen:
+            dups.add(x)
+        seen.add(x)
+    return list(dups)
+print(find_duplicates([1, 2, 3, 2, 4, 1])) # [1, 2]`,
+        explanation: "seen stores everything visited. If x is already in seen, it is a repeat and goes into dups. A set gives O(1) lookups, so the loop is linear.",
+        time_complexity: "O(n)",
+        space_complexity: "O(n)",
+        follow_up_questions: [
+          {
+            id: "code-fu-1-1",
+            question: "How would you solve this without using a set? Sort the list and compare neighbours (O(n log n)), or use collections.Counter and keep counts above 1."
+          }
+        ]
       },
       {
         id: "code-2",
         num: "02",
         question: "Implement a linear regression gradient descent step in NumPy.",
         default_open: false,
-        problem_statement: "Implement the parameter update equations for batch gradient descent in multivariable linear regression using vectorized NumPy operations.",
         difficulty: "Medium",
         language: "python",
-        approach: "Vectorization replaces slow Python loops with BLAS-accelerated matrix dot products, computing gradient vectors across all training samples simultaneously.",
+        approach: "Vectorize parameter updates with matrix dot products, computing gradients across all training samples simultaneously.",
+        expected_approach: "Vectorize parameter updates with matrix dot products, computing gradients across all training samples simultaneously.",
         code: `import numpy as np
 
 def gradient_descent_step(X, y, weights, bias, learning_rate):
-    """
-    Performs one parameter update step for Linear Regression.
-    X: shape (m, n), y: shape (m, 1)
-    """
     m = len(y)
-    
-    # 1. Forward pass: compute predictions
     y_pred = np.dot(X, weights) + bias
     error = y_pred - y
-    
-    # 2. Compute gradients
     dw = (1 / m) * np.dot(X.T, error)
     db = (1 / m) * np.sum(error)
-    
-    # 3. Update parameters
     weights -= learning_rate * dw
     bias -= learning_rate * db
-    
-    # 4. Compute Mean Squared Error (MSE) loss
-    loss = (1 / (2 * m)) * np.sum(error ** 2)
-    return weights, bias, loss`,
-        explanation: "The code executes forward prediction, gradient computation via transpose dot product, and parameter updates along the negative gradient direction.",
-        time_complexity: "O(m * n) per gradient step",
-        space_complexity: "O(m) for prediction error vector",
-        sample_input: "X: (1000, 10), y: (1000, 1)",
-        sample_output: "Updated weights, updated bias, float loss"
+    return weights, bias`,
+        explanation: "Vectorized NumPy operations execute BLAS-accelerated dot products, avoiding slow Python for-loops over data rows.",
+        time_complexity: "O(m * n)",
+        space_complexity: "O(m)",
+        follow_up_questions: [
+          {
+            id: "code-fu-2-1",
+            question: "How would you add L2 (Ridge) regularization to this gradient descent step?"
+          }
+        ]
       },
       {
         id: "code-3",
         num: "03",
         question: "Calculate Precision, Recall, and F1 Score from a confusion matrix in Python.",
         default_open: false,
-        problem_statement: "Given the raw counts of TP, FP, TN, and FN, compute the standard classification evaluation metrics with zero-division safety.",
         difficulty: "Easy",
         language: "python",
         approach: "Calculate TP/(TP+FP) and TP/(TP+FN), guarding against 0-division before taking the harmonic mean for F1 score.",
+        expected_approach: "Calculate TP/(TP+FP) and TP/(TP+FN), guarding against 0-division before taking the harmonic mean for F1 score.",
         code: `def calculate_metrics(tp, fp, tn, fn):
-    """
-    Computes precision, recall, and F1-score with division safety.
-    """
     precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
     recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
-    
-    if (precision + recall) > 0:
-        f1 = 2 * (precision * recall) / (precision + recall)
-    else:
-        f1 = 0.0
-        
-    accuracy = (tp + tn) / (tp + tn + fp + fn) if (tp + tn + fp + fn) > 0 else 0.0
-    
-    return {
-        "Accuracy": round(accuracy, 4),
-        "Precision": round(precision, 4),
-        "Recall": round(recall, 4),
-        "F1_Score": round(f1, 4),
-    }
+    f1 = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0.0
+    return {"precision": round(precision, 4), "recall": round(recall, 4), "f1": round(f1, 4)}`,
+        explanation: "Safeguards against ZeroDivisionError when classifiers make no positive predictions or when denominators sum to zero.",
+        time_complexity: "O(1)",
+        space_complexity: "O(1)",
+        follow_up_questions: [
+          {
+            id: "code-fu-3-1",
+            question: "When would you optimize for PR-AUC instead of standard F1 score?"
+          }
+        ]
+      },
+      {
+        id: "code-4",
+        num: "04",
+        question: "Machine Learning: Write an efficient K-Means clustering algorithm.",
+        default_open: false,
+        difficulty: "Hard",
+        language: "python",
+        approach: "Randomly initialize k cluster centroids, iteratively assign data points to nearest centroid using Euclidean distance, and recompute centroids as mean of assigned points until convergence.",
+        expected_approach: "Randomly initialize k cluster centroids, iteratively assign data points to nearest centroid using Euclidean distance, and recompute centroids as mean of assigned points until convergence.",
+        code: `import numpy as np
 
-# Example:
-print(calculate_metrics(tp=85, fp=15, tn=890, fn=10))
-# Output: {'Accuracy': 0.975, 'Precision': 0.85, 'Recall': 0.8947, 'F1_Score': 0.8718}`,
-        explanation: "Safeguards against ZeroDivisionError when classifiers make no positive predictions or when denominator sums equal zero.",
-        time_complexity: "O(1) constant time",
-        space_complexity: "O(1) constant space",
-        sample_input: "tp=85, fp=15, tn=890, fn=10",
-        sample_output: "{'Accuracy': 0.975, 'Precision': 0.85, 'Recall': 0.8947, 'F1_Score': 0.8718}"
+def kmeans(X, k, max_iters=100):
+    idx = np.random.choice(len(X), k, replace=False)
+    centroids = X[idx]
+    for _ in range(max_iters):
+        distances = np.linalg.norm(X[:, np.newaxis] - centroids, axis=2)
+        labels = np.argmin(distances, axis=1)
+        new_centroids = np.array([X[labels == j].mean(axis=0) for j in range(k)])
+        if np.allclose(centroids, new_centroids):
+            break
+        centroids = new_centroids
+    return centroids, labels`,
+        explanation: "Computes cluster assignments using broadcasting distance matrices and checks convergence when centroid movement falls below tolerance.",
+        time_complexity: "O(iters * n * k * d)",
+        space_complexity: "O(n * k)",
+        follow_up_questions: [
+          {
+            id: "code-fu-4-1",
+            question: "How does K-Means++ improve centroid initialization over uniform random selection?"
+          }
+        ]
       }
     ];
 
@@ -532,58 +532,70 @@ print(calculate_metrics(tp=85, fp=15, tn=890, fn=10))
       {
         id: "cm-1",
         num: "01",
-        title: "Memorizing Definitions Without Understanding Underlying Mechanics",
+        title: "Memorizing Definitions",
         default_open: true,
-        mistake: "Reciting textbook formulas or Wikipedia definitions without being able to explain geometric intuition, trade-offs, or hyperparameter sensitivities.",
-        why_it_happens: "Interviewers immediately probe deeper (e.g., 'Why would you choose L1 over L2 regularization for feature selection?'). Pure memorization unravels as soon as the interviewer alters the problem constraints.",
-        how_to_avoid: "Focus on first principles: What optimization problem does this solve? What are the edge cases? When does this algorithm fail?",
-        recommendation: "Practical Advice: Anchor every concept in a concrete project from your portfolio. For instance, explain L1 regularization by referencing how it zeroed out redundant sensor features in your project."
+        problem: "Reciting textbook lines word for word.",
+        mistake: "Reciting textbook lines word for word.",
+        why_it_hurts: "Interviewers can tell, and follow-up questions expose shallow understanding.",
+        why_it_happens: "Interviewers can tell, and follow-up questions expose shallow understanding.",
+        better_approach: "Explain in your own words, then connect it to a problem you have worked on.",
+        how_to_avoid: "Explain in your own words, then connect it to a problem you have worked on.",
+        recommendation: "Anchor every definition with an example project you built."
       },
       {
         id: "cm-2",
         num: "02",
-        title: "Ignoring Practical Constraints and Real-World Trade-Offs",
+        title: "Memorizing Definitions",
         default_open: false,
-        mistake: "Proposing massive 100-model ensembles or multi-billion parameter models for simple tabular problems without considering inference latency SLAs, memory constraints, or cloud compute costs.",
-        why_it_happens: "Companies hire engineers who build maintainable, cost-effective software. A 0.2% accuracy boost is rarely worth a 10x inference latency penalty in production systems.",
-        how_to_avoid: "Always analyze the full engineering lifecycle: training frequency, inference latency SLAs, cold-start latency, memory footprint, and maintenance overhead.",
-        recommendation: "Practical Advice: Mention lighter baseline models first (e.g., Logistic Regression or LightGBM) before jumping into complex deep architectures."
+        problem: "Reciting textbook lines word for word.",
+        mistake: "Reciting textbook lines word for word.",
+        why_it_hurts: "Interviewers can tell, and follow-up questions expose shallow understanding.",
+        why_it_happens: "Interviewers can tell, and follow-up questions expose shallow understanding.",
+        better_approach: "Explain in your own words, then connect it to a problem you have worked on.",
+        how_to_avoid: "Explain in your own words, then connect it to a problem you have worked on.",
+        recommendation: "Demonstrate practical understanding through hands-on experience."
       },
       {
         id: "cm-3",
         num: "03",
-        title: "Confusing Related Concepts (Bias vs Variance, Precision vs Recall)",
+        title: "Memorizing Definitions",
         default_open: false,
-        mistake: "Mixing up False Positives with False Negatives, or failing to identify when Precision is paramount (e.g. spam detection) vs Recall (e.g. cancer diagnosis or fraud).",
-        why_it_happens: "Misidentifying metric trade-offs shows a lack of real-world deployment maturity.",
-        how_to_avoid: "Anchor metrics to tangible real-world penalties: False Positive = An innocent user gets flagged; False Negative = A dangerous fraud slips past undetected.",
-        recommendation: "Practical Advice: Explicitly state the business cost of both error types before recommending an evaluation threshold."
+        problem: "Reciting textbook lines word for word.",
+        mistake: "Reciting textbook lines word for word.",
+        why_it_hurts: "Interviewers can tell, and follow-up questions expose shallow understanding.",
+        why_it_happens: "Interviewers can tell, and follow-up questions expose shallow understanding.",
+        better_approach: "Explain in your own words, then connect it to a problem you have worked on.",
+        how_to_avoid: "Explain in your own words, then connect it to a problem you have worked on.",
+        recommendation: "Focus on first principles and geometric intuition."
       },
       {
         id: "cm-4",
         num: "04",
-        title: "Failing to Connect Technical Metrics to Business Value",
+        title: "Memorizing Definitions",
         default_open: false,
-        mistake: "Focusing exclusively on technical scores (e.g. 'My model achieved 0.94 ROC-AUC') without explaining how it moved business KPIs (e.g. reduced customer churn by 14% or saved $120k in operational costs).",
-        why_it_happens: "Stakeholders value business impact and return on investment over raw loss curve progression.",
-        how_to_avoid: "Structure responses using the STAR method: Situation, Task, Action, and quantifiable Business Result.",
-        recommendation: "Practical Advice: Always conclude technical project explanations with measurable outcomes and business metrics."
+        problem: "Reciting textbook lines word for word.",
+        mistake: "Reciting textbook lines word for word.",
+        why_it_hurts: "Interviewers can tell, and follow-up questions expose shallow understanding.",
+        why_it_happens: "Interviewers can tell, and follow-up questions expose shallow understanding.",
+        better_approach: "Explain in your own words, then connect it to a problem you have worked on.",
+        how_to_avoid: "Explain in your own words, then connect it to a problem you have worked on.",
+        recommendation: "Structure your responses clearly with the STAR framework."
       }
     ];
 
     const defaultQuickRevision = [
-      { id: "rev-1", concept: "Overfitting", explanation: "Model learns training noise and specific details, resulting in poor generalization to unseen test data." },
-      { id: "rev-2", concept: "Underfitting", explanation: "Model is too simplistic to capture the underlying pattern in the dataset (high bias)." },
-      { id: "rev-3", concept: "Precision", explanation: "Proportion of predicted positive instances that are actually true: TP / (TP + FP)." },
-      { id: "rev-4", concept: "Recall", explanation: "Proportion of actual positive instances successfully identified: TP / (TP + FN)." },
-      { id: "rev-5", concept: "F1 Score", explanation: "Harmonic mean of Precision and Recall, balancing both in imbalanced settings: 2 * (P * R) / (P + R)." },
-      { id: "rev-6", concept: "Bias vs Variance", explanation: "Bias is error from erroneous model assumptions; Variance is error from sensitivity to training data fluctuations." },
-      { id: "rev-7", concept: "ROC-AUC", explanation: "Area Under Receiver Operating Characteristic Curve measuring separation across all classification thresholds." },
-      { id: "rev-8", concept: "Cross-Validation", explanation: "Resampling technique (e.g. K-Fold) used to evaluate generalization ability across unseen partitions." },
-      { id: "rev-9", concept: "Feature Engineering", explanation: "Transforming raw variables into informative representations that maximize algorithm learning efficacy." },
-      { id: "rev-10", concept: "Data Leakage", explanation: "Inadvertently sharing future, test, or target information with the training pipeline, falsely inflating validation scores." },
-      { id: "rev-11", concept: "Loss Function", explanation: "Mathematical metric computing error between single prediction and true label for optimization." },
-      { id: "rev-12", concept: "Cost Function", explanation: "Aggregate loss computed across entire dataset or batch to update model parameters." }
+      { id: "rev-1", concept: "Overfitting", explanation: "Performs well on training data but poorly on unseen data" },
+      { id: "rev-2", concept: "Underfitting", explanation: "Model is too simple to capture important patterns" },
+      { id: "rev-3", concept: "Precision", explanation: "TP / (TP + FP)" },
+      { id: "rev-4", concept: "Recall", explanation: "TP / (TP + FN)" },
+      { id: "rev-5", concept: "F1 Score", explanation: "Harmonic mean of precision and recall" },
+      { id: "rev-6", concept: "Random Forest", explanation: "Ensemble of decision trees" },
+      { id: "rev-7", concept: "Regularization", explanation: "Controls model complexity" },
+      { id: "rev-8", concept: "Cross Validation", explanation: "Evaluates model across multiple data splits" },
+      { id: "rev-9", concept: "Feature Engineering", explanation: "Creating useful input features" },
+      { id: "rev-10", concept: "Data Leakage", explanation: "Information from outside training data influences the model" },
+      { id: "rev-11", concept: "Bias", explanation: "Error from overly simple assumptions" },
+      { id: "rev-12", concept: "Variance", explanation: "Sensitivity to fluctuations in training data" }
     ];
 
     const defaultSectionHeaders = {
@@ -600,16 +612,20 @@ print(calculate_metrics(tp=85, fp=15, tn=890, fn=10))
         subtitle: "Questions that test how you apply concepts to real-world problems."
       },
       "coding-questions": {
-        title: "04 · Practical & Coding Questions",
-        subtitle: "Core algorithmic patterns and practical Python/NumPy implementations."
+        title: "Practical & Coding Questions",
+        subtitle: "Questions where you may be asked to write code, explain an approach or solve a technical problem.",
+        column1_label: "Concept",
+        column2_label: "Concise Explanation"
       },
       "common-mistakes": {
-        title: "05 · Common Interview Mistakes",
-        subtitle: "Pitfalls to avoid and recommended interview practices that interviewers look for."
+        title: "Common Interview Mistakes",
+        subtitle: "Small habits that quietly weaken good answers."
       },
       "quick-revision": {
-        title: "06 · Quick Revision",
-        subtitle: "Fast memory refresher of essential terminology, formulas, and definitions."
+        title: "Quick Revision",
+        subtitle: "Refresh the most important concepts at a glance.",
+        column1_label: "Concept",
+        column2_label: "Concise Explanation"
       }
     };
 
@@ -771,18 +787,24 @@ print(calculate_metrics(tp=85, fp=15, tn=890, fn=10))
       );
       console.log('Successfully seeded default interview_details record.');
     } else {
-      console.log('Updating existing default interview_details record with Must-Know questions matching reference design...');
+      console.log('Updating existing default interview_details record with all sections matching reference design...');
       await query(
         `UPDATE interview_details
          SET must_know_questions = ?,
              qa_questions = ?,
              scenario_questions = ?,
+             coding_questions = ?,
+             common_mistakes = ?,
+             quick_revision = ?,
              section_headers = ?
          WHERE slug = ?`,
         [
           JSON.stringify(defaultMustKnow),
           JSON.stringify(defaultQA),
           JSON.stringify(defaultScenario),
+          JSON.stringify(defaultCoding),
+          JSON.stringify(defaultMistakes),
+          JSON.stringify(defaultQuickRevision),
           JSON.stringify(defaultSectionHeaders),
           'machine-learning-interview-questions-answers'
         ]

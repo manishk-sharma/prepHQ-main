@@ -80,16 +80,20 @@ const DEFAULT_SECTION_HEADERS = {
     subtitle: "Questions that test how you apply concepts to real-world problems.",
   },
   "coding-questions": {
-    title: "04 · Practical & Coding Questions",
-    subtitle: "Implementation and coding exercises with algorithmic explanations.",
+    title: "Practical & Coding Questions",
+    subtitle: "Questions where you may be asked to write code, explain an approach or solve a technical problem.",
+    column1_label: "Concept",
+    column2_label: "Concise Explanation",
   },
   "common-mistakes": {
-    title: "05 · Common Interview Mistakes",
-    subtitle: "Frequent mistakes candidates should avoid during technical interviews.",
+    title: "Common Interview Mistakes",
+    subtitle: "Small habits that quietly weaken good answers.",
   },
   "quick-revision": {
-    title: "06 · Quick Revision",
-    subtitle: "Quick-reference summary table before entering your interview.",
+    title: "Quick Revision",
+    subtitle: "Refresh the most important concepts at a glance.",
+    column1_label: "Concept",
+    column2_label: "Concise Explanation",
   },
 };
 
@@ -241,9 +245,21 @@ const InterviewsPage = () => {
         }
       });
 
-      if (scenarioQuestions[0]?.id) initialOpen[scenarioQuestions[0].id] = true;
-      if (codingQuestions[0]?.id) initialOpen[codingQuestions[0].id] = true;
-      if (commonMistakes[0]?.id) initialOpen[commonMistakes[0].id] = true;
+      scenarioQuestions.forEach((q, idx) => {
+        if (q.default_open === true || (idx === 0 && q.default_open !== false)) {
+          initialOpen[q.id || `sc-${idx + 1}`] = true;
+        }
+      });
+      codingQuestions.forEach((q, idx) => {
+        if (q.default_open === true || (idx === 0 && q.default_open !== false)) {
+          initialOpen[q.id || `code-${idx + 1}`] = true;
+        }
+      });
+      commonMistakes.forEach((m, idx) => {
+        if (m.default_open === true || (idx === 0 && m.default_open !== false)) {
+          initialOpen[m.id || `cm-${idx + 1}`] = true;
+        }
+      });
       setOpenAccordions((prev) => ({ ...initialOpen, ...prev }));
     }
   }, [dbData, selectedDifficulty]);
@@ -961,203 +977,181 @@ const InterviewsPage = () => {
   // ── Section 04 Renderer: Practical & Coding Questions ───────────────────
   const renderCodingSection = () => {
     const header = sectionHeaders["coding-questions"];
+    const badgeTitle =
+      header?.title?.replace(/^\d+[\s·.-]*/, "") || "Practical & Coding Questions";
+    const subtitle =
+      header?.subtitle ||
+      "Questions where you may be asked to write code, explain an approach or solve a technical problem.";
+
     return (
       <section
         key="coding-questions"
         id="coding-questions"
-        className="interview-section"
+        className="interview-section must-know-section-wrap"
         aria-labelledby="heading-coding"
       >
-        <div className="section-header-wrap">
-          <h2 id="heading-coding" className="section-main-heading">
-            {header?.title || "04 · Practical & Coding Questions"}
-          </h2>
-          <p className="section-sub-desc">
-            {header?.subtitle || "Implementation and coding exercises with algorithmic explanations."}
-          </p>
+        <div className="must-know-header-wrap">
+          <div id="heading-coding" className="must-know-badge">
+            {badgeTitle}
+          </div>
+          <p className="must-know-subtitle">{subtitle}</p>
         </div>
 
-        <div className="interview-accordion-group">
+        <div className="must-know-accordion-list" role="region" aria-label="Practical & Coding Questions">
           {codingQuestions.map((item, idx) => {
             const itemId = item.id || `code-${idx + 1}`;
             const isOpen = !!openAccordions[itemId];
             const num = item.num || String(idx + 1).padStart(2, "0");
 
+            const approach = item.expected_approach || item.approach;
+            const explanation = item.explanation;
+            const rawFollowUps =
+              item.follow_up_questions || item.followUps || item.follow_ups || (item.follow_up ? [item.follow_up] : []);
+            const followUpList = Array.isArray(rawFollowUps)
+              ? rawFollowUps
+                  .map((fu, fIdx) => {
+                    if (typeof fu === "string") {
+                      return { id: `code-fu-${itemId}-${fIdx}`, question: fu };
+                    }
+                    return {
+                      id: fu.id || `code-fu-${itemId}-${fIdx}`,
+                      question: fu.question || fu.text || "",
+                    };
+                  })
+                  .filter((fu) => fu.question && fu.question.trim().length > 0)
+              : [];
+
             return (
               <article
                 key={itemId}
-                className={`interview-accordion-item ${isOpen ? "is-open" : ""}`}
+                className={`must-know-card ${isOpen ? "is-open" : ""}`}
               >
                 <button
                   type="button"
-                  className="accordion-header-btn"
+                  className="must-know-card-header-btn"
                   onClick={() => toggleAccordion(itemId)}
                   aria-expanded={isOpen}
+                  aria-controls={`body-${itemId}`}
+                  id={`header-${itemId}`}
                 >
-                  <div className="accordion-title-wrap">
-                    <span className="accordion-num-badge">{num}</span>
-                    <h3 className="accordion-title-text">{item.question}</h3>
-                    {item.difficulty && (
-                      <span className="difficulty-pill-tag">
-                        {item.difficulty}
-                      </span>
-                    )}
+                  <div className="must-know-header-left">
+                    <span
+                      className={`must-know-num-badge ${
+                        isOpen ? "badge-open" : "badge-closed"
+                      }`}
+                    >
+                      {num}
+                    </span>
+                    <h3 className="must-know-question-title">{item.question}</h3>
                   </div>
-                  <FiChevronDown
-                    className={`accordion-chevron-icon ${isOpen ? "rotate" : ""}`}
-                    aria-hidden="true"
-                  />
+                  {isOpen ? (
+                    <FiChevronUp className="must-know-chevron" aria-hidden="true" />
+                  ) : (
+                    <FiChevronDown className="must-know-chevron" aria-hidden="true" />
+                  )}
                 </button>
 
                 {isOpen && (
-                  <div className="accordion-body-content">
-                    {(item.problem_statement || item.problemStatement) && (
-                      <div className="content-block">
-                        <h4 className="content-subtitle">Problem Statement</h4>
-                        {renderContent(item.problem_statement || item.problemStatement)}
-                      </div>
-                    )}
-
-                    {item.approach && (
-                      <div className="content-block">
-                        <h4 className="content-subtitle">Algorithm & Approach</h4>
-                        {renderContent(item.approach)}
-                      </div>
-                    )}
-
-                    {item.code && (
-                      <div
-                        className="interview-code-container"
-                        role="region"
-                        aria-label="Code snippet"
-                      >
-                        <div className="code-header-bar">
-                          <span className="code-lang-label">
-                            {item.language || "Python"}
-                          </span>
-                          <button
-                            type="button"
-                            className="code-copy-btn"
-                            onClick={() => handleCopyCode(item.code, itemId)}
-                            title="Copy code snippet"
-                          >
-                            {copiedCodeId === itemId ? (
-                              <>
-                                <FiCheck aria-hidden="true" /> Copied!
-                              </>
-                            ) : (
-                              <>
-                                <FiCopy aria-hidden="true" /> Copy Code
-                              </>
-                            )}
-                          </button>
+                  <>
+                    <div className="must-know-divider" aria-hidden="true" />
+                    <div
+                      id={`body-${itemId}`}
+                      className="must-know-card-body"
+                      role="region"
+                      aria-labelledby={`header-${itemId}`}
+                    >
+                      {/* Expected approach */}
+                      {approach && (
+                        <div className="must-know-field-block">
+                          <h4 className="must-know-field-label">Expected approach</h4>
+                          <div className="must-know-field-text">
+                            {renderContent(approach)}
+                          </div>
                         </div>
+                      )}
 
-                        <pre className="interview-code-pre">
-                          <code>{item.code}</code>
-                        </pre>
-                      </div>
-                    )}
-
-                    {(item.explanation ||
-                      item.time_complexity ||
-                      item.space_complexity ||
-                      item.timeComplexity ||
-                      item.spaceComplexity) && (
-                      <div className="content-block">
-                        <h4 className="content-subtitle">Approach & Complexity</h4>
-                        {item.explanation && renderContent(item.explanation)}
-                        {((item.time_complexity || item.timeComplexity) ||
-                          (item.space_complexity || item.spaceComplexity)) && (
-                          <div className="complexity-meta-bar">
-                            {(item.time_complexity || item.timeComplexity) && (
-                              <div>
-                                Time Complexity:{" "}
-                                <span>{item.time_complexity || item.timeComplexity}</span>
-                              </div>
-                            )}
-                            {(item.space_complexity || item.spaceComplexity) && (
-                              <div>
-                                Space Complexity:{" "}
-                                <span>{item.space_complexity || item.spaceComplexity}</span>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {(item.sample_input || item.sample_output) && (
-                      <div
-                        className="sample-io-grid"
-                        style={{
-                          display: "grid",
-                          gridTemplateColumns: "1fr 1fr",
-                          gap: "12px",
-                          marginTop: "12px",
-                        }}
-                      >
-                        {item.sample_input && (
+                      {/* Solution */}
+                      {item.code && (
+                        <div className="must-know-field-block">
+                          <h4 className="must-know-field-label">Solution</h4>
                           <div
-                            style={{
-                              background: "#f8fafc",
-                              padding: "10px 14px",
-                              borderRadius: "6px",
-                              border: "1px solid #e2e8f0",
-                            }}
+                            className="interview-code-container"
+                            role="region"
+                            aria-label="Code solution"
                           >
-                            <strong
-                              style={{
-                                fontSize: "11px",
-                                color: "#64748b",
-                                textTransform: "uppercase",
-                              }}
-                            >
-                              Sample Input
-                            </strong>
-                            <pre
-                              style={{
-                                margin: "4px 0 0",
-                                fontSize: "12px",
-                                fontFamily: "monospace",
-                              }}
-                            >
-                              {item.sample_input}
+                            <div className="code-header-bar">
+                              <span className="code-lang-label">
+                                {item.language || "Python"}
+                              </span>
+                              <button
+                                type="button"
+                                className="code-copy-btn"
+                                onClick={() => handleCopyCode(item.code, itemId)}
+                                title="Copy code snippet"
+                              >
+                                {copiedCodeId === itemId ? (
+                                  <>
+                                    <FiCheck aria-hidden="true" /> Copied!
+                                  </>
+                                ) : (
+                                  <>
+                                    <FiCopy aria-hidden="true" /> Copy Code
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                            <pre className="interview-code-pre">
+                              <code>{item.code}</code>
                             </pre>
                           </div>
-                        )}
-                        {item.sample_output && (
-                          <div
-                            style={{
-                              background: "#f8fafc",
-                              padding: "10px 14px",
-                              borderRadius: "6px",
-                              border: "1px solid #e2e8f0",
-                            }}
-                          >
-                            <strong
-                              style={{
-                                fontSize: "11px",
-                                color: "#64748b",
-                                textTransform: "uppercase",
-                              }}
-                            >
-                              Sample Output
-                            </strong>
-                            <pre
-                              style={{
-                                margin: "4px 0 0",
-                                fontSize: "12px",
-                                fontFamily: "monospace",
-                              }}
-                            >
-                              {item.sample_output}
-                            </pre>
+                        </div>
+                      )}
+
+                      {/* Explanation */}
+                      {explanation && (
+                        <div className="must-know-field-block">
+                          <h4 className="must-know-field-label">Explanation</h4>
+                          <div className="must-know-field-text">
+                            {renderContent(explanation)}
                           </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
+                          {(item.time_complexity || item.space_complexity) && (
+                            <div className="complexity-meta-bar">
+                              {item.time_complexity && (
+                                <div>
+                                  Time Complexity: <span>{item.time_complexity}</span>
+                                </div>
+                              )}
+                              {item.space_complexity && (
+                                <div>
+                                  Space Complexity: <span>{item.space_complexity}</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Interviewer follow-up */}
+                      {followUpList.length > 0 && (
+                        <div className="must-know-field-block">
+                          <h4 className="must-know-field-label">
+                            {followUpList.length > 1 ? "Possible follow-ups" : "Interviewer follow-up"}
+                          </h4>
+                          {followUpList.length === 1 ? (
+                            <div className="must-know-field-text">
+                              {renderContent(followUpList[0].question)}
+                            </div>
+                          ) : (
+                            <ul className="scenario-followup-bullets">
+                              {followUpList.map((fu) => (
+                                <li key={fu.id}>{renderContent(fu.question)}</li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </>
                 )}
               </article>
             );
@@ -1170,78 +1164,114 @@ const InterviewsPage = () => {
   // ── Section 05 Renderer: Common Interview Mistakes ───────────────────────
   const renderMistakesSection = () => {
     const header = sectionHeaders["common-mistakes"];
+    const badgeTitle =
+      header?.title?.replace(/^\d+[\s·.-]*/, "") || "Common Interview Mistakes";
+    const subtitle =
+      header?.subtitle || "Small habits that quietly weaken good answers.";
+
     return (
       <section
         key="common-mistakes"
         id="common-mistakes"
-        className="interview-section"
+        className="interview-section must-know-section-wrap"
         aria-labelledby="heading-mistakes"
       >
-        <div className="section-header-wrap">
-          <h2 id="heading-mistakes" className="section-main-heading">
-            {header?.title || "05 · Common Interview Mistakes"}
-          </h2>
-          <p className="section-sub-desc">
-            {header?.subtitle || "Frequent mistakes candidates should avoid during technical interviews."}
-          </p>
+        <div className="must-know-header-wrap">
+          <div id="heading-mistakes" className="must-know-badge">
+            {badgeTitle}
+          </div>
+          <p className="must-know-subtitle">{subtitle}</p>
         </div>
 
-        <div className="interview-accordion-group">
+        <div className="must-know-accordion-list" role="region" aria-label="Common Interview Mistakes">
           {commonMistakes.map((item, idx) => {
             const itemId = item.id || `cm-${idx + 1}`;
             const isOpen = !!openAccordions[itemId];
             const num = item.num || String(idx + 1).padStart(2, "0");
 
+            const problemText = item.problem || item.mistake;
+            const whyItHurts = item.why_it_hurts || item.why_it_happens || item.whyItMatters;
+            const betterApproach = item.better_approach || item.how_to_avoid || item.howToAvoid;
+
             return (
               <article
                 key={itemId}
-                className={`interview-accordion-item ${isOpen ? "is-open" : ""}`}
+                className={`must-know-card ${isOpen ? "is-open" : ""}`}
               >
                 <button
                   type="button"
-                  className="accordion-header-btn"
+                  className="must-know-card-header-btn"
                   onClick={() => toggleAccordion(itemId)}
                   aria-expanded={isOpen}
+                  aria-controls={`body-${itemId}`}
+                  id={`header-${itemId}`}
                 >
-                  <div className="accordion-title-wrap">
-                    <span className="accordion-num-badge">{num}</span>
-                    <h3 className="accordion-title-text">{item.title}</h3>
+                  <div className="must-know-header-left">
+                    <span
+                      className={`must-know-num-badge ${
+                        isOpen ? "badge-open" : "badge-closed"
+                      }`}
+                    >
+                      {num}
+                    </span>
+                    <h3 className="must-know-question-title">{item.title}</h3>
                   </div>
-                  <FiChevronDown
-                    className={`accordion-chevron-icon ${isOpen ? "rotate" : ""}`}
-                    aria-hidden="true"
-                  />
+                  {isOpen ? (
+                    <FiChevronUp className="must-know-chevron" aria-hidden="true" />
+                  ) : (
+                    <FiChevronDown className="must-know-chevron" aria-hidden="true" />
+                  )}
                 </button>
 
                 {isOpen && (
-                  <div className="accordion-body-content">
-                    {item.mistake && (
-                      <div className="content-block">
-                        <h4 className="content-subtitle">What the Mistake Is</h4>
-                        {renderContent(item.mistake)}
-                      </div>
-                    )}
+                  <>
+                    <div className="must-know-divider" aria-hidden="true" />
+                    <div
+                      id={`body-${itemId}`}
+                      className="must-know-card-body"
+                      role="region"
+                      aria-labelledby={`header-${itemId}`}
+                    >
+                      {/* The problem */}
+                      {problemText && (
+                        <div className="must-know-field-block">
+                          <h4 className="must-know-field-label">The problem</h4>
+                          <div className="must-know-field-text">
+                            {renderContent(problemText)}
+                          </div>
+                        </div>
+                      )}
 
-                    {(item.why_it_happens || item.whyItMatters) && (
-                      <div className="content-block">
-                        <h4 className="content-subtitle">Why It Happens</h4>
-                        {renderContent(item.why_it_happens || item.whyItMatters)}
-                      </div>
-                    )}
+                      {/* Why it hurts */}
+                      {whyItHurts && (
+                        <div className="must-know-field-block">
+                          <h4 className="must-know-field-label">Why it hurts</h4>
+                          <div className="must-know-field-text">
+                            {renderContent(whyItHurts)}
+                          </div>
+                        </div>
+                      )}
 
-                    {(item.how_to_avoid || item.howToAvoid) && (
-                      <div className="content-block">
-                        <h4 className="content-subtitle">How to Avoid It</h4>
-                        {renderContent(item.how_to_avoid || item.howToAvoid)}
-                      </div>
-                    )}
+                      {/* Better approach */}
+                      {betterApproach && (
+                        <div className="must-know-field-block">
+                          <h4 className="must-know-field-label">Better approach</h4>
+                          <div className="must-know-field-text">
+                            {renderContent(betterApproach)}
+                          </div>
+                        </div>
+                      )}
 
-                    {item.recommendation && (
-                      <div className="mint-callout-box" role="note">
-                        <strong>{renderContent(item.recommendation)}</strong>
-                      </div>
-                    )}
-                  </div>
+                      {/* Optional Recommendation */}
+                      {item.recommendation && (
+                        <div className="must-know-field-block" style={{ marginTop: "10px" }}>
+                          <div className="must-know-field-text" style={{ fontStyle: "italic", color: "#475569" }}>
+                            {renderContent(item.recommendation)}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </>
                 )}
               </article>
             );
@@ -1254,20 +1284,25 @@ const InterviewsPage = () => {
   // ── Section 06 Renderer: Quick Revision ──────────────────────────────────
   const renderQuickRevisionSection = () => {
     const header = sectionHeaders["quick-revision"];
+    const badgeTitle =
+      header?.title?.replace(/^\d+[\s·.-]*/, "") || "Quick Revision";
+    const subtitle =
+      header?.subtitle || "Refresh the most important concepts at a glance.";
+    const col1Label = header?.column1_label || "Concept";
+    const col2Label = header?.column2_label || "Concise Explanation";
+
     return (
       <section
         key="quick-revision"
         id="quick-revision"
-        className="interview-section"
+        className="interview-section must-know-section-wrap"
         aria-labelledby="heading-revision"
       >
-        <div className="section-header-wrap">
-          <h2 id="heading-revision" className="section-main-heading">
-            {header?.title || "06 · Quick Revision"}
-          </h2>
-          <p className="section-sub-desc">
-            {header?.subtitle || "Quick-reference summary table before entering your interview."}
-          </p>
+        <div className="must-know-header-wrap">
+          <div id="heading-revision" className="must-know-badge">
+            {badgeTitle}
+          </div>
+          <p className="must-know-subtitle">{subtitle}</p>
         </div>
 
         <div className="revision-table-container">
@@ -1275,9 +1310,14 @@ const InterviewsPage = () => {
             <thead>
               <tr>
                 <th scope="col" style={{ width: "26%" }}>
-                  Concept
+                  {col1Label}
                 </th>
-                <th scope="col">Concise Explanation</th>
+                <th scope="col">
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span>{col2Label}</span>
+                    <FiChevronUp aria-hidden="true" style={{ fontSize: "16px", color: "rgba(255,255,255,0.7)" }} />
+                  </div>
+                </th>
               </tr>
             </thead>
             <tbody>
