@@ -8,93 +8,101 @@ PrepHQ is an interview preparation, coding, tutorial, and career platform built 
 
 ```
 prepHQ-main/
-├── backend/                        # Node.js + Express.js API Server
+├── backend/                              # Node.js + Express.js API Server
 │   ├── config/
-│   │   └── db.js                   # MySQL connection pool (mysql2/promise)
-│   ├── controllers/                # Business logic & parameterized database queries
-│   │   ├── authController.js       # User & Admin auth, JWT, OTP, password hashing
-│   │   ├── userController.js       # Profile, resume & image management
-│   │   ├── contactController.js    # Contact queries & newsletter subscriptions
-│   │   ├── jobsController.js       # Job listings & detailed descriptions
-│   │   ├── dashboardController.js  # Aggregated admin dashboard records
-│   │   ├── postsController.js      # Blogs, tutorials, projects & interviews (wp_posts & taxonomy)
-│   │   ├── codingController.js     # Questions, testcases, run & submit runner
-│   │   └── projectDetailsController.js # Dynamic project details, section ordering & sidebar cards
+│   │   └── db.js                         # MySQL connection pool (mysql2/promise)
+│   ├── controllers/                      # Business logic & parameterized database queries
+│   │   ├── authController.js             # User & Admin auth, JWT, OTP, password hashing
+│   │   ├── userController.js             # Profile, resume & image management
+│   │   ├── contactController.js          # Contact queries & newsletter subscriptions
+│   │   ├── jobsController.js             # Job listings & detailed descriptions
+│   │   ├── dashboardController.js        # Aggregated admin dashboard records
+│   │   ├── postsController.js            # Blogs, tutorials, projects & interviews (wp_posts & taxonomy)
+│   │   ├── codingController.js           # Questions, testcases, run & submit runner
+│   │   ├── projectDetailsController.js   # Dynamic project details, section ordering & sidebar cards
+│   │   └── interviewDetailsController.js # Dynamic interview details (6 sections), reordering & sidebar cards
 │   ├── middleware/
-│   │   ├── auth.js                 # JWT Bearer token authentication & authorization
-│   │   ├── errorHandler.js         # Safe centralized error handler
-│   │   └── upload.js               # Multer disk storage for avatars, resumes & posts
-│   ├── routes/                     # Express REST routes
-│   │   ├── authRoutes.js           # Auth & account confirmation routes
-│   │   ├── userRoutes.js           # User profile & document routes
-│   │   ├── contactRoutes.js        # Contact & newsletter subscription routes
-│   │   ├── jobsRoutes.js           # Job board routes
-│   │   ├── dashboardRoutes.js      # Admin dashboard statistics routes
-│   │   ├── postsRoutes.js          # Reusable post CRUD router for projects, blogs, tutorials & interviews
-│   │   ├── codingRoutes.js         # Coding problems, execution sandbox & submissions
-│   │   └── projectDetailsRoutes.js # Project details curriculum & sidebar management
+│   │   ├── auth.js                       # JWT Bearer token authentication & authorization
+│   │   ├── errorHandler.js               # Safe centralized error handler
+│   │   └── upload.js                     # Multer disk storage for avatars, resumes & posts
+│   ├── routes/                           # Express REST routes
+│   │   ├── authRoutes.js                 # Auth & account confirmation routes
+│   │   ├── userRoutes.js                 # User profile & document routes
+│   │   ├── contactRoutes.js              # Contact & newsletter subscription routes
+│   │   ├── jobsRoutes.js                 # Job board routes
+│   │   ├── dashboardRoutes.js            # Admin dashboard statistics routes
+│   │   ├── postsRoutes.js                # Reusable post CRUD router for projects, blogs, tutorials & interviews
+│   │   ├── codingRoutes.js               # Coding problems, execution sandbox & submissions
+│   │   ├── projectDetailsRoutes.js       # Project details curriculum & sidebar management
+│   │   └── interviewDetailsRoutes.js     # Interview questions curriculum & sidebar management
 │   ├── scripts/
-│   │   ├── init_db.js              # Database initialization & coding platform seeds
-│   │   ├── init_project_details.js # Project details table creation & default seeds
-│   │   └── migrate_sidebar_cards.js # Sidebar cards table migration & seed script
+│   │   ├── init_db.js                    # Database initialization & coding platform seeds
+│   │   ├── init_project_details.js       # Project details table creation & default seeds
+│   │   ├── init_interview_details.js     # Interview details table creation & full section seeds
+│   │   ├── migrate_sidebar_cards.js      # Sidebar cards table migration & seed script
+│   │   └── seed_featured_projects.js     # Seed featured project showcases
 │   ├── utils/
-│   │   └── codeRunner.js           # Safe JavaScript VM & Python execution runner
-│   ├── uploads/                    # Local storage for avatars, resumes, post media
-│   ├── .env                        # Backend environment variables
-│   ├── .env.example                # Safe environment template
+│   │   └── codeRunner.js                 # Safe JavaScript VM & Python execution runner
+│   ├── uploads/                          # Local storage for avatars, resumes, post media
+│   ├── .env                              # Backend environment variables
+│   ├── .env.example                      # Safe environment template
 │   ├── package.json
-│   └── server.js                   # Main Express application entry point
+│   └── server.js                         # Main Express application entry point
 │
-├── src/                            # React.js (Vite) Frontend
-│   ├── components/                 # Reusable UI components (Navbar, Footer, PostCard, Sidebar, etc.)
-│   ├── context/                    # React Contexts (Notifications, TOC, etc.)
-│   ├── hooks/                      # Custom React hooks (usePostDetail, etc.)
-│   ├── pages/                      # Application views
-│   │   ├── Home/                   # Landing page
-│   │   ├── Projects/               # Project listing & Project Details page (`/projects-details/:slug`)
-│   │   │   ├── components/         # EditableSectionHeader, Architecture, Objectives, Mistake cards
-│   │   │   ├── Projectsdetails.jsx # Interactive 9-section project view with dynamic sidebar widgets
-│   │   │   └── Projectsdetails.css # Project styling, responsive layout & custom scrollbar
-│   │   ├── posts/                  # Unified post details view (`/projects/:id`, `/blogs/:id`, etc.)
-│   │   │   └── PostDetailPage.jsx  # Rich post reader with tech stack, difficulty, GitHub/Demo links
-│   │   ├── admin/                  # Admin dashboard & management interfaces
+├── src/                                  # React.js (Vite) Frontend
+│   ├── components/                       # Reusable UI components (Navbar, Footer, PostCard, Sidebar, etc.)
+│   ├── context/                          # React Contexts (Notifications, TOC, etc.)
+│   ├── hooks/                            # Custom React hooks (usePostDetail, etc.)
+│   ├── pages/                            # Application views
+│   │   ├── Home/                         # Landing page
+│   │   ├── Projects/                     # Project listing & Project Details page (`/projects-details/:slug`)
+│   │   │   ├── components/               # EditableSectionHeader, Architecture, Objectives, Mistake cards
+│   │   │   ├── Projectsdetails.jsx       # Interactive 9-section project view with dynamic sidebar widgets
+│   │   │   └── Projectsdetails.css       # Project styling, responsive layout & custom scrollbar
+│   │   ├── Interview/                    # Interview Preparation views (`/interviews/:slug`)
+│   │   │   ├── InterviewsPage.jsx        # 2-column layout matching reference Image 2 with dynamic 6 sections
+│   │   │   └── InterviewsPage.css        # Responsive styling, compact header, mint cards, social share buttons
+│   │   ├── posts/                        # Unified post details view (`/projects/:id`, `/blogs/:id`, etc.)
+│   │   │   └── PostDetailPage.jsx        # Rich post reader with tech stack, difficulty, GitHub/Demo links
+│   │   ├── admin/                        # Admin dashboard & management interfaces
 │   │   │   └── NewAdminPage/
-│   │   │       ├── AdminLayout.jsx # Collapsible sidebar, topbar, active navigation & breadcrumbs
-│   │   │       ├── admin.css       # Unified design system tokens, tables, metric cards & forms
-│   │   │       ├── Projects/       # Admin Projects Hub
-│   │   │       │   ├── ListProject.jsx         # Redesigned projects list with search, counters & actions
-│   │   │       │   ├── AddProject.jsx          # New project creation flow
-│   │   │       │   ├── EditProject.jsx         # Project update flow with enriched metadata
+│   │   │       ├── AdminLayout.jsx       # Collapsible sidebar, topbar, active navigation & breadcrumbs
+│   │   │       ├── admin.css             # Unified design system tokens, tables, metric cards & forms
+│   │   │       ├── Projects/             # Admin Projects Hub
+│   │   │       │   ├── ListProject.jsx   # Redesigned projects list with search, counters & actions
+│   │   │       │   ├── AddProject.jsx    # New project creation flow
+│   │   │       │   ├── EditProject.jsx   # Project update flow with enriched metadata
 │   │   │       │   ├── AdminProjectDetails.jsx # DND section reordering, editable headers & curriculum
-│   │   │       │   └── components/
-│   │   │       │       ├── DndSortableWrapper.jsx   # Drag-and-drop sortable items via @dnd-kit
-│   │   │       │       └── SidebarContentManager.jsx # CRUD & reordering for Related Projects/Tutorials/Guides
-│   │   │       ├── components/     # Admin Sidebar with active state indicators & footer
-│   │   │       │   └── post-form/
-│   │   │       │       └── EditForm.jsx # Unified form UI with 3-state image dropzone & TinyMCE
-│   │   │       └── schema/
-│   │   │           └── schema.js   # Yup validation schema for project posts & metadata
-│   │   ├── PrepCode/               # Interactive coding platform with Monaco editor & testcases
-│   │   ├── Blogs/                  # Technical blogs
-│   │   ├── Tutorials/              # Step-by-step tutorials
-│   │   └── Jobs/                   # Job listings and career opportunities
-│   ├── services/                   # Centralized API service layer (Axios + TanStack Query)
-│   │   ├── api.js                  # Authenticated Axios instance with JWT interceptor
-│   │   ├── publicApi.js            # Public API client
-│   │   ├── adminApi.js             # Admin API client with admin token interceptor
-│   │   ├── authServices.js         # Auth mutations (login, register, reset, confirm)
-│   │   ├── userServices.js         # Profile and document hooks
-│   │   ├── jobsServices.js         # Job query hooks
-│   │   ├── codingQuestionsServices.js # Coding problem set, run & submission hooks
-│   │   ├── blogServices.js         # Blog CRUD hooks
-│   │   ├── tutorialServices.js     # Tutorial CRUD hooks
-│   │   ├── projectsServices.js     # Projects CRUD hooks
-│   │   ├── projectDetailsService.js # Project details, reordering & sidebar hooks
-│   │   └── interviewsServices.js   # Interviews CRUD hooks
-│   ├── redux/                      # Redux Toolkit store & persist slices
-│   └── utils/                      # Helper utilities (image compression, date format, SEO generator)
+│   │   │       │   └── components/       # Sortable DND items & SidebarContentManager
+│   │   │       ├── Interviews/           # Admin Interviews Hub
+│   │   │       │   ├── ListInterview.jsx # Interview listing with quick actions & live preview links
+│   │   │       │   ├── AddInterview.jsx  # New interview post creation flow
+│   │   │       │   ├── EditInterview.jsx # Edit interview post metadata
+│   │   │       │   └── AdminInterviewDetails.jsx # Complete DND section reordering & 6-section management
+│   │   │       ├── components/           # Admin Sidebar with active state indicators & footer
+│   │   │       └── schema/               # Yup validation schemas for forms
+│   │   ├── PrepCode/                     # Interactive coding platform with Monaco editor & testcases
+│   │   ├── Blogs/                        # Technical blogs
+│   │   ├── Tutorials/                    # Step-by-step tutorials
+│   │   └── Jobs/                         # Job listings and career opportunities
+│   ├── services/                         # Centralized API service layer (Axios + TanStack Query)
+│   │   ├── api.js                        # Authenticated Axios instance with JWT interceptor
+│   │   ├── publicApi.js                  # Public API client
+│   │   ├── adminApi.js                   # Admin API client with admin token interceptor
+│   │   ├── authServices.js               # Auth mutations (login, register, reset, confirm)
+│   │   ├── userServices.js               # Profile and document hooks
+│   │   ├── jobsServices.js               # Job query hooks
+│   │   ├── codingQuestionsServices.js    # Coding problem set, run & submission hooks
+│   │   ├── blogServices.js               # Blog CRUD hooks
+│   │   ├── tutorialServices.js           # Tutorial CRUD hooks
+│   │   ├── projectsServices.js           # Projects CRUD hooks
+│   │   ├── projectDetailsService.js       # Project details, reordering & sidebar hooks
+│   │   └── interviewsServices.js         # Interviews CRUD & interview details management hooks
+│   ├── redux/                            # Redux Toolkit store & persist slices
+│   └── utils/                            # Helper utilities (image compression, date format, SEO generator)
 │
-├── .env                            # Frontend environment variables (VITE_API_URL)
+├── vercel.json                           # Vercel multi-service deployment configuration (Vite + Express)
+├── .env                                  # Frontend environment variables (VITE_API_URL)
 ├── .env.example
 ├── package.json
 └── vite.config.js
@@ -113,7 +121,7 @@ prepHQ-main/
 - **Rich Text & Code Editors**: `@tinymce/tinymce-react`, `@monaco-editor/react`, React Quill
 - **Image Optimization & Upload**: `browser-image-compression`, `react-dropzone`
 - **Form Validation**: `react-hook-form`, `@hookform/resolvers`, `yup`
-- **Icons & Graphics**: `lucide-react`, `react-icons`, `@mui/icons-material`, `recharts`
+- **Icons & Graphics**: `lucide-react`, `react-icons` (including `fa6` and `fi`), `@mui/icons-material`, `recharts`
 - **Animation & Utilities**: `framer-motion`, `dayjs`, `html-react-parser`, `react-helmet-async`, `react-toastify`
 
 ### Backend Dependencies (`backend/package.json`)
@@ -150,12 +158,15 @@ prepHQ-main/
 
    # Run migration for sidebar cards schema and default records
    node backend/scripts/migrate_sidebar_cards.js
+
+   # Initialize interview details tables and 6-section seeds
+   node backend/scripts/init_interview_details.js
    ```
 
    This ensures:
    - `coding_questions` and `submissions` tables are created and seeded with sample problems (*Two Sum*, *Valid Palindrome*).
-   - `project_details` table is created with `sidebar_cards` JSON support and seeded for `customer-churn-prediction-using-machine-learning`.
-   - `project_sidebar_cards` relational table is created with proper foreign keys, indexes, and initial records for *Related Projects*, *Tutorials*, and *Mini Guides*.
+   - `project_details` and `project_sidebar_cards` tables are created and seeded for project walkthroughs.
+   - `interview_details` and `interview_sidebar_cards` tables are created with full JSON schema support for all 6 interview sections (*Must-Know Questions*, *Questions & Answers*, *Scenario-Based Questions*, *Practical & Coding Questions*, *Common Interview Mistakes*, and *Quick Revision*).
 
 ---
 
@@ -201,6 +212,7 @@ VITE_API_URL=http://localhost:5000/api
 | `npm run init-db` | `backend/` | Create and seed coding questions and submissions tables |
 | `node backend/scripts/init_project_details.js` | Repository Root | Initialize project details tables and initial data |
 | `node backend/scripts/migrate_sidebar_cards.js` | Repository Root | Migrate and seed sidebar cards relational table & JSON |
+| `node backend/scripts/init_interview_details.js` | Repository Root | Initialize interview details tables and 6-section seed data |
 
 ### Starting Frontend and Backend Concurrently
 ```bash
@@ -263,6 +275,17 @@ npm run dev
 | **GET** | `/api/project-details/:slugOrId/sidebar-cards` | Public | Retrieve dynamic sidebar cards (Related Projects, Tutorials, Guides) |
 | **PUT** | `/api/project-details/:slugOrId/sidebar-cards` | Admin/Public | Save / update sidebar cards order and items |
 
+### Interview Details & Curriculum Management
+| Method | Endpoint | Access | Description |
+| :--- | :--- | :--- | :--- |
+| **GET** | `/api/interview-details` | Public | List summary of all interview details curriculum entries |
+| **GET** | `/api/interview-details/:slugOrId` | Public | Retrieve complete 6-section interview details by slug or ID |
+| **POST** | `/api/interview-details` | Admin | Create new interview curriculum details entry |
+| **PUT** | `/api/interview-details/:slugOrId` | Admin/Public | Update interview details (section order, questions, tips, code, mistakes) |
+| **DELETE**| `/api/interview-details/:slugOrId` | Admin | Delete interview curriculum record |
+| **GET** | `/api/interview-details/:slugOrId/sidebar-cards` | Public | Retrieve dynamic sidebar cards (Related Interview Questions, etc.) |
+| **PUT** | `/api/interview-details/:slugOrId/sidebar-cards` | Admin/Public | Save / update interview sidebar cards order and items |
+
 ### Coding Platform & Code Runner
 | Method | Endpoint | Access | Description |
 | :--- | :--- | :--- | :--- |
@@ -302,17 +325,39 @@ npm run dev
 - **`submissions`**: Coding executions (`submission_id`, `user_id`, `question_id`, `language`, `code`, `status`, `passed_count`, `total_count`, `runtime_ms`, `results`).
 - **`project_details`**: In-depth project records (`slug`, `title`, `subtitle`, `level`, `duration`, `domain`, `project_type`, `about_text_1/2/3`, `prerequisites`, `objectives`, `architecture_steps`, `architecture_details`, `implementation_steps`, `technologies`, `dataset_resources`, `technical_learnings`, `practical_learnings`, `common_mistakes`, `section_headers`, `section_2_design`, `sidebar_cards`).
 - **`project_sidebar_cards`**: Relational cards for sidebar widgets (`card_id`, `project_id`, `project_slug`, `section_type`, `title`, `display_date`, `destination_url`, `linked_resource`, `display_order`, `status`, `is_active`).
+- **`interview_details`**: In-depth interview curriculum records (`slug`, `title`, `subtitle`, `level`, `domain`, `must_know_questions`, `qa_questions`, `scenario_questions`, `coding_questions`, `mistake_questions`, `quick_revision`, `section_headers`, `section_order`, `sidebar_cards`).
+- **`interview_sidebar_cards`**: Relational sidebar cards for interview pages (`card_id`, `interview_id`, `interview_slug`, `section_type`, `title`, `display_date`, `destination_url`, `display_order`, `is_active`).
 
 ---
 
 ## 8. Key Features & Modules
 
-### 1. Admin Projects Management & Redesign (`/admin/projects`)
+### 1. Dynamic Interview Preparation Experience (`/interviews/:slug`)
+- **Compact Two-Column Responsive Layout**:
+  - **Left Column (~72%)**:
+    - **Header**: Bold title (21px), muted subtitle (11.5px), and a clean 1px horizontal divider spanning only the left column.
+    - **Share Controls**: Compact mint-bordered square buttons for **WhatsApp**, **LinkedIn**, **Facebook**, and **Instagram** (`Share: [WhatsApp] [LinkedIn] [Facebook] [Instagram]`).
+    - **6 Rich Accordion Sections**:
+      1. **Must-Know Questions**: High-priority questions with interview tips, code examples, and suggested follow-ups.
+      2. **Questions & Answers**: Filterable difficulty tabs (*Beginner*, *Intermediate*, *Advanced*), auto-numbered badges, simple & technical explanations, highlighted interview-ready answers, and hints.
+      3. **Scenario-Based Interview Questions**: Real-world interview scenarios testing candidate approaches, interviewer objectives, and mint-highlighted expected answers.
+      4. **Practical & Coding Questions**: Coding challenges, problem constraints, language syntax tabs, and step-by-step algorithms.
+      5. **Common Interview Mistakes**: Pitfalls, interviewer red flags, and corrections.
+      6. **Quick Revision**: At-a-glance concept summary cards and comparison tables.
+  - **Right Column (~28%)**:
+    - **Related Interview Questions Widget**: Light mint-green outer container with 12px rounded corners, vertically stacked white cards with article titles, calendar dates, and external link icons.
+
+### 2. Admin Interview Management (`/admin/interviews` & `/admin/interviews/details/:slug`)
+- **Interactive Section Reordering**: Full drag-and-drop section ordering via `@dnd-kit`.
+- **Comprehensive Section Editor**: Complete control to add, edit, delete, and reorder questions across all 6 interview sections.
+- **Sidebar Content Manager**: Manage related interview questions, tutorials, and mini-guides with real-time persistence.
+
+### 3. Admin Projects Management & Redesign (`/admin/projects`)
 - **Modern Management Dashboard**:
   - Real-time search with clear button by project title or category name.
   - Interactive counter pill tracking visible and total projects.
   - Category pill badges with domain-tailored color accents (AI/ML, Blockchain, Data Science, IoT, SQL).
-  - Four quick-action shortcuts for each project: **View Live**, **Open Curriculum Details**, **Edit Project**, and **Delete Project** with confirmation modal and smooth exit animations.
+  - Four quick-action shortcuts for each project: **View Live**, **Open Curriculum Details**, **Edit Project**, and **Delete Project**.
 - **Enhanced Project Editor (`/admin/projects/add` & `/admin/projects/edit/:id`)**:
   - **Difficulty Level**: Configurable badge level (`Beginner`, `Intermediate`, `Advanced`).
   - **Estimated Duration**: Project timeline (e.g., `4-6 Weeks`, `10 Hours`).
@@ -321,31 +366,29 @@ npm run dev
   - **Live Demo URL**: Public deployment preview link.
   - **3-State Feature Image Upload**: Drag-and-drop file upload, instant local blob preview, replace action, and client-side WebP compression.
   - **TinyMCE WYSIWYG Editor**: Full-featured content editor with custom accessibility labels.
-  - **Taxonomy Auto-Sync**: Automatically checks, creates, and binds terms in `wp_terms`, `wp_term_taxonomy`, and `wp_term_relationships`.
 
-### 2. Public Project Showcase & Technical Pages
-- **Unified Post & Project Reader (`/projects/:id` / `PostDetailPage.jsx`)**:
-  - Metadata header featuring Author avatar, publication date, reading time calculation, and category pills.
-  - Prominent project banner with difficulty level indicator and duration badge.
-  - Dedicated **Tech Stack** section rendering tool pills.
-  - Quick action buttons to visit the **GitHub Source Repository** or **Launch Live Demo**.
-  - Dynamic Table of Contents and related posts recommendations.
-- **Interactive Project Details Curriculum (`/projects-details/:slug`)**:
-  - **9 Modular Curriculum Sections**: About Project, Prerequisites, Objectives, Architecture, Step-by-Step Implementation, Tools & Technologies, Dataset Resources, Key Learnings, and Common Mistakes.
-  - **10-Step Architecture Pipeline**: Sequential ML workflow pipeline (*Raw Dataset*, *Data Collection*, *Data Cleaning*, *Exploratory Analysis*, *Feature Engineering*, *Train-Test Split*, *Model Training*, *Model Evaluation*, *Hyperparameter Tuning*, *Deployment & Prediction*).
-  - **3-Card Scrollable Sidebar Widgets**:
-    - Dedicated widgets for *Related Projects*, *Tutorials*, and *Mini Guides*.
-    - Displays up to 3 cards simultaneously with smooth vertical scrolling and custom navy/mint pill scrollbar (`#074568` track, `#52c496` thumb).
-  - **Dual Layout Toggle**: Switch between 2x2 grid and single column layouts for section presentation.
+### 4. Interactive Project Details Curriculum (`/projects-details/:slug`)
+- **9 Modular Curriculum Sections**: About Project, Prerequisites, Objectives, Architecture, Step-by-Step Implementation, Tools & Technologies, Dataset Resources, Key Learnings, and Common Mistakes.
+- **10-Step Architecture Pipeline**: Sequential ML workflow pipeline (*Raw Dataset*, *Data Collection*, *Data Cleaning*, *Exploratory Analysis*, *Feature Engineering*, *Train-Test Split*, *Model Training*, *Model Evaluation*, *Hyperparameter Tuning*, *Deployment & Prediction*).
+- **3-Card Scrollable Sidebar Widgets**: Dedicated widgets for *Related Projects*, *Tutorials*, and *Mini Guides* with smooth custom scrollbars.
 
-### 3. Interactive Coding Platform (`/prepcode`)
+### 5. Interactive Coding Platform (`/prepcode`)
 - Multi-language code editor powered by **Monaco Editor**.
-- Built-in sandboxed code runner executing sample testcases in real-time.
+- Built-in sandboxed code runner executing sample testcases in real-time via safe VM sandbox.
 - Comprehensive testcase evaluation engine with runtime measurement and detailed error reporting.
 
 ---
 
-## 9. Security & Best Practices Implemented
+## 9. Vercel Multi-Service Deployment (`vercel.json`)
+
+PrepHQ is configured to deploy seamlessly to Vercel as a multi-service project:
+- **`app` Service**: Compiles and serves the Vite React frontend.
+- **`backend` Service**: Runs the Express REST API backend with automatic environment variable bindings (`BACKEND_URL` and `FRONTEND_URL`).
+- **Unified Rewrites**: Automatically routes `/api/(.*)` and `/uploads/(.*)` to the backend service while routing all client routes to the frontend application.
+
+---
+
+## 10. Security & Best Practices Implemented
 
 1. **Parameterized SQL Queries**: All database queries use SQL placeholders (`?`) to prevent SQL injection vulnerabilities.
 2. **Password Hashing**: Passwords are saved as bcrypt hashes with salt rounds; legacy plain-text credentials are auto-upgraded upon login.
@@ -357,7 +400,7 @@ npm run dev
 
 ---
 
-## 10. Troubleshooting Guidance
+## 11. Troubleshooting Guidance
 
 - **Database Connection Refused**:
   Verify MySQL service is active on port `3306`. Check `backend/.env` credentials (`DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_NAME`).
@@ -371,4 +414,5 @@ npm run dev
   npm run init-db --prefix backend
   node backend/scripts/init_project_details.js
   node backend/scripts/migrate_sidebar_cards.js
+  node backend/scripts/init_interview_details.js
   ```
