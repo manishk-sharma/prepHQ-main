@@ -451,8 +451,8 @@
    CODE BLOCK CONTAINER (Dark Teal #075174)
    ========================================================================== */
 .interview-code-container {
-  background-color: #075174;
-  border-radius: 8px;
+  border-radius: 20px;
+  background: #074568;
   padding: 14px 16px;
   margin: 14px 0;
   position: relative;
@@ -797,9 +797,9 @@
 }
 
 .must-know-card {
-  background-color: #F8F9FA;
+  background: #F6F6F6;
   border: 1px solid #ECEFF2;
-  border-radius: 14px;
+  border-radius: 20px;
   overflow: hidden;
   transition: all 0.2s ease;
 }

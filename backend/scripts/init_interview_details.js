@@ -88,7 +88,7 @@ async function initInterviewDetailsTable() {
       {
         id: "mk-3",
         num: "03",
-        question: "What is the difference between AI, ML and Deep Learning?",
+        question: "What is the difference between Supervised and Unsupervised Learning?",
         default_open: false,
         simple_explanation: "Supervised learning learns input-output mappings from ground-truth labeled pairs; unsupervised learning discovers latent structures in unlabeled data.",
         simple_definition: "Supervised learning learns input-output mappings from ground-truth labeled pairs; unsupervised learning discovers latent structures in unlabeled data.",
@@ -108,7 +108,7 @@ async function initInterviewDetailsTable() {
       {
         id: "mk-4",
         num: "04",
-        question: "What is the difference between AI, ML and Deep Learning?",
+        question: "What is Overfitting and how can you prevent it?",
         default_open: false,
         simple_explanation: "Overfitting happens when a model memorizes training noise instead of general patterns, performing excellently on training data but poorly on test data.",
         simple_definition: "Overfitting happens when a model memorizes training noise instead of general patterns, performing excellently on training data but poorly on test data.",
@@ -181,7 +181,7 @@ async function initInterviewDetailsTable() {
         id: "qa-3",
         num: "03",
         difficulty: "beginner",
-        question: "What is the difference between AI, ML and Deep Learning?",
+        question: "What is the difference between Supervised and Unsupervised Learning?",
         default_open: false,
         simple_explanation: "Supervised learning learns input-output mappings from ground-truth labeled pairs; unsupervised learning discovers latent structures in unlabeled data.",
         simple_definition: "Supervised learning learns input-output mappings from ground-truth labeled pairs; unsupervised learning discovers latent structures in unlabeled data.",
@@ -203,7 +203,7 @@ async function initInterviewDetailsTable() {
         id: "qa-4",
         num: "04",
         difficulty: "beginner",
-        question: "What is the difference between AI, ML and Deep Learning?",
+        question: "What is Overfitting and how can you prevent it?",
         default_open: false,
         simple_explanation: "Overfitting happens when a model memorizes training noise instead of general patterns, performing excellently on training data but poorly on test data.",
         simple_definition: "Overfitting happens when a model memorizes training noise instead of general patterns, performing excellently on training data but poorly on test data.",
@@ -356,7 +356,7 @@ async function initInterviewDetailsTable() {
       {
         id: "sc-3",
         num: "03",
-        question: "Your training accuracy is 98%, but your test accuracy is only 72%. What could be happening?",
+        question: "Your time-series forecasting model achieves 99% validation accuracy but fails completely in live deployment. What could be happening?",
         default_open: false,
         interviewer_testing: "Identifying subtle feature leakage and temporal contamination in time-series splits.",
         testing_criteria: "Identifying subtle feature leakage and temporal contamination in time-series splits.",
@@ -375,7 +375,7 @@ async function initInterviewDetailsTable() {
       {
         id: "sc-4",
         num: "04",
-        question: "Your training accuracy is 98%, but your test accuracy is only 72%. What could be happening?",
+        question: "Your production model's performance gradually degrades over several months despite no software changes. How do you detect and resolve this?",
         default_open: false,
         interviewer_testing: "Investigating covariate shift and sample selection bias between train and production environments.",
         testing_criteria: "Investigating covariate shift and sample selection bias between train and production environments.",
@@ -394,7 +394,7 @@ async function initInterviewDetailsTable() {
       {
         id: "sc-5",
         num: "05",
-        question: "Your training accuracy is 98%, but your test accuracy is only 72%. What could be happening?",
+        question: "Error analysis reveals that human annotators disagree on 25% of the evaluation benchmark labels. How would you handle this noisy data?",
         default_open: false,
         interviewer_testing: "Evaluating label noise, inconsistent annotation, and evaluation metric misalignment.",
         testing_criteria: "Evaluating label noise, inconsistent annotation, and evaluation metric misalignment.",
@@ -532,54 +532,54 @@ def kmeans(X, k, max_iters=100):
       {
         id: "cm-1",
         num: "01",
-        title: "Memorizing Definitions",
+        title: "Memorizing Definitions Without Intuition",
         default_open: true,
-        problem: "Reciting textbook lines word for word.",
-        mistake: "Reciting textbook lines word for word.",
-        why_it_hurts: "Interviewers can tell, and follow-up questions expose shallow understanding.",
-        why_it_happens: "Interviewers can tell, and follow-up questions expose shallow understanding.",
-        better_approach: "Explain in your own words, then connect it to a problem you have worked on.",
-        how_to_avoid: "Explain in your own words, then connect it to a problem you have worked on.",
+        problem: "Reciting textbook definitions or formulas word for word without conceptual context.",
+        mistake: "Reciting textbook definitions or formulas word for word without conceptual context.",
+        why_it_hurts: "Interviewers immediately probe with edge cases and follow-up scenarios, exposing shallow rote memorization.",
+        why_it_happens: "Relying on flashcards rather than building geometric intuition and hands-on implementations.",
+        better_approach: "Explain concepts in your own intuitive words first, then anchor them with a practical project you personally built.",
+        how_to_avoid: "Explain concepts in your own intuitive words first, then anchor them with a practical project you personally built.",
         recommendation: "Anchor every definition with an example project you built."
       },
       {
         id: "cm-2",
         num: "02",
-        title: "Memorizing Definitions",
+        title: "Evaluating Only Accuracy on Imbalanced Data",
         default_open: false,
-        problem: "Reciting textbook lines word for word.",
-        mistake: "Reciting textbook lines word for word.",
-        why_it_hurts: "Interviewers can tell, and follow-up questions expose shallow understanding.",
-        why_it_happens: "Interviewers can tell, and follow-up questions expose shallow understanding.",
-        better_approach: "Explain in your own words, then connect it to a problem you have worked on.",
-        how_to_avoid: "Explain in your own words, then connect it to a problem you have worked on.",
-        recommendation: "Demonstrate practical understanding through hands-on experience."
+        problem: "Relying strictly on raw classification accuracy when positive class instances represent under 5% of the data.",
+        mistake: "Relying strictly on raw classification accuracy when positive class instances represent under 5% of the data.",
+        why_it_hurts: "A trivial majority-class classifier scores 95%+ accuracy while generating zero operational value.",
+        why_it_happens: "Treating classification as a generic Kaggle metric contest without considering asymmetric business costs.",
+        better_approach: "Always evaluate Precision, Recall, F1-Score, and PR-AUC, tuning decision thresholds to business misclassification costs.",
+        how_to_avoid: "Always evaluate Precision, Recall, F1-Score, and PR-AUC, tuning decision thresholds to business misclassification costs.",
+        recommendation: "Always present confusion matrix metrics alongside business cost impact."
       },
       {
         id: "cm-3",
         num: "03",
-        title: "Memorizing Definitions",
+        title: "Jumping to Complex Models Prematurely",
         default_open: false,
-        problem: "Reciting textbook lines word for word.",
-        mistake: "Reciting textbook lines word for word.",
-        why_it_hurts: "Interviewers can tell, and follow-up questions expose shallow understanding.",
-        why_it_happens: "Interviewers can tell, and follow-up questions expose shallow understanding.",
-        better_approach: "Explain in your own words, then connect it to a problem you have worked on.",
-        how_to_avoid: "Explain in your own words, then connect it to a problem you have worked on.",
-        recommendation: "Focus on first principles and geometric intuition."
+        problem: "Proposing deep neural networks or massive ensembles before establishing a simple, interpretable baseline.",
+        mistake: "Proposing deep neural networks or massive ensembles before establishing a simple, interpretable baseline.",
+        why_it_hurts: "Signals a lack of engineering pragmatism, resource awareness, latency constraints, and interpretability discipline.",
+        why_it_happens: "Assuming interviewers only reward cutting-edge state-of-the-art architectures.",
+        better_approach: "Always start with a fast baseline (e.g. Logistic Regression or a simple Tree), analyze error residuals, and add complexity incrementally.",
+        how_to_avoid: "Always start with a fast baseline (e.g. Logistic Regression or a simple Tree), analyze error residuals, and add complexity incrementally.",
+        recommendation: "Demonstrate practical engineering discipline by building simple baselines first."
       },
       {
         id: "cm-4",
         num: "04",
-        title: "Memorizing Definitions",
+        title: "Overlooking Data Leakage in Preprocessing",
         default_open: false,
-        problem: "Reciting textbook lines word for word.",
-        mistake: "Reciting textbook lines word for word.",
-        why_it_hurts: "Interviewers can tell, and follow-up questions expose shallow understanding.",
-        why_it_happens: "Interviewers can tell, and follow-up questions expose shallow understanding.",
-        better_approach: "Explain in your own words, then connect it to a problem you have worked on.",
-        how_to_avoid: "Explain in your own words, then connect it to a problem you have worked on.",
-        recommendation: "Structure your responses clearly with the STAR framework."
+        problem: "Fitting scalers, encoders, or imputers on the entire dataset before partitioning train and test splits.",
+        mistake: "Fitting scalers, encoders, or imputers on the entire dataset before partitioning train and test splits.",
+        why_it_hurts: "Contaminates training data with out-of-fold statistics, yielding falsely optimistic validation scores that collapse in production.",
+        why_it_happens: "Running global pandas transforms across the whole table before train/test splitting.",
+        better_approach: "Fit all feature transformations strictly on training folds inside scikit-learn Pipelines or temporal cross-validation containers.",
+        how_to_avoid: "Fit all feature transformations strictly on training folds inside scikit-learn Pipelines or temporal cross-validation containers.",
+        recommendation: "Use Pipeline objects to ensure transformations are strictly encapsulated within folds."
       }
     ];
 
@@ -796,7 +796,9 @@ def kmeans(X, k, max_iters=100):
              coding_questions = ?,
              common_mistakes = ?,
              quick_revision = ?,
-             section_headers = ?
+             section_headers = ?,
+             sections_order = ?,
+             sidebar_cards = ?
          WHERE slug = ?`,
         [
           JSON.stringify(defaultMustKnow),
@@ -806,6 +808,8 @@ def kmeans(X, k, max_iters=100):
           JSON.stringify(defaultMistakes),
           JSON.stringify(defaultQuickRevision),
           JSON.stringify(defaultSectionHeaders),
+          JSON.stringify(defaultSectionsOrder),
+          JSON.stringify(defaultSidebarCards),
           'machine-learning-interview-questions-answers'
         ]
       );
