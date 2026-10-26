@@ -1394,6 +1394,7 @@ const InterviewsPage = () => {
             <header className="interview-page-header">
               <h1 className="interview-page-title">{pageTitle}</h1>
               <p className="interview-page-desc">{pageDesc}</p>
+              <hr className="interview-header-divider" />
             </header>
 
             {/* ── Render Sections In Dynamically Configured Order ──────── */}

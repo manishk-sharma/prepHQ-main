@@ -165,6 +165,13 @@
   max-width: 720px;
 }
 
+.interview-header-divider {
+  border: 0;
+  border-top: 1.5px solid #64748b;
+  margin: 16px 0 0 0;
+  width: 100%;
+}
+
 /* ── Right Sidebar Share Controls (Matching Reference Image) ─────── */
 .sidebar-share-row {
   display: flex;
