@@ -183,12 +183,13 @@ const InterviewsPage = () => {
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedCodeId, setCopiedCodeId] = useState(null);
 
-  // Accordion state
-  const [openAccordions, setOpenAccordions] = useState({
-    "mk-1": true,
-    "sc-1": true,
-    "code-1": true,
-    "cm-1": true,
+  // Accordion state: only one open card at a time per section
+  const [openSections, setOpenSections] = useState({
+    "must-know": "mk-1",
+    "questions-answers": "qa-1",
+    "scenario-based": "sc-1",
+    "coding-questions": "code-1",
+    "common-mistakes": "cm-1",
   });
 
   // Filter state for Section 02 (Questions & Answers)
@@ -227,39 +228,51 @@ const InterviewsPage = () => {
   // Initialize first item open from DB data if not set
   useEffect(() => {
     if (dbData) {
-      const initialOpen = {};
-      mustKnowQuestions.forEach((q, idx) => {
-        if (q.default_open === true || (idx === 0 && q.default_open !== false)) {
-          initialOpen[q.id || `mk-${idx + 1}`] = true;
-        }
-      });
+      setOpenSections((prev) => {
+        const next = { ...prev };
 
-      // Initialize QA questions open state for the current difficulty
-      const currentDifficultyQuestions = (qaQuestions || []).filter(
-        (q) => (q.difficulty || "beginner").toLowerCase() === selectedDifficulty.toLowerCase()
-      );
-      currentDifficultyQuestions.forEach((q, idx) => {
-        if (q.default_open === true || (idx === 0 && q.default_open !== false)) {
-          initialOpen[q.id || `qa-${idx + 1}`] = true;
+        if (mustKnowQuestions.length > 0) {
+          const defaultItem =
+            mustKnowQuestions.find((q) => q.default_open === true) ||
+            mustKnowQuestions[0];
+          next["must-know"] = defaultItem.id || "mk-1";
         }
-      });
 
-      scenarioQuestions.forEach((q, idx) => {
-        if (q.default_open === true || (idx === 0 && q.default_open !== false)) {
-          initialOpen[q.id || `sc-${idx + 1}`] = true;
+        const currentDifficultyQuestions = (qaQuestions || []).filter(
+          (q) =>
+            (q.difficulty || "beginner").toLowerCase() ===
+            selectedDifficulty.toLowerCase()
+        );
+        if (currentDifficultyQuestions.length > 0) {
+          const defaultItem =
+            currentDifficultyQuestions.find((q) => q.default_open === true) ||
+            currentDifficultyQuestions[0];
+          next["questions-answers"] = defaultItem.id || "qa-1";
         }
-      });
-      codingQuestions.forEach((q, idx) => {
-        if (q.default_open === true || (idx === 0 && q.default_open !== false)) {
-          initialOpen[q.id || `code-${idx + 1}`] = true;
+
+        if (scenarioQuestions.length > 0) {
+          const defaultItem =
+            scenarioQuestions.find((q) => q.default_open === true) ||
+            scenarioQuestions[0];
+          next["scenario-based"] = defaultItem.id || "sc-1";
         }
-      });
-      commonMistakes.forEach((m, idx) => {
-        if (m.default_open === true || (idx === 0 && m.default_open !== false)) {
-          initialOpen[m.id || `cm-${idx + 1}`] = true;
+
+        if (codingQuestions.length > 0) {
+          const defaultItem =
+            codingQuestions.find((q) => q.default_open === true) ||
+            codingQuestions[0];
+          next["coding-questions"] = defaultItem.id || "code-1";
         }
+
+        if (commonMistakes.length > 0) {
+          const defaultItem =
+            commonMistakes.find((m) => m.default_open === true) ||
+            commonMistakes[0];
+          next["common-mistakes"] = defaultItem.id || "cm-1";
+        }
+
+        return next;
       });
-      setOpenAccordions((prev) => ({ ...initialOpen, ...prev }));
     }
   }, [dbData, selectedDifficulty]);
 
@@ -281,77 +294,77 @@ const InterviewsPage = () => {
   const relatedInterviews =
     dbData?.sidebar_cards?.related_interviews?.length > 0
       ? dbData.sidebar_cards.related_interviews
-          .filter((c) => c.status === "active" || c.is_active !== false)
-          .map((c) => ({
-            title: c.title,
-            date: c.display_date || c.displayDate || "18 Mar 2026",
-            link: c.destination_url || c.destinationUrl || "/interviews",
-          }))
+        .filter((c) => c.status === "active" || c.is_active !== false)
+        .map((c) => ({
+          title: c.title,
+          date: c.display_date || c.displayDate || "18 Mar 2026",
+          link: c.destination_url || c.destinationUrl || "/interviews",
+        }))
       : apiInterviews?.length > 0
-      ? apiInterviews.slice(0, 3).map((item) => ({
+        ? apiInterviews.slice(0, 3).map((item) => ({
           title: item.post_title,
           date: item.post_date
             ? new Date(item.post_date).toLocaleDateString("en-GB", {
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-              })
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            })
             : "18 Mar 2026",
           link: `/interviews/${item.post_name || item.ID}`,
         }))
-      : DEFAULT_RELATED_INTERVIEWS;
+        : DEFAULT_RELATED_INTERVIEWS;
 
   const tutorialsList =
     dbData?.sidebar_cards?.tutorials?.length > 0
       ? dbData.sidebar_cards.tutorials
-          .filter((c) => c.status === "active" || c.is_active !== false)
-          .map((c) => ({
-            title: c.title,
-            date: c.display_date || c.displayDate || "05 Aug 2025",
-            link: c.destination_url || c.destinationUrl || "/tutorials",
-          }))
+        .filter((c) => c.status === "active" || c.is_active !== false)
+        .map((c) => ({
+          title: c.title,
+          date: c.display_date || c.displayDate || "05 Aug 2025",
+          link: c.destination_url || c.destinationUrl || "/tutorials",
+        }))
       : apiTutorials?.length > 0
-      ? apiTutorials.slice(0, 3).map((item) => ({
+        ? apiTutorials.slice(0, 3).map((item) => ({
           title: item.post_title || item.title,
           date: item.post_date
             ? new Date(item.post_date).toLocaleDateString("en-GB", {
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-              })
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            })
             : "05 Aug 2025",
           link: `/tutorials/${item.post_name || item.slug || ""}`,
         }))
-      : DEFAULT_TUTORIALS;
+        : DEFAULT_TUTORIALS;
 
   const miniGuidesList =
     dbData?.sidebar_cards?.mini_guides?.length > 0
       ? dbData.sidebar_cards.mini_guides
-          .filter((c) => c.status === "active" || c.is_active !== false)
-          .map((c) => ({
-            title: c.title,
-            date: c.display_date || c.displayDate || "15 Jan 2026",
-            link: c.destination_url || c.destinationUrl || "/blogs",
-          }))
+        .filter((c) => c.status === "active" || c.is_active !== false)
+        .map((c) => ({
+          title: c.title,
+          date: c.display_date || c.displayDate || "15 Jan 2026",
+          link: c.destination_url || c.destinationUrl || "/blogs",
+        }))
       : apiBlogs?.length > 0
-      ? apiBlogs.slice(0, 3).map((item) => ({
+        ? apiBlogs.slice(0, 3).map((item) => ({
           title: item.post_title || item.title,
           date: item.post_date
             ? new Date(item.post_date).toLocaleDateString("en-GB", {
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-              })
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            })
             : "15 Jan 2026",
           link: `/blogs/${item.post_name || item.slug || ""}`,
         }))
-      : DEFAULT_MINI_GUIDES;
+        : DEFAULT_MINI_GUIDES;
 
-  // Toggle accordion item
-  const toggleAccordion = (id) => {
-    setOpenAccordions((prev) => ({
+  // Toggle accordion card within its section (only one card open per section)
+  const toggleSectionCard = (sectionKey, cardId) => {
+    setOpenSections((prev) => ({
       ...prev,
-      [id]: !prev[id],
+      [sectionKey]: prev[sectionKey] === cardId ? null : cardId,
     }));
   };
 
@@ -360,9 +373,9 @@ const InterviewsPage = () => {
     selectedDifficulty === "all"
       ? qaQuestions
       : qaQuestions.filter(
-          (q) =>
-            (q.difficulty || "").toLowerCase() === selectedDifficulty.toLowerCase()
-        );
+        (q) =>
+          (q.difficulty || "").toLowerCase() === selectedDifficulty.toLowerCase()
+      );
 
   // Smooth scroll handler
   const handleScrollToSection = (sectionId) => {
@@ -444,7 +457,7 @@ const InterviewsPage = () => {
         <div className="must-know-accordion-list" role="region" aria-label="Must-Know Questions">
           {mustKnowQuestions.map((item, idx) => {
             const itemId = item.id || `mk-${idx + 1}`;
-            const isOpen = !!openAccordions[itemId];
+            const isOpen = openSections["must-know"] === itemId;
             const num = item.num || String(idx + 1).padStart(2, "0");
 
             // Extract follow-up questions supporting both { question, hint } and legacy string arrays
@@ -452,15 +465,15 @@ const InterviewsPage = () => {
               item.follow_up_questions || item.subQuestions || item.sub_questions || [];
             const followUpList = Array.isArray(rawFollowUps)
               ? rawFollowUps.map((fu, fIdx) => {
-                  if (typeof fu === "string") {
-                    return { id: `fu-${itemId}-${fIdx}`, question: fu, hint: "" };
-                  }
-                  return {
-                    id: fu.id || `fu-${itemId}-${fIdx}`,
-                    question: fu.question || "",
-                    hint: fu.hint || "",
-                  };
-                })
+                if (typeof fu === "string") {
+                  return { id: `fu-${itemId}-${fIdx}`, question: fu, hint: "" };
+                }
+                return {
+                  id: fu.id || `fu-${itemId}-${fIdx}`,
+                  question: fu.question || "",
+                  hint: fu.hint || "",
+                };
+              })
               : [];
 
             const simpleExplanation = item.simple_explanation || item.simple_definition;
@@ -476,16 +489,15 @@ const InterviewsPage = () => {
                 <button
                   type="button"
                   className="must-know-card-header-btn"
-                  onClick={() => toggleAccordion(itemId)}
+                  onClick={() => toggleSectionCard("must-know", itemId)}
                   aria-expanded={isOpen}
                   aria-controls={`body-${itemId}`}
                   id={`header-${itemId}`}
                 >
                   <div className="must-know-header-left">
                     <span
-                      className={`must-know-num-badge ${
-                        isOpen ? "badge-open" : "badge-closed"
-                      }`}
+                      className={`must-know-num-badge ${isOpen ? "badge-open" : "badge-closed"
+                        }`}
                     >
                       {num}
                     </span>
@@ -616,18 +628,22 @@ const InterviewsPage = () => {
                 className={`qa-difficulty-tab-btn ${isActive ? "active" : ""}`}
                 onClick={() => {
                   setSelectedDifficulty(diff);
-                  // Auto-expand first question in newly selected difficulty tab if none in it are open
                   const questionsForDiff = qaQuestions.filter(
                     (q) => (q.difficulty || "beginner").toLowerCase() === diff
                   );
                   if (questionsForDiff.length > 0) {
-                    const hasAnyOpen = questionsForDiff.some((q) => !!openAccordions[q.id]);
-                    if (!hasAnyOpen) {
-                      setOpenAccordions((prev) => ({
-                        ...prev,
-                        [questionsForDiff[0].id]: true,
-                      }));
-                    }
+                    const defaultItem =
+                      questionsForDiff.find((q) => q.default_open === true) ||
+                      questionsForDiff[0];
+                    setOpenSections((prev) => ({
+                      ...prev,
+                      "questions-answers": defaultItem.id || `qa-1`,
+                    }));
+                  } else {
+                    setOpenSections((prev) => ({
+                      ...prev,
+                      "questions-answers": null,
+                    }));
                   }
                 }}
               >
@@ -647,7 +663,7 @@ const InterviewsPage = () => {
           <div className="must-know-accordion-list" role="region" aria-label="Questions & Answers">
             {filteredQaQuestions.map((item, idx) => {
               const itemId = item.id || `qa-${idx + 1}`;
-              const isOpen = !!openAccordions[itemId];
+              const isOpen = openSections["questions-answers"] === itemId;
               const num = String(idx + 1).padStart(2, "0");
 
               // Extract follow-up questions supporting both { question, hint } and legacy string arrays
@@ -655,15 +671,15 @@ const InterviewsPage = () => {
                 item.follow_up_questions || item.subQuestions || item.sub_questions || [];
               const followUpList = Array.isArray(rawFollowUps)
                 ? rawFollowUps.map((fu, fIdx) => {
-                    if (typeof fu === "string") {
-                      return { id: `fu-${itemId}-${fIdx}`, question: fu, hint: "" };
-                    }
-                    return {
-                      id: fu.id || `fu-${itemId}-${fIdx}`,
-                      question: fu.question || fu.text || "",
-                      hint: fu.hint || "",
-                    };
-                  })
+                  if (typeof fu === "string") {
+                    return { id: `fu-${itemId}-${fIdx}`, question: fu, hint: "" };
+                  }
+                  return {
+                    id: fu.id || `fu-${itemId}-${fIdx}`,
+                    question: fu.question || fu.text || "",
+                    hint: fu.hint || "",
+                  };
+                })
                 : [];
 
               const simpleExplanation =
@@ -684,16 +700,15 @@ const InterviewsPage = () => {
                   <button
                     type="button"
                     className="must-know-card-header-btn"
-                    onClick={() => toggleAccordion(itemId)}
+                    onClick={() => toggleSectionCard("questions-answers", itemId)}
                     aria-expanded={isOpen}
                     aria-controls={`body-${itemId}`}
                     id={`header-${itemId}`}
                   >
                     <div className="must-know-header-left">
                       <span
-                        className={`must-know-num-badge ${
-                          isOpen ? "badge-open" : "badge-closed"
-                        }`}
+                        className={`must-know-num-badge ${isOpen ? "badge-open" : "badge-closed"
+                          }`}
                       >
                         {num}
                       </span>
@@ -845,7 +860,7 @@ const InterviewsPage = () => {
         <div className="must-know-accordion-list" role="region" aria-label="Scenario-Based Questions">
           {scenarioQuestions.map((item, idx) => {
             const itemId = item.id || `sc-${idx + 1}`;
-            const isOpen = !!openAccordions[itemId];
+            const isOpen = openSections["scenario-based"] === itemId;
             const num = item.num || String(idx + 1).padStart(2, "0");
 
             const testingText =
@@ -862,16 +877,16 @@ const InterviewsPage = () => {
               item.follow_up_questions || item.followUps || item.follow_ups || [];
             const followUpList = Array.isArray(rawFollowUps)
               ? rawFollowUps
-                  .map((fu, fIdx) => {
-                    if (typeof fu === "string") {
-                      return { id: `sc-fu-${itemId}-${fIdx}`, question: fu };
-                    }
-                    return {
-                      id: fu.id || `sc-fu-${itemId}-${fIdx}`,
-                      question: fu.question || fu.text || "",
-                    };
-                  })
-                  .filter((fu) => fu.question && fu.question.trim().length > 0)
+                .map((fu, fIdx) => {
+                  if (typeof fu === "string") {
+                    return { id: `sc-fu-${itemId}-${fIdx}`, question: fu };
+                  }
+                  return {
+                    id: fu.id || `sc-fu-${itemId}-${fIdx}`,
+                    question: fu.question || fu.text || "",
+                  };
+                })
+                .filter((fu) => fu.question && fu.question.trim().length > 0)
               : [];
 
             return (
@@ -882,16 +897,15 @@ const InterviewsPage = () => {
                 <button
                   type="button"
                   className="must-know-card-header-btn"
-                  onClick={() => toggleAccordion(itemId)}
+                  onClick={() => toggleSectionCard("scenario-based", itemId)}
                   aria-expanded={isOpen}
                   aria-controls={`body-${itemId}`}
                   id={`header-${itemId}`}
                 >
                   <div className="must-know-header-left">
                     <span
-                      className={`must-know-num-badge ${
-                        isOpen ? "badge-open" : "badge-closed"
-                      }`}
+                      className={`must-know-num-badge ${isOpen ? "badge-open" : "badge-closed"
+                        }`}
                     >
                       {num}
                     </span>
@@ -999,7 +1013,7 @@ const InterviewsPage = () => {
         <div className="must-know-accordion-list" role="region" aria-label="Practical & Coding Questions">
           {codingQuestions.map((item, idx) => {
             const itemId = item.id || `code-${idx + 1}`;
-            const isOpen = !!openAccordions[itemId];
+            const isOpen = openSections["coding-questions"] === itemId;
             const num = item.num || String(idx + 1).padStart(2, "0");
 
             const approach = item.expected_approach || item.approach;
@@ -1008,16 +1022,16 @@ const InterviewsPage = () => {
               item.follow_up_questions || item.followUps || item.follow_ups || (item.follow_up ? [item.follow_up] : []);
             const followUpList = Array.isArray(rawFollowUps)
               ? rawFollowUps
-                  .map((fu, fIdx) => {
-                    if (typeof fu === "string") {
-                      return { id: `code-fu-${itemId}-${fIdx}`, question: fu };
-                    }
-                    return {
-                      id: fu.id || `code-fu-${itemId}-${fIdx}`,
-                      question: fu.question || fu.text || "",
-                    };
-                  })
-                  .filter((fu) => fu.question && fu.question.trim().length > 0)
+                .map((fu, fIdx) => {
+                  if (typeof fu === "string") {
+                    return { id: `code-fu-${itemId}-${fIdx}`, question: fu };
+                  }
+                  return {
+                    id: fu.id || `code-fu-${itemId}-${fIdx}`,
+                    question: fu.question || fu.text || "",
+                  };
+                })
+                .filter((fu) => fu.question && fu.question.trim().length > 0)
               : [];
 
             return (
@@ -1028,16 +1042,15 @@ const InterviewsPage = () => {
                 <button
                   type="button"
                   className="must-know-card-header-btn"
-                  onClick={() => toggleAccordion(itemId)}
+                  onClick={() => toggleSectionCard("coding-questions", itemId)}
                   aria-expanded={isOpen}
                   aria-controls={`body-${itemId}`}
                   id={`header-${itemId}`}
                 >
                   <div className="must-know-header-left">
                     <span
-                      className={`must-know-num-badge ${
-                        isOpen ? "badge-open" : "badge-closed"
-                      }`}
+                      className={`must-know-num-badge ${isOpen ? "badge-open" : "badge-closed"
+                        }`}
                     >
                       {num}
                     </span>
@@ -1185,7 +1198,7 @@ const InterviewsPage = () => {
         <div className="must-know-accordion-list" role="region" aria-label="Common Interview Mistakes">
           {commonMistakes.map((item, idx) => {
             const itemId = item.id || `cm-${idx + 1}`;
-            const isOpen = !!openAccordions[itemId];
+            const isOpen = openSections["common-mistakes"] === itemId;
             const num = item.num || String(idx + 1).padStart(2, "0");
 
             const problemText = item.problem || item.mistake;
@@ -1200,16 +1213,15 @@ const InterviewsPage = () => {
                 <button
                   type="button"
                   className="must-know-card-header-btn"
-                  onClick={() => toggleAccordion(itemId)}
+                  onClick={() => toggleSectionCard("common-mistakes", itemId)}
                   aria-expanded={isOpen}
                   aria-controls={`body-${itemId}`}
                   id={`header-${itemId}`}
                 >
                   <div className="must-know-header-left">
                     <span
-                      className={`must-know-num-badge ${
-                        isOpen ? "badge-open" : "badge-closed"
-                      }`}
+                      className={`must-know-num-badge ${isOpen ? "badge-open" : "badge-closed"
+                        }`}
                     >
                       {num}
                     </span>
@@ -1353,8 +1365,8 @@ const InterviewsPage = () => {
           <aside className="interview-left-sidebar" aria-label="Section Navigation">
             <div className="left-sidebar-inner">
               <h3 className="sidebar-nav-title">
-                <FiLayers aria-hidden="true" />
-                <span>In This Guide</span>
+                {/* <FiLayers aria-hidden="true" /> */}
+                <span>In This Project</span>
               </h3>
 
               <nav className="sidebar-nav-list" role="navigation">
@@ -1362,12 +1374,11 @@ const InterviewsPage = () => {
                   <button
                     key={sec.id}
                     type="button"
-                    className={`sidebar-nav-btn ${
-                      activeSection === sec.id ? "active" : ""
-                    }`}
+                    className={`sidebar-nav-btn ${activeSection === sec.id ? "active" : ""
+                      }`}
                     onClick={() => handleScrollToSection(sec.id)}
                   >
-                    <span className="nav-num-badge">{sec.number}</span>
+                    {/* <span className="nav-num-badge">{sec.number}</span> */}
                     <span className="nav-label-text">{sec.label}</span>
                   </button>
                 ))}
