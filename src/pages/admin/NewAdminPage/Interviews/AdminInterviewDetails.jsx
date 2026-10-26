@@ -168,6 +168,7 @@ export default function AdminInterviewDetails() {
         simple_definition: q.simple_definition || q.simple_explanation || "",
         technical_explanation: q.technical_explanation || q.explanation || "",
         explanation: q.explanation || q.technical_explanation || "",
+        interview_answer_label: q.interview_answer_label || q.callout_label || "What you can say in an interview",
         interview_answer: q.interview_answer || q.highlight_box || q.interview_ready_answer || "",
         highlight_box: q.highlight_box || q.interview_answer || q.interview_ready_answer || "",
         example: q.example || "",
@@ -198,6 +199,7 @@ export default function AdminInterviewDetails() {
         answer: q.answer || q.simple_explanation || q.simple_definition || "",
         technical_explanation: q.technical_explanation || q.explanation || "",
         explanation: q.explanation || q.technical_explanation || "",
+        interview_answer_label: q.interview_answer_label || q.callout_label || "What you can say in an interview",
         interview_answer: q.interview_answer || q.highlight_box || q.interview_ready_answer || q.highlightBox || "",
         highlight_box: q.highlight_box || q.interview_answer || q.interview_ready_answer || q.highlightBox || "",
         example: q.example || "",
@@ -365,6 +367,7 @@ export default function AdminInterviewDetails() {
         simple_definition: "",
         technical_explanation: "",
         explanation: "",
+        interview_answer_label: "What you can say in an interview",
         interview_answer: "",
         highlight_box: "",
         example: "",
@@ -539,6 +542,7 @@ export default function AdminInterviewDetails() {
         answer: "",
         technical_explanation: "",
         explanation: "",
+        interview_answer_label: "What you can say in an interview",
         interview_answer: "",
         highlight_box: "",
         example: "",
@@ -1569,22 +1573,34 @@ export default function AdminInterviewDetails() {
                                   {/* Field 4: Interview-Ready Answer (Highlighted Mint Callout Box) */}
                                   <Box sx={{ backgroundColor: "#F0FDF4", p: 1.5, borderRadius: 2, border: "1px solid #BBF7D0", borderLeft: "4px solid #0D5C75" }}>
                                     <Typography variant="caption" sx={{ fontWeight: 700, color: "#065F46", display: "block", mb: 0.5, fontSize: "0.8rem" }}>
-                                      C. Interview-ready answer ("What you can say in an interview" callout box)
+                                      C. Interview-ready answer callout box
                                     </Typography>
-                                    <TextField
-                                      fullWidth
-                                      multiline
-                                      rows={2.5}
-                                      size="small"
-                                      placeholder="&quot;Machine learning is a subset of AI where algorithms learn patterns from data to make predictions or decisions without being explicitly programmed for every outcome.&quot;"
-                                      value={item.interview_answer || item.highlight_box || ""}
-                                      onChange={(e) => updateMustKnow(idx, "interview_answer", e.target.value)}
-                                      sx={{
-                                        backgroundColor: "#ffffff",
-                                        borderRadius: 1,
-                                        "& .MuiOutlinedInput-root": { fontStyle: "italic" },
-                                      }}
-                                    />
+                                    <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                                      <TextField
+                                        fullWidth
+                                        size="small"
+                                        label="Callout Heading Label"
+                                        placeholder="What you can say in an interview"
+                                        value={item.interview_answer_label !== undefined ? item.interview_answer_label : "What you can say in an interview"}
+                                        onChange={(e) => updateMustKnow(idx, "interview_answer_label", e.target.value)}
+                                        sx={{ backgroundColor: "#ffffff", borderRadius: 1 }}
+                                      />
+                                      <TextField
+                                        fullWidth
+                                        multiline
+                                        rows={2.5}
+                                        size="small"
+                                        label="Interview Answer Text (Displayed in callout box)"
+                                        placeholder="&quot;Machine learning is a subset of AI where algorithms learn patterns from data to make predictions or decisions without being explicitly programmed for every outcome.&quot;"
+                                        value={item.interview_answer || item.highlight_box || ""}
+                                        onChange={(e) => updateMustKnow(idx, "interview_answer", e.target.value)}
+                                        sx={{
+                                          backgroundColor: "#ffffff",
+                                          borderRadius: 1,
+                                          "& .MuiOutlinedInput-root": { fontStyle: "italic" },
+                                        }}
+                                      />
+                                    </Box>
                                   </Box>
 
                                   {/* Field 5: Example */}
@@ -2106,22 +2122,34 @@ export default function AdminInterviewDetails() {
                                       {/* Field 4: Interview-Ready Answer (Highlighted Mint Callout Box) */}
                                       <Box sx={{ backgroundColor: "#F0FDF4", p: 1.5, borderRadius: 2, border: "1px solid #BBF7D0", borderLeft: "4px solid #0D5C75" }}>
                                         <Typography variant="caption" sx={{ fontWeight: 700, color: "#065F46", display: "block", mb: 0.5, fontSize: "0.8rem" }}>
-                                          C. Interview-ready answer ("What you can say in an interview" callout box)
+                                          C. Interview-ready answer callout box
                                         </Typography>
-                                        <TextField
-                                          fullWidth
-                                          multiline
-                                          rows={2.5}
-                                          size="small"
-                                          placeholder='&quot;Machine learning is a subset of AI where algorithms learn patterns from data to make predictions or decisions without being explicitly programmed for every outcome.&quot;'
-                                          value={item.interview_answer || item.highlight_box || ""}
-                                          onChange={(e) => updateQA(originalIdx, "interview_answer", e.target.value)}
-                                          sx={{
-                                            backgroundColor: "#ffffff",
-                                            borderRadius: 1,
-                                            "& .MuiOutlinedInput-root": { fontStyle: "italic" },
-                                          }}
-                                        />
+                                        <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                                          <TextField
+                                            fullWidth
+                                            size="small"
+                                            label="Callout Heading Label"
+                                            placeholder="What you can say in an interview"
+                                            value={item.interview_answer_label !== undefined ? item.interview_answer_label : "What you can say in an interview"}
+                                            onChange={(e) => updateQA(originalIdx, "interview_answer_label", e.target.value)}
+                                            sx={{ backgroundColor: "#ffffff", borderRadius: 1 }}
+                                          />
+                                          <TextField
+                                            fullWidth
+                                            multiline
+                                            rows={2.5}
+                                            size="small"
+                                            label="Interview Answer Text (Displayed in callout box)"
+                                            placeholder='&quot;Machine learning is a subset of AI where algorithms learn patterns from data to make predictions or decisions without being explicitly programmed for every outcome.&quot;'
+                                            value={item.interview_answer || item.highlight_box || ""}
+                                            onChange={(e) => updateQA(originalIdx, "interview_answer", e.target.value)}
+                                            sx={{
+                                              backgroundColor: "#ffffff",
+                                              borderRadius: 1,
+                                              "& .MuiOutlinedInput-root": { fontStyle: "italic" },
+                                            }}
+                                          />
+                                        </Box>
                                       </Box>
 
                                       {/* Field 5: Example */}

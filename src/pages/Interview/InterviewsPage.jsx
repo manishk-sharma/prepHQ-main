@@ -516,7 +516,7 @@ const InterviewsPage = () => {
                       {interviewAnswer && (
                         <div className="must-know-interview-callout" role="note">
                           <div className="must-know-callout-label">
-                            What you can say in an interview
+                            {item.interview_answer_label || item.callout_label || "What you can say in an interview"}
                           </div>
                           <div className="must-know-callout-quote">
                             {renderQuote(interviewAnswer)}
@@ -724,7 +724,7 @@ const InterviewsPage = () => {
                         {interviewAnswer && (
                           <div className="must-know-interview-callout" role="note">
                             <div className="must-know-callout-label">
-                              What you can say in an interview
+                              {item.interview_answer_label || item.callout_label || "What you can say in an interview"}
                             </div>
                             <div className="must-know-callout-quote">
                               {renderQuote(interviewAnswer)}
