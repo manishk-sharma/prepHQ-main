@@ -335,22 +335,30 @@ npm run dev
 ### 1. Dynamic Interview Preparation Experience (`/interviews/:slug`)
 - **Compact Two-Column Responsive Layout**:
   - **Left Column (~72%)**:
-    - **Header**: Bold title (21px), muted subtitle (11.5px), and a clean 1px horizontal divider spanning only the left column.
-    - **Share Controls**: Compact mint-bordered square buttons for **WhatsApp**, **LinkedIn**, **Facebook**, and **Instagram** (`Share: [WhatsApp] [LinkedIn] [Facebook] [Instagram]`).
-    - **6 Rich Accordion Sections**:
-      1. **Must-Know Questions**: High-priority questions with interview tips, code examples, and suggested follow-ups.
+    - **Header**: Bold title, concise subtitle, and a clean horizontal section divider.
+    - **Single-Open Accordion Navigation**: Each section operates with independent, clean accordion state management where only one card is expanded at a time—opening another question in the same section automatically collapses the previous one.
+    - **6 Curated & Non-Duplicated Content Sections**:
+      1. **Must-Know Questions**: Fundamental core questions (*Machine Learning*, *AI vs. ML vs. DL*, *Supervised vs. Unsupervised Learning*, *Overfitting & Regularization*) with simple definitions, technical explanations, interview callout quotes, practical examples, and suggested follow-ups with hints.
       2. **Questions & Answers**: Filterable difficulty tabs (*Beginner*, *Intermediate*, *Advanced*), auto-numbered badges, simple & technical explanations, highlighted interview-ready answers, and hints.
-      3. **Scenario-Based Interview Questions**: Real-world interview scenarios testing candidate approaches, interviewer objectives, and mint-highlighted expected answers.
-      4. **Practical & Coding Questions**: Coding challenges, problem constraints, language syntax tabs, and step-by-step algorithms.
-      5. **Common Interview Mistakes**: Pitfalls, interviewer red flags, and corrections.
-      6. **Quick Revision**: At-a-glance concept summary cards and comparison tables.
+      3. **Scenario-Based Interview Questions**: Real-world interview scenario dilemmas (*Imbalanced Data & Metric Misalignment*, *Overfitting & Data Leakage*, *Temporal Time-Series Leakage*, *Covariate Shift & Distribution Drift*, *Label Noise & Inter-Annotator Disagreement*) testing candidate approaches, interviewer objectives, and mint-highlighted expected answers.
+      4. **Practical & Coding Questions**: Coding challenges, problem constraints, language syntax tabs, NumPy/Python implementations, and step-by-step algorithms.
+      5. **Common Interview Mistakes**: Four distinct candidate pitfalls (*Memorizing Definitions Without Intuition*, *Evaluating Only Accuracy on Imbalanced Data*, *Jumping to Complex Models Prematurely*, *Overlooking Data Leakage in Preprocessing*) with actionable corrections and recommendations.
+      6. **Quick Revision**: 12 at-a-glance concept summary cards and definitions.
   - **Right Column (~28%)**:
+    - **Social Share Controls**: Compact mint-bordered social share buttons for **WhatsApp**, **LinkedIn**, **Facebook**, and **Instagram** (`Share: [WhatsApp] [LinkedIn] [Facebook] [Instagram]`).
     - **Related Interview Questions Widget**: Light mint-green outer container with 12px rounded corners, vertically stacked white cards with article titles, calendar dates, and external link icons.
+    - **Tutorials & Mini Guides Widgets**: Dynamic cards linking to supplementary tutorials and cheat sheets.
 
 ### 2. Admin Interview Management (`/admin/interviews` & `/admin/interviews/details/:slug`)
-- **Interactive Section Reordering**: Full drag-and-drop section ordering via `@dnd-kit`.
-- **Comprehensive Section Editor**: Complete control to add, edit, delete, and reorder questions across all 6 interview sections.
-- **Sidebar Content Manager**: Manage related interview questions, tutorials, and mini-guides with real-time persistence.
+- **Dual Display Modes**: Switch between **Tab View** (focus on one section at a time) and **All Sections Mode** (view and manage all sections simultaneously).
+- **Interactive Section Reordering**: Full drag-and-drop section ordering via `@dnd-kit` alongside accessible Move Up / Move Down buttons.
+- **Comprehensive Question & Card Editors**:
+  - Complete control to add, edit, duplicate, delete, and reorder questions across all 6 sections.
+  - Independent field binding preventing unintended content replication or shared state across cards.
+  - Automatic renumbering (`01`, `02`, `03`...) when items are added, deleted, or reordered.
+  - TinyMCE WYSIWYG editor for rich technical explanations, formatted code snippets, and lists.
+  - Configurable "Expand by default on public page" toggle per card.
+- **Sidebar Content Manager**: Direct editing and ordering of Related Interviews, Tutorials, and Mini Guides cards with instant database synchronization.
 
 ### 3. Admin Projects Management & Redesign (`/admin/projects`)
 - **Modern Management Dashboard**:
