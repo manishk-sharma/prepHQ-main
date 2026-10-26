@@ -132,89 +132,182 @@ async function initInterviewDetailsTable() {
         id: "qa-1",
         num: "01",
         difficulty: "beginner",
-        question: "What is the difference between classification and regression?",
-        answer: "Classification models predict discrete categorical labels or class probabilities (e.g. churn vs retain, spam vs ham). Regression models predict continuous numerical quantities (e.g. house prices, temperature).",
-        explanation: "Classification evaluates using Accuracy, Precision, Recall, F1 Score, and ROC-AUC. Regression evaluates using Mean Squared Error (MSE), RMSE, Mean Absolute Error (MAE), and R² Score.",
-        highlight_box: "Key Distinction: Output variable type. Discrete classes = Classification; Continuous real numbers = Regression.",
-        example: "Classifying if a transaction is fraud (Yes/No) vs Predicting the dollar value of fraud loss.",
-        interview_tip: "Mention that logistic regression outputs continuous probabilities that are thresholded into discrete classifications."
+        question: "What is Machine Learning?",
+        default_open: true,
+        simple_explanation: "Instead of writing rules by hand, you show a computer many examples and let it work out the rules itself.",
+        simple_definition: "Instead of writing rules by hand, you show a computer many examples and let it work out the rules itself.",
+        answer: "Instead of writing rules by hand, you show a computer many examples and let it work out the rules itself.",
+        technical_explanation: "ML algorithms fit a function f(x) to data by minimising a loss, then generalise to unseen inputs. Learning is driven by data, an objective, and an optimisation procedure.",
+        explanation: "ML algorithms fit a function f(x) to data by minimising a loss, then generalise to unseen inputs. Learning is driven by data, an objective, and an optimisation procedure.",
+        interview_answer: "Machine learning is a subset of AI where algorithms learn patterns from data to make predictions or decisions without being explicitly programmed for every outcome.",
+        highlight_box: "Machine learning is a subset of AI where algorithms learn patterns from data to make predictions or decisions without being explicitly programmed for every outcome.",
+        example: "A spam filter learns from thousands of labelled emails which words and senders suggest spam.",
+        follow_up_questions: [
+          {
+            id: "qa-fu-1-1",
+            question: "How is ML different from traditional programming?",
+            hint: "Try answering this aloud first, then link it back to the main question above."
+          },
+          {
+            id: "qa-fu-1-2",
+            question: "What are the main types of ML?",
+            hint: "Try answering this aloud first, then link it back to the main question above."
+          }
+        ]
       },
       {
         id: "qa-2",
         num: "02",
         difficulty: "beginner",
-        question: "What is a confusion matrix and what metrics are derived from it?",
-        answer: "A confusion matrix is a 2x2 contingency table that cross-tabulates predicted classes against actual ground-truth classes.",
-        explanation: "It contains True Positives (TP), True Negatives (TN), False Positives (FP - Type I Error), and False Negatives (FN - Type II Error). From these four cells, all major classification diagnostics are derived.",
-        highlight_box: "Precision = TP / (TP + FP) | Recall = TP / (TP + FN) | F1 Score = 2*(Precision*Recall)/(Precision+Recall)",
-        example: "In medical screening: TP = detected sick, FP = healthy patient alerted (Type I), FN = sick patient missed (Type II, critical).",
-        interview_tip: "Always clarify which error (Type I or Type II) carries higher penalty in the company's business domain."
+        question: "What is the difference between AI, ML and Deep Learning?",
+        default_open: false,
+        simple_explanation: "AI is the broad vision of smart machines, ML is the method of learning from data, and Deep Learning is a specialized ML technique using deep neural networks.",
+        simple_definition: "AI is the broad vision of smart machines, ML is the method of learning from data, and Deep Learning is a specialized ML technique using deep neural networks.",
+        answer: "AI is the broad vision of smart machines, ML is the method of learning from data, and Deep Learning is a specialized ML technique using deep neural networks.",
+        technical_explanation: "AI encompasses any technique enabling computers to mimic human intelligence (including symbolic logic, expert systems, and heuristics). Machine Learning is a subset where statistical models learn patterns directly from data. Deep Learning is a specialized sub-branch of ML based on multi-layered artificial neural networks (ANNs) that perform hierarchical representation learning directly from raw perceptual data without manual feature engineering.",
+        explanation: "AI encompasses any technique enabling computers to mimic human intelligence (including symbolic logic, expert systems, and heuristics). Machine Learning is a subset where statistical models learn patterns directly from data. Deep Learning is a specialized sub-branch of ML based on multi-layered artificial neural networks (ANNs) that perform hierarchical representation learning directly from raw perceptual data without manual feature engineering.",
+        interview_answer: "AI is the overarching umbrella for intelligent systems; ML provides statistical learning algorithms that train on data; Deep Learning powers multi-layer neural networks that extract high-level abstract representations from raw sensory inputs.",
+        highlight_box: "AI is the overarching umbrella for intelligent systems; ML provides statistical learning algorithms that train on data; Deep Learning powers multi-layer neural networks that extract high-level abstract representations from raw sensory inputs.",
+        example: "AI: A chess-playing system. ML: Spam email detection. Deep Learning: Autonomous self-driving vision or GPT language models.",
+        follow_up_questions: [
+          {
+            id: "qa-fu-2-1",
+            question: "When should you choose classical ML over Deep Learning?",
+            hint: "Focus on dataset size, training compute budget, and model explainability constraints."
+          }
+        ]
       },
       {
         id: "qa-3",
         num: "03",
         difficulty: "beginner",
-        question: "Why do we split data into training, validation, and test sets?",
-        answer: "To ensure that model evaluation is unbiased and that hyperparameter choices do not overfit to the test benchmark.",
-        explanation: "The training set is used to learn model parameters (weights and biases). The validation set is used for hyperparameter tuning, feature selection, and detecting overfitting during iterative experimentation. The test set is held out until the very end to provide an unbiased evaluation of the final model's real-world generalization performance.",
-        highlight_box: "Gold Standard Rule: Never expose the test set during feature engineering, imputation, or hyperparameter search.",
-        example: "Standard split: 70% Train, 15% Validation, 15% Test.",
-        interview_tip: "Emphasize data leakage prevention when computing scalers or encoders across splits."
+        question: "What is the difference between AI, ML and Deep Learning?",
+        default_open: false,
+        simple_explanation: "Supervised learning learns input-output mappings from ground-truth labeled pairs; unsupervised learning discovers latent structures in unlabeled data.",
+        simple_definition: "Supervised learning learns input-output mappings from ground-truth labeled pairs; unsupervised learning discovers latent structures in unlabeled data.",
+        answer: "Supervised learning learns input-output mappings from ground-truth labeled pairs; unsupervised learning discovers latent structures in unlabeled data.",
+        technical_explanation: "Supervised Learning trains models on labeled ground truth (X, y) to map inputs to target outputs (Classification & Regression). Unsupervised Learning discovers latent clustering, distributions, or manifold representations from unlabeled data X without supervisor guidance.",
+        explanation: "Supervised Learning trains models on labeled ground truth (X, y) to map inputs to target outputs (Classification & Regression). Unsupervised Learning discovers latent clustering, distributions, or manifold representations from unlabeled data X without supervisor guidance.",
+        interview_answer: "Supervised learning minimizes empirical risk over labeled target pairs, while unsupervised learning optimizes data density or reconstruction loss without target annotations.",
+        highlight_box: "Supervised learning minimizes empirical risk over labeled target pairs, while unsupervised learning optimizes data density or reconstruction loss without target annotations.",
+        example: "Supervised: Predicting customer churn (0/1). Unsupervised: Segmenting customers into behavioural cohorts using K-Means.",
+        follow_up_questions: [
+          {
+            id: "qa-fu-3-1",
+            question: "How do you evaluate clustering without ground-truth labels?",
+            hint: "Discuss Silhouette Score, Davies-Bouldin index, and domain inspection."
+          }
+        ]
       },
       {
         id: "qa-4",
         num: "04",
-        difficulty: "intermediate",
-        question: "How does the Bias-Variance tradeoff impact model generalization?",
-        answer: "Bias is approximation error from overly simple assumptions; Variance is estimation error from hypersensitivity to training fluctuations.",
-        explanation: "Total Prediction Error = Bias² + Variance + Irreducible Noise. As model complexity increases, bias monotonically decreases while variance increases. The optimal model balances both to minimize total generalization error.",
-        highlight_box: "High Bias = Underfitting (e.g. Linear regression on circular data). High Variance = Overfitting (e.g. unconstrained 50-depth Decision Tree).",
-        example: "Underfit linear model fails on both train and test. Overfit tree scores 100% on train but drops to 65% on test.",
-        interview_tip: "State that ensembling techniques like Bagging target variance reduction, while Boosting targets bias reduction."
+        difficulty: "beginner",
+        question: "What is the difference between AI, ML and Deep Learning?",
+        default_open: false,
+        simple_explanation: "Overfitting happens when a model memorizes training noise instead of general patterns, performing excellently on training data but poorly on test data.",
+        simple_definition: "Overfitting happens when a model memorizes training noise instead of general patterns, performing excellently on training data but poorly on test data.",
+        answer: "Overfitting happens when a model memorizes training noise instead of general patterns, performing excellently on training data but poorly on test data.",
+        technical_explanation: "Overfitting occurs when high model capacity fits sample-specific noise rather than the underlying data generating distribution, causing low training error but high generalization error (high variance).",
+        explanation: "Overfitting occurs when high model capacity fits sample-specific noise rather than the underlying data generating distribution, causing low training error but high generalization error (high variance).",
+        interview_answer: "Overfitting reflects high variance where the model learns spurious correlations in training data. We prevent it via L1/L2 regularization, cross-validation, tree pruning, early stopping, and dataset expansion.",
+        highlight_box: "Overfitting reflects high variance where the model learns spurious correlations in training data. We prevent it via L1/L2 regularization, cross-validation, tree pruning, early stopping, and dataset expansion.",
+        example: "A decision tree grown without depth limits isolates every single training outlier, creating erratic decision boundaries that fail in production.",
+        follow_up_questions: [
+          {
+            id: "qa-fu-4-1",
+            question: "How do L1 and L2 regularization differ in preventing overfitting?",
+            hint: "Explain the geometric weight penalty: L1 (Lasso) enforces sparsity, L2 (Ridge) shrinks weight magnitudes."
+          }
+        ]
       },
       {
         id: "qa-5",
         num: "05",
         difficulty: "intermediate",
-        question: "What is the difference between Bagging and Boosting ensemble methods?",
-        answer: "Bagging trains base learners independently in parallel; Boosting trains base learners sequentially, where each learner corrects prior errors.",
-        explanation: "Bagging (Bootstrap Aggregating, e.g. Random Forest) draws bootstrap resamples with replacement and averages outputs, directly slashing model variance. Boosting (e.g. XGBoost, LightGBM, CatBoost) fits trees sequentially to pseudo-residuals, driving down model bias.",
-        highlight_box: "Bagging = Parallel base learners + Variance reduction. Boosting = Sequential residual correction + Bias reduction.",
-        example: "Random Forest builds 500 independent trees. XGBoost builds trees iteratively, each correcting the weighted errors of earlier trees.",
-        interview_tip: "Note that boosting is more sensitive to outliers and label noise than bagging."
+        question: "How does the Bias-Variance tradeoff impact model generalization?",
+        default_open: true,
+        simple_explanation: "Bias is error from assumptions being too simplistic; variance is error from the model being hypersensitive to small training changes.",
+        simple_definition: "Bias is error from assumptions being too simplistic; variance is error from the model being hypersensitive to small training changes.",
+        answer: "Bias is approximation error from overly simple assumptions; Variance is estimation error from hypersensitivity to training fluctuations.",
+        technical_explanation: "Total Prediction Error = Bias² + Variance + Irreducible Noise. As model complexity increases, bias monotonically decreases while variance increases. The optimal model balances both to minimize total generalization error.",
+        explanation: "Total Prediction Error = Bias² + Variance + Irreducible Noise. As model complexity increases, bias monotonically decreases while variance increases. The optimal model balances both to minimize total generalization error.",
+        interview_answer: "High Bias causes underfitting because the model cannot capture signal. High Variance causes overfitting because the model memorizes sample noise. We balance both through cross-validation and regularized capacity.",
+        highlight_box: "High Bias = Underfitting (e.g. Linear regression on circular data). High Variance = Overfitting (e.g. unconstrained 50-depth Decision Tree).",
+        example: "Underfit linear model fails on both train and test. Overfit tree scores 100% on train but drops to 65% on test.",
+        follow_up_questions: [
+          {
+            id: "qa-fu-5-1",
+            question: "Do Bagging and Boosting reduce bias or variance?",
+            hint: "Remember: Bagging averages independent models to reduce variance, while Boosting builds sequentially on residuals to reduce bias."
+          }
+        ]
       },
       {
         id: "qa-6",
         num: "06",
         difficulty: "intermediate",
-        question: "How does Random Forest prevent overfitting compared to a single Decision Tree?",
-        answer: "Through two distinct sources of randomness: Bootstrap aggregation of samples, and random feature subspace sampling at every split.",
-        explanation: "A single decision tree often overfits because it splits nodes until pure leaves are achieved. Random Forest mitigates this through two layers of stochasticity: 1) Row sampling with replacement (bootstrap aggregating), and 2) Feature subspace sampling (evaluating only a random subset of sqrt(p) features at each split). This de-correlates individual trees so that averaging their predictions cancels out idiosyncratic noise.",
-        highlight_box: "De-correlation Principle: If trees are correlated, averaging provides limited variance reduction. Random feature selection ensures trees remain diverse.",
-        example: "With 100 features, each tree node chooses from only 10 randomly picked features, preventing dominant features from dominating every tree.",
-        interview_tip: "Mention Out-Of-Bag (OOB) error as an inherent cross-validation mechanism built into Random Forest."
+        question: "What is the difference between Bagging and Boosting ensemble methods?",
+        default_open: false,
+        simple_explanation: "Bagging trains multiple models independently in parallel and averages them; Boosting trains models sequentially, each correcting the previous one's errors.",
+        simple_definition: "Bagging trains base learners independently in parallel; Boosting trains base learners sequentially, where each learner corrects prior errors.",
+        answer: "Bagging trains base learners independently in parallel; Boosting trains base learners sequentially, where each learner corrects prior errors.",
+        technical_explanation: "Bagging (Bootstrap Aggregating, e.g. Random Forest) draws bootstrap resamples with replacement and averages outputs, directly slashing model variance. Boosting (e.g. XGBoost, LightGBM, CatBoost) fits trees sequentially to pseudo-residuals, driving down model bias.",
+        explanation: "Bagging (Bootstrap Aggregating, e.g. Random Forest) draws bootstrap resamples with replacement and averages outputs, directly slashing model variance. Boosting (e.g. XGBoost, LightGBM, CatBoost) fits trees sequentially to pseudo-residuals, driving down model bias.",
+        interview_answer: "Bagging targets variance reduction through parallel independent bootstrap aggregation. Boosting targets bias reduction through iterative sequential residual correction.",
+        highlight_box: "Bagging = Parallel base learners + Variance reduction. Boosting = Sequential residual correction + Bias reduction.",
+        example: "Random Forest builds 500 independent trees. XGBoost builds trees iteratively, each correcting the weighted errors of earlier trees.",
+        follow_up_questions: [
+          {
+            id: "qa-fu-6-1",
+            question: "Why is Boosting generally more vulnerable to outliers than Bagging?",
+            hint: "Explain how large outlier residuals receive disproportionately high weights in subsequent boosting rounds."
+          }
+        ]
       },
       {
         id: "qa-7",
         num: "07",
         difficulty: "advanced",
         question: "How does XGBoost handle missing values and regularization internally?",
+        default_open: true,
+        simple_explanation: "XGBoost automatically learns the best direction (left or right branch) to send missing values during splitting, and includes penalty terms directly in its loss equation.",
+        simple_definition: "XGBoost uses a default direction split-finding algorithm for missing entries and includes L1/L2 penalties directly in its objective function.",
         answer: "XGBoost uses a default direction split-finding algorithm for missing entries and includes L1/L2 penalties directly in its objective function.",
+        technical_explanation: "During training, for any feature with missing values, XGBoost evaluates split gains by routing all missing entries to the left child and then to the right child, automatically selecting whichever branch maximizes objective loss reduction. Additionally, its objective function explicitly incorporates L1 (alpha) and L2 (lambda) penalties on leaf weights to control tree complexity.",
         explanation: "During training, for any feature with missing values, XGBoost evaluates split gains by routing all missing entries to the left child and then to the right child, automatically selecting whichever branch maximizes objective loss reduction. Additionally, its objective function explicitly incorporates L1 (alpha) and L2 (lambda) penalties on leaf weights to control tree complexity.",
+        interview_answer: "XGBoost handles missing data organically by finding the optimal default direction split per feature, while adding explicit L1/L2 shrinkage on leaf weights to prevent leaf overfitting.",
         highlight_box: "Key Advantage: XGBoost requires zero manual missing value imputation prior to training and automatically handles sparse feature matrices efficiently.",
         example: "If income is missing for 20% of users, XGBoost assigns missing values to the child branch that maximizes objective gain during gradient boosting.",
-        interview_tip: "Highlight second-order Taylor expansion (gradients + Hessians) as another major reason for XGBoost's speed and precision."
+        follow_up_questions: [
+          {
+            id: "qa-fu-7-1",
+            question: "Why does XGBoost use second-order Taylor expansion for its objective?",
+            hint: "Explain that computing gradients (first-order) and Hessians (second-order) allows exact analytic solutions for optimal leaf weights."
+          }
+        ]
       },
       {
         id: "qa-8",
         num: "08",
         difficulty: "advanced",
         question: "Explain Principal Component Analysis (PCA) and how eigenvectors represent maximum variance.",
+        default_open: false,
+        simple_explanation: "PCA rotates your data onto new axes ordered by how spread out the data is, allowing you to drop low-variance axes with minimal information loss.",
+        simple_definition: "PCA is an orthogonal linear projection that transforms correlated features into uncorrelated principal components ordered by variance.",
         answer: "PCA is an orthogonal linear projection that transforms correlated features into uncorrelated principal components ordered by variance.",
+        technical_explanation: "PCA standardizes the feature matrix, calculates the covariance matrix, and performs eigendecomposition. The eigenvectors represent the directions (principal axes) along which the data exhibits maximum variance, while the corresponding eigenvalues indicate the magnitude of variance explained by each principal component.",
         explanation: "PCA standardizes the feature matrix, calculates the covariance matrix, and performs eigendecomposition. The eigenvectors represent the directions (principal axes) along which the data exhibits maximum variance, while the corresponding eigenvalues indicate the magnitude of variance explained by each principal component.",
+        interview_answer: "PCA finds orthogonal directions of maximal variance by computing eigenvectors of the feature covariance matrix, allowing dimensional compression while preserving dominant signal.",
         highlight_box: "Key Formula: Covariance Matrix Sigma = (1/n) * X^T * X; Sigma * v = lambda * v, where v is eigenvector and lambda is eigenvalue.",
         example: "Compressing 200 customer sensor features into 10 principal components that retain 95% of total dataset variance.",
-        interview_tip: "Remind the interviewer that PCA assumes linear relationships and requires feature standardization prior to decomposition."
+        follow_up_questions: [
+          {
+            id: "qa-fu-8-1",
+            question: "Why is feature scaling essential before running PCA?",
+            hint: "Unscaled variables with large numerical magnitudes will artificially dominate the first principal component regardless of their true information content."
+          }
+        ]
       }
     ];
 
@@ -451,8 +544,8 @@ print(calculate_metrics(tp=85, fp=15, tn=890, fn=10))
         subtitle: "Start with the questions you should be able to answer before any Machine Learning interview."
       },
       "questions-answers": {
-        title: "02 · Questions & Answers",
-        subtitle: "Comprehensive questions categorized by experience level from fundamental to advanced."
+        title: "Questions & Answers",
+        subtitle: "Explore interview questions topic by topic."
       },
       "scenario-based": {
         title: "03 · Scenario-Based Interview Questions",
@@ -634,10 +727,12 @@ print(calculate_metrics(tp=85, fp=15, tn=890, fn=10))
       await query(
         `UPDATE interview_details
          SET must_know_questions = ?,
+             qa_questions = ?,
              section_headers = ?
          WHERE slug = ?`,
         [
           JSON.stringify(defaultMustKnow),
+          JSON.stringify(defaultQA),
           JSON.stringify(defaultSectionHeaders),
           'machine-learning-interview-questions-answers'
         ]

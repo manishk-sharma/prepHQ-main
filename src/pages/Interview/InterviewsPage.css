@@ -772,7 +772,7 @@
 }
 
 /* ==========================================================================
-   MUST-KNOW QUESTIONS SECTION (ACCORDION & REFERENCE LAYOUT)
+   MUST-KNOW QUESTIONS & Q&A ACCORDION SECTION (REFERENCE DESIGN)
    ========================================================================== */
 .must-know-section-wrap {
   margin-bottom: 36px;
@@ -784,17 +784,17 @@
   color: #111827;
   font-size: 1.15rem;
   font-weight: 700;
-  padding: 6px 14px;
+  padding: 7px 14px;
   border-radius: 8px;
   letter-spacing: -0.015em;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .must-know-subtitle {
-  font-size: 0.92rem;
-  color: #4B5563;
-  margin: 0 0 20px 0;
-  line-height: 1.5;
+  font-size: 0.88rem;
+  color: #64748B;
+  margin: 0 0 16px 0;
+  line-height: 1.45;
 }
 
 .must-know-accordion-list {
@@ -852,7 +852,7 @@
   height: 26px;
   padding: 0 6px;
   border-radius: 6px;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: -0.01em;
   flex-shrink: 0;
@@ -894,8 +894,8 @@
 }
 
 .must-know-card-body {
-  padding: 20px 24px 24px 24px;
-  background-color: #FFFFFF;
+  padding: 20px 24px 24px 36px;
+  background-color: #F8F9FA;
 }
 
 .must-know-field-block {
@@ -907,16 +907,16 @@
 }
 
 .must-know-field-label {
-  font-size: 0.88rem;
+  font-size: 0.86rem;
   font-weight: 700;
-  color: #4B5563;
-  margin: 0 0 4px 0;
+  color: #374151;
+  margin: 0 0 5px 0;
   letter-spacing: -0.01em;
 }
 
 .must-know-field-text {
-  font-size: 0.92rem;
-  color: #374151;
+  font-size: 0.90rem;
+  color: #4B5563;
   line-height: 1.55;
 }
 
@@ -932,13 +932,13 @@
 .must-know-interview-callout {
   background-color: #DEF7EC;
   border-left: 4px solid #0D5C75;
-  border-radius: 0 12px 12px 0;
-  padding: 14px 18px;
+  border-radius: 12px;
+  padding: 15px 18px;
   margin: 18px 0;
 }
 
 .must-know-callout-label {
-  font-size: 0.86rem;
+  font-size: 0.85rem;
   font-weight: 700;
   color: #111827;
   margin-bottom: 6px;
@@ -946,7 +946,7 @@
 }
 
 .must-know-callout-quote {
-  font-size: 0.91rem;
+  font-size: 0.90rem;
   font-style: italic;
   color: #1E293B;
   line-height: 1.55;
@@ -971,12 +971,12 @@
 
 .must-know-followup-box {
   border: 1.5px solid #CBD5E1;
-  border-radius: 10px;
-  padding: 10px 16px;
+  border-radius: 12px;
+  padding: 11px 16px;
   background-color: #FFFFFF;
   color: #1E293B;
   font-size: 0.88rem;
-  font-weight: 600;
+  font-weight: 500;
   font-style: italic;
   line-height: 1.45;
 }
@@ -984,6 +984,74 @@
 .must-know-followup-hint {
   font-size: 0.81rem;
   color: #64748B;
-  margin: 5px 0 12px 4px;
+  margin: 6px 0 14px 4px;
   line-height: 1.4;
 }
+
+/* ── Q&A Difficulty Tabs & Layout ── */
+.qa-difficulty-tabs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0 18px 0;
+  flex-wrap: wrap;
+}
+
+.qa-difficulty-tab-btn {
+  padding: 7px 18px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background-color: #EBECEF;
+  border: 1px solid transparent;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.qa-difficulty-tab-btn:hover {
+  background-color: #DFE1E6;
+  color: #1E293B;
+}
+
+.qa-difficulty-tab-btn.active {
+  background-color: #0B3553;
+  border-color: #0B3553;
+  color: #FFFFFF;
+}
+
+.qa-empty-state {
+  background-color: #F8FAFC;
+  border: 1px dashed #CBD5E1;
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  color: #64748B;
+  font-size: 0.9rem;
+}
+
+/* ── Responsive Mobile Adjustments ── */
+@media (max-width: 640px) {
+  .must-know-card-header-btn {
+    padding: 13px 14px;
+  }
+  .must-know-card-body {
+    padding: 16px 14px 20px 16px;
+  }
+  .must-know-question-title {
+    font-size: 0.95rem;
+  }
+  .qa-difficulty-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .qa-difficulty-tab-btn {
+    flex-shrink: 0;
+    padding: 6px 14px;
+    font-size: 0.8rem;
+  }
+}
+

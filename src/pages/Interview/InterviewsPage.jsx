@@ -72,8 +72,8 @@ const DEFAULT_SECTION_HEADERS = {
     subtitle: "Start with the questions you should be able to answer before any Machine Learning interview.",
   },
   "questions-answers": {
-    title: "02 · Questions & Answers",
-    subtitle: "Explore comprehensive questions grouped by complexity level.",
+    title: "Questions & Answers",
+    subtitle: "Explore interview questions topic by topic.",
   },
   "scenario-based": {
     title: "03 · Scenario-Based Interview Questions",
@@ -188,8 +188,8 @@ const InterviewsPage = () => {
     "cm-1": true,
   });
 
-  // Filter state for Section 02
-  const [selectedDifficulty, setSelectedDifficulty] = useState("all");
+  // Filter state for Section 02 (Questions & Answers)
+  const [selectedDifficulty, setSelectedDifficulty] = useState("beginner");
 
   // Fallback API hooks for right sidebar widgets
   const { data: apiInterviews } = useInterviewList();
@@ -230,12 +230,23 @@ const InterviewsPage = () => {
           initialOpen[q.id || `mk-${idx + 1}`] = true;
         }
       });
+
+      // Initialize QA questions open state for the current difficulty
+      const currentDifficultyQuestions = (qaQuestions || []).filter(
+        (q) => (q.difficulty || "beginner").toLowerCase() === selectedDifficulty.toLowerCase()
+      );
+      currentDifficultyQuestions.forEach((q, idx) => {
+        if (q.default_open === true || (idx === 0 && q.default_open !== false)) {
+          initialOpen[q.id || `qa-${idx + 1}`] = true;
+        }
+      });
+
       if (scenarioQuestions[0]?.id) initialOpen[scenarioQuestions[0].id] = true;
       if (codingQuestions[0]?.id) initialOpen[codingQuestions[0].id] = true;
       if (commonMistakes[0]?.id) initialOpen[commonMistakes[0].id] = true;
       setOpenAccordions((prev) => ({ ...initialOpen, ...prev }));
     }
-  }, [dbData]);
+  }, [dbData, selectedDifficulty]);
 
   // Dynamic Navigation Items based on sections_order & headers
   const navSections = sectionsOrder.map((secId, idx) => {
@@ -555,156 +566,241 @@ const InterviewsPage = () => {
   // ── Section 02 Renderer: Questions & Answers ─────────────────────────────
   const renderQASection = () => {
     const header = sectionHeaders["questions-answers"];
+    const badgeTitle = header?.title?.replace(/^\d+[\s·.-]*/, "") || "Questions & Answers";
+    const subtitle = header?.subtitle || "Explore interview questions topic by topic.";
+
     return (
       <section
         key="questions-answers"
         id="questions-answers"
-        className="interview-section"
+        className="interview-section must-know-section-wrap qa-section-wrap"
         aria-labelledby="heading-qa"
       >
-        <div className="section-header-wrap">
-          <h2 id="heading-qa" className="section-main-heading">
-            {header?.title || "02 · Questions & Answers"}
-          </h2>
-          <p className="section-sub-desc">
-            {header?.subtitle || "Explore comprehensive questions grouped by complexity level."}
-          </p>
+        <div className="must-know-header-wrap qa-header-wrap">
+          <div id="heading-qa" className="must-know-badge">
+            {badgeTitle}
+          </div>
+          <p className="must-know-subtitle">{subtitle}</p>
         </div>
 
         {/* Difficulty Filter Tabs */}
         <div
-          className="difficulty-filters-bar"
-          role="group"
+          className="qa-difficulty-tabs"
+          role="tablist"
           aria-label="Filter Questions by Difficulty"
         >
-          {["all", "beginner", "intermediate", "advanced"].map((diff) => (
-            <button
-              key={diff}
-              type="button"
-              className={`difficulty-filter-btn ${
-                selectedDifficulty === diff ? "active" : ""
-              }`}
-              onClick={() => setSelectedDifficulty(diff)}
-            >
-              {diff.charAt(0).toUpperCase() + diff.slice(1)}
-            </button>
-          ))}
-        </div>
-
-        <div className="interview-accordion-group">
-          {filteredQaQuestions.map((item, idx) => {
-            const itemId = item.id || `qa-${idx + 1}`;
-            const isOpen = !!openAccordions[itemId];
-            const num = item.num || String(idx + 1).padStart(2, "0");
-
+          {["beginner", "intermediate", "advanced"].map((diff) => {
+            const label = diff.charAt(0).toUpperCase() + diff.slice(1);
+            const isActive = selectedDifficulty.toLowerCase() === diff;
             return (
-              <article
-                key={itemId}
-                className={`interview-accordion-item ${isOpen ? "is-open" : ""}`}
+              <button
+                key={diff}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                className={`qa-difficulty-tab-btn ${isActive ? "active" : ""}`}
+                onClick={() => {
+                  setSelectedDifficulty(diff);
+                  // Auto-expand first question in newly selected difficulty tab if none in it are open
+                  const questionsForDiff = qaQuestions.filter(
+                    (q) => (q.difficulty || "beginner").toLowerCase() === diff
+                  );
+                  if (questionsForDiff.length > 0) {
+                    const hasAnyOpen = questionsForDiff.some((q) => !!openAccordions[q.id]);
+                    if (!hasAnyOpen) {
+                      setOpenAccordions((prev) => ({
+                        ...prev,
+                        [questionsForDiff[0].id]: true,
+                      }));
+                    }
+                  }
+                }}
               >
-                <button
-                  type="button"
-                  className="accordion-header-btn"
-                  onClick={() => toggleAccordion(itemId)}
-                  aria-expanded={isOpen}
-                >
-                  <div className="accordion-title-wrap">
-                    <span className="accordion-num-badge">{num}</span>
-                    <h3 className="accordion-title-text">{item.question}</h3>
-                    {item.difficulty && (
-                      <span className="difficulty-pill-tag">
-                        {item.difficulty}
-                      </span>
-                    )}
-                  </div>
-                  <FiChevronDown
-                    className={`accordion-chevron-icon ${isOpen ? "rotate" : ""}`}
-                    aria-hidden="true"
-                  />
-                </button>
-
-                {isOpen && (
-                  <div className="accordion-body-content">
-                    {item.answer && (
-                      <div className="content-block">
-                        <h4 className="content-subtitle">Answer</h4>
-                        {renderContent(item.answer)}
-                      </div>
-                    )}
-
-                    {item.explanation && (
-                      <div className="content-block">
-                        <h4 className="content-subtitle">Detailed Explanation</h4>
-                        {renderContent(item.explanation)}
-                      </div>
-                    )}
-
-                    {Array.isArray(item.characteristics) &&
-                      item.characteristics.length > 0 && (
-                        <ul className="content-bullet-list">
-                          {item.characteristics.map((char, cIdx) => (
-                            <li key={cIdx}>{char}</li>
-                          ))}
-                        </ul>
-                      )}
-
-                    {(item.highlight_box || item.highlightBox) && (
-                      <div className="mint-callout-box" role="note">
-                        <strong>
-                          {renderContent(item.highlight_box || item.highlightBox)}
-                        </strong>
-                      </div>
-                    )}
-
-                    {item.example && (
-                      <div className="example-box">
-                        {renderContent(item.example)}
-                      </div>
-                    )}
-
-                    {item.interview_tip && (
-                      <div className="mint-callout-box" role="note" style={{ marginTop: "12px" }}>
-                        <strong>💡 Interview Tip:</strong> {renderContent(item.interview_tip)}
-                      </div>
-                    )}
-
-                    {item.code_snippet && (
-                      <div
-                        className="interview-code-container"
-                        role="region"
-                        aria-label="Code snippet"
-                        style={{ marginTop: "14px" }}
-                      >
-                        <div className="code-header-bar">
-                          <span className="code-lang-label">Code Snippet</span>
-                          <button
-                            type="button"
-                            className="code-copy-btn"
-                            onClick={() => handleCopyCode(item.code_snippet, itemId)}
-                            title="Copy code snippet"
-                          >
-                            {copiedCodeId === itemId ? (
-                              <>
-                                <FiCheck aria-hidden="true" /> Copied!
-                              </>
-                            ) : (
-                              <>
-                                <FiCopy aria-hidden="true" /> Copy Code
-                              </>
-                            )}
-                          </button>
-                        </div>
-                        <pre className="interview-code-pre">
-                          <code>{item.code_snippet}</code>
-                        </pre>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </article>
+                {label}
+              </button>
             );
           })}
         </div>
+
+        {filteredQaQuestions.length === 0 ? (
+          <div className="qa-empty-state">
+            <p>
+              No questions found for <strong>{selectedDifficulty.charAt(0).toUpperCase() + selectedDifficulty.slice(1)}</strong> difficulty.
+            </p>
+          </div>
+        ) : (
+          <div className="must-know-accordion-list" role="region" aria-label="Questions & Answers">
+            {filteredQaQuestions.map((item, idx) => {
+              const itemId = item.id || `qa-${idx + 1}`;
+              const isOpen = !!openAccordions[itemId];
+              const num = String(idx + 1).padStart(2, "0");
+
+              // Extract follow-up questions supporting both { question, hint } and legacy string arrays
+              const rawFollowUps =
+                item.follow_up_questions || item.subQuestions || item.sub_questions || [];
+              const followUpList = Array.isArray(rawFollowUps)
+                ? rawFollowUps.map((fu, fIdx) => {
+                    if (typeof fu === "string") {
+                      return { id: `fu-${itemId}-${fIdx}`, question: fu, hint: "" };
+                    }
+                    return {
+                      id: fu.id || `fu-${itemId}-${fIdx}`,
+                      question: fu.question || fu.text || "",
+                      hint: fu.hint || "",
+                    };
+                  })
+                : [];
+
+              const simpleExplanation =
+                item.simple_explanation || item.simple_definition || item.answer;
+              const technicalExplanation =
+                item.technical_explanation || item.explanation;
+              const interviewAnswer =
+                item.interview_answer ||
+                item.highlight_box ||
+                item.interview_ready_answer ||
+                item.highlightBox;
+
+              return (
+                <article
+                  key={itemId}
+                  className={`must-know-card ${isOpen ? "is-open" : ""}`}
+                >
+                  <button
+                    type="button"
+                    className="must-know-card-header-btn"
+                    onClick={() => toggleAccordion(itemId)}
+                    aria-expanded={isOpen}
+                    aria-controls={`body-${itemId}`}
+                    id={`header-${itemId}`}
+                  >
+                    <div className="must-know-header-left">
+                      <span
+                        className={`must-know-num-badge ${
+                          isOpen ? "badge-open" : "badge-closed"
+                        }`}
+                      >
+                        {num}
+                      </span>
+                      <h3 className="must-know-question-title">{item.question}</h3>
+                    </div>
+                    {isOpen ? (
+                      <FiChevronUp className="must-know-chevron" aria-hidden="true" />
+                    ) : (
+                      <FiChevronDown className="must-know-chevron" aria-hidden="true" />
+                    )}
+                  </button>
+
+                  {isOpen && (
+                    <>
+                      <div className="must-know-divider" aria-hidden="true" />
+                      <div
+                        id={`body-${itemId}`}
+                        className="must-know-card-body"
+                        role="region"
+                        aria-labelledby={`header-${itemId}`}
+                      >
+                        {/* A. Simple explanation */}
+                        {simpleExplanation && (
+                          <div className="must-know-field-block">
+                            <h4 className="must-know-field-label">Simple explanation</h4>
+                            <div className="must-know-field-text">
+                              {renderContent(simpleExplanation)}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* B. Technical explanation */}
+                        {technicalExplanation && (
+                          <div className="must-know-field-block">
+                            <h4 className="must-know-field-label">Technical explanation</h4>
+                            <div className="must-know-field-text">
+                              {renderContent(technicalExplanation)}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* C. Interview-ready answer */}
+                        {interviewAnswer && (
+                          <div className="must-know-interview-callout" role="note">
+                            <div className="must-know-callout-label">
+                              What you can say in an interview
+                            </div>
+                            <div className="must-know-callout-quote">
+                              {renderQuote(interviewAnswer)}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* D. Example */}
+                        {item.example && (
+                          <div className="must-know-field-block">
+                            <h4 className="must-know-field-label">Example</h4>
+                            <div className="must-know-field-text">
+                              {renderContent(item.example)}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* E. Interviewer may ask */}
+                        {followUpList.length > 0 && (
+                          <div className="must-know-field-block">
+                            <h4 className="must-know-field-label">Interviewer may ask</h4>
+                            <div className="must-know-followups-list">
+                              {followUpList.map((fu) => (
+                                <div key={fu.id} className="must-know-followup-item">
+                                  <div className="must-know-followup-box">
+                                    {fu.question}
+                                  </div>
+                                  {fu.hint && (
+                                    <p className="must-know-followup-hint">{fu.hint}</p>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Optional Code Snippet if present */}
+                        {item.code_snippet && (
+                          <div
+                            className="interview-code-container"
+                            role="region"
+                            aria-label="Code snippet"
+                            style={{ marginTop: "16px" }}
+                          >
+                            <div className="code-header-bar">
+                              <span className="code-lang-label">Code Snippet</span>
+                              <button
+                                type="button"
+                                className="code-copy-btn"
+                                onClick={() => handleCopyCode(item.code_snippet, itemId)}
+                                title="Copy code snippet"
+                              >
+                                {copiedCodeId === itemId ? (
+                                  <>
+                                    <FiCheck aria-hidden="true" /> Copied!
+                                  </>
+                                ) : (
+                                  <>
+                                    <FiCopy aria-hidden="true" /> Copy Code
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                            <pre className="interview-code-pre">
+                              <code>{item.code_snippet}</code>
+                            </pre>
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+        )}
       </section>
     );
   };

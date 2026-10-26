@@ -68,8 +68,8 @@ const DEFAULT_SECTION_HEADERS = {
     subtitle: "Start with the questions you should be able to answer before any Machine Learning interview.",
   },
   "questions-answers": {
-    title: "02 · Questions & Answers",
-    subtitle: "Comprehensive questions categorized by experience level from fundamental to advanced.",
+    title: "Questions & Answers",
+    subtitle: "Explore interview questions topic by topic.",
   },
   "scenario-based": {
     title: "03 · Scenario-Based Interview Questions",
@@ -119,6 +119,7 @@ export default function AdminInterviewDetails() {
   const [activeMode, setActiveMode] = useState("tab"); // "tab" | "all"
   const [qaFilterTab, setQaFilterTab] = useState("all");
   const [expandedMustKnowIds, setExpandedMustKnowIds] = useState({});
+  const [expandedQaIds, setExpandedQaIds] = useState({});
 
   const { data: interviewList = [], refetch: refetchList } = useInterviewDetailsList();
   const { data: currentData, isLoading, refetch } = useInterviewDetails(selectedSlug);
@@ -178,12 +179,43 @@ export default function AdminInterviewDetails() {
         })),
       }));
 
-      // Expand first card in admin editor by default
+      // Expand first Must-Know card in admin editor by default
       const initialExpanded = {};
       sanitizedMustKnow.forEach((q, i) => {
         initialExpanded[q.id] = i === 0;
       });
       setExpandedMustKnowIds(initialExpanded);
+
+      // Normalize QA questions
+      const sanitizedQA = (currentData.qa_questions || []).map((q, idx) => ({
+        id: q.id || `qa-${idx + 1}-${Date.now()}`,
+        num: q.num || String(idx + 1).padStart(2, "0"),
+        question: q.question || q.title || "",
+        difficulty: (q.difficulty || "beginner").toLowerCase(),
+        default_open: q.default_open !== undefined ? Boolean(q.default_open) : idx === 0,
+        simple_explanation: q.simple_explanation || q.simple_definition || q.answer || "",
+        simple_definition: q.simple_definition || q.simple_explanation || q.answer || "",
+        answer: q.answer || q.simple_explanation || q.simple_definition || "",
+        technical_explanation: q.technical_explanation || q.explanation || "",
+        explanation: q.explanation || q.technical_explanation || "",
+        interview_answer: q.interview_answer || q.highlight_box || q.interview_ready_answer || q.highlightBox || "",
+        highlight_box: q.highlight_box || q.interview_answer || q.interview_ready_answer || q.highlightBox || "",
+        example: q.example || "",
+        interview_tip: q.interview_tip || "",
+        code_snippet: q.code_snippet || "",
+        follow_up_questions: (q.follow_up_questions || q.subQuestions || q.sub_questions || []).map((fq, fidx) => ({
+          id: fq.id || `fq-${fidx + 1}-${Date.now()}`,
+          question: fq.question || fq.text || "",
+          hint: fq.hint || "",
+        })),
+      }));
+
+      // Expand first QA card in admin editor by default
+      const initialQaExpanded = {};
+      sanitizedQA.forEach((q, i) => {
+        initialQaExpanded[q.id] = i === 0;
+      });
+      setExpandedQaIds(initialQaExpanded);
 
       setFormData({
         title: currentData.title || "",
@@ -199,7 +231,7 @@ export default function AdminInterviewDetails() {
         meta_description: currentData.meta_description || "",
         keywords: currentData.keywords || "",
         must_know_questions: sanitizedMustKnow,
-        qa_questions: currentData.qa_questions || [],
+        qa_questions: sanitizedQA,
         scenario_questions: currentData.scenario_questions || [],
         coding_questions: currentData.coding_questions || [],
         common_mistakes: currentData.common_mistakes || [],
@@ -471,30 +503,81 @@ export default function AdminInterviewDetails() {
   };
 
   // ── 2. Q&A Handlers ────────────────────────────────────────────────────────
+  const toggleQaExpand = (id) => {
+    setExpandedQaIds((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
+
+  const expandAllQa = () => {
+    const nextState = {};
+    (formData.qa_questions || []).forEach((q) => {
+      nextState[q.id] = true;
+    });
+    setExpandedQaIds(nextState);
+  };
+
+  const collapseAllQa = () => {
+    setExpandedQaIds({});
+  };
+
   const addQA = () => {
+    const newId = `qa-${Date.now()}`;
+    const targetDiff = qaFilterTab !== "all" ? qaFilterTab : "beginner";
     setFormData((prev) => {
       const list = [...(prev.qa_questions || [])];
       const nextNum = String(list.length + 1).padStart(2, "0");
       list.push({
-        id: `qa-${Date.now()}`,
+        id: newId,
         num: nextNum,
-        difficulty: qaFilterTab !== "all" ? qaFilterTab : "beginner",
+        difficulty: targetDiff,
         question: "New Question Title",
+        default_open: list.length === 0,
+        simple_explanation: "",
+        simple_definition: "",
         answer: "",
+        technical_explanation: "",
         explanation: "",
+        interview_answer: "",
         highlight_box: "",
         example: "",
         interview_tip: "",
         code_snippet: "",
+        follow_up_questions: [
+          {
+            id: `fq-${Date.now()}-1`,
+            question: "",
+            hint: "Try answering this aloud first, then link it back to the main question above.",
+          },
+        ],
       });
       return { ...prev, qa_questions: list };
     });
+    setExpandedQaIds((prev) => ({ ...prev, [newId]: true }));
   };
 
   const updateQA = (idx, field, val) => {
     setFormData((prev) => {
       const list = [...(prev.qa_questions || [])];
-      list[idx] = { ...list[idx], [field]: val };
+      const updated = { ...list[idx], [field]: val };
+      if (field === "simple_explanation") {
+        updated.simple_definition = val;
+        updated.answer = val;
+      }
+      if (field === "simple_definition") {
+        updated.simple_explanation = val;
+        updated.answer = val;
+      }
+      if (field === "answer") {
+        updated.simple_explanation = val;
+        updated.simple_definition = val;
+      }
+      if (field === "technical_explanation") updated.explanation = val;
+      if (field === "explanation") updated.technical_explanation = val;
+      if (field === "interview_answer") updated.highlight_box = val;
+      if (field === "highlight_box") updated.interview_answer = val;
+      list[idx] = updated;
       return { ...prev, qa_questions: list };
     });
   };
@@ -503,6 +586,143 @@ export default function AdminInterviewDetails() {
     setFormData((prev) => {
       const list = [...(prev.qa_questions || [])];
       list.splice(idx, 1);
+      const renumbered = list.map((item, i) => ({
+        ...item,
+        num: String(i + 1).padStart(2, "0"),
+      }));
+      return { ...prev, qa_questions: renumbered };
+    });
+  };
+
+  const duplicateQA = (idx) => {
+    const newId = `qa-${Date.now()}`;
+    setFormData((prev) => {
+      const list = [...(prev.qa_questions || [])];
+      const source = list[idx];
+      if (!source) return prev;
+      const copy = {
+        ...source,
+        id: newId,
+        question: `${source.question || "Question"} (Copy)`,
+        follow_up_questions: (source.follow_up_questions || []).map((fq, fidx) => ({
+          ...fq,
+          id: `fq-${Date.now()}-${fidx}`,
+        })),
+      };
+      list.splice(idx + 1, 0, copy);
+      const renumbered = list.map((item, i) => ({
+        ...item,
+        num: String(i + 1).padStart(2, "0"),
+      }));
+      return { ...prev, qa_questions: renumbered };
+    });
+    setExpandedQaIds((prev) => ({ ...prev, [newId]: true }));
+  };
+
+  const handleReorderQA = (reordered) => {
+    if (qaFilterTab === "all") {
+      const renumbered = reordered.map((item, idx) => ({
+        ...item,
+        num: String(idx + 1).padStart(2, "0"),
+      }));
+      setFormData((prev) => ({ ...prev, qa_questions: renumbered }));
+    } else {
+      setFormData((prev) => {
+        const fullList = [...(prev.qa_questions || [])];
+        const nonFiltered = fullList.filter(
+          (q) => (q.difficulty || "beginner").toLowerCase() !== qaFilterTab
+        );
+        const combined = [...reordered, ...nonFiltered];
+        const renumbered = combined.map((item, idx) => ({
+          ...item,
+          num: String(idx + 1).padStart(2, "0"),
+        }));
+        return { ...prev, qa_questions: renumbered };
+      });
+    }
+  };
+
+  const moveQAItem = (filteredIndex, direction) => {
+    setFormData((prev) => {
+      const fullList = [...(prev.qa_questions || [])];
+      const filtered = fullList.filter(
+        (q) => qaFilterTab === "all" || (q.difficulty || "beginner").toLowerCase() === qaFilterTab
+      );
+      const targetFilteredIndex = filteredIndex + direction;
+      if (targetFilteredIndex < 0 || targetFilteredIndex >= filtered.length) return prev;
+
+      const itemToMove = filtered[filteredIndex];
+      const targetItem = filtered[targetFilteredIndex];
+      const fromRealIndex = fullList.findIndex((q) => q.id === itemToMove.id);
+      const toRealIndex = fullList.findIndex((q) => q.id === targetItem.id);
+
+      if (fromRealIndex === -1 || toRealIndex === -1) return prev;
+
+      const temp = fullList[fromRealIndex];
+      fullList[fromRealIndex] = fullList[toRealIndex];
+      fullList[toRealIndex] = temp;
+
+      const renumbered = fullList.map((item, idx) => ({
+        ...item,
+        num: String(idx + 1).padStart(2, "0"),
+      }));
+      return { ...prev, qa_questions: renumbered };
+    });
+  };
+
+  // Follow-up question nested handlers for Q&A
+  const addQAFollowUp = (qIdx) => {
+    setFormData((prev) => {
+      const list = [...(prev.qa_questions || [])];
+      const q = { ...list[qIdx] };
+      const followUps = [...(q.follow_up_questions || [])];
+      followUps.push({
+        id: `fq-${Date.now()}`,
+        question: "",
+        hint: "Try answering this aloud first, then link it back to the main question above.",
+      });
+      q.follow_up_questions = followUps;
+      list[qIdx] = q;
+      return { ...prev, qa_questions: list };
+    });
+  };
+
+  const updateQAFollowUp = (qIdx, fIdx, field, val) => {
+    setFormData((prev) => {
+      const list = [...(prev.qa_questions || [])];
+      const q = { ...list[qIdx] };
+      const followUps = [...(q.follow_up_questions || [])];
+      followUps[fIdx] = { ...followUps[fIdx], [field]: val };
+      q.follow_up_questions = followUps;
+      list[qIdx] = q;
+      return { ...prev, qa_questions: list };
+    });
+  };
+
+  const deleteQAFollowUp = (qIdx, fIdx) => {
+    setFormData((prev) => {
+      const list = [...(prev.qa_questions || [])];
+      const q = { ...list[qIdx] };
+      const followUps = [...(q.follow_up_questions || [])];
+      followUps.splice(fIdx, 1);
+      q.follow_up_questions = followUps;
+      list[qIdx] = q;
+      return { ...prev, qa_questions: list };
+    });
+  };
+
+  const moveQAFollowUp = (qIdx, fIdx, direction) => {
+    setFormData((prev) => {
+      const list = [...(prev.qa_questions || [])];
+      const q = { ...list[qIdx] };
+      const followUps = [...(q.follow_up_questions || [])];
+      const targetIdx = fIdx + direction;
+      if (targetIdx < 0 || targetIdx >= followUps.length) return prev;
+      const temp = followUps[fIdx];
+      followUps[fIdx] = followUps[targetIdx];
+      followUps[targetIdx] = temp;
+      q.follow_up_questions = followUps;
+      list[qIdx] = q;
       return { ...prev, qa_questions: list };
     });
   };
@@ -1503,170 +1723,543 @@ export default function AdminInterviewDetails() {
             )}
 
             {/* ── TAB 2: 02 · Questions & Answers ── */}
-            {(activeMode === "all" || activeTab === 2) && (
-              <Box sx={{ mb: activeMode === "all" ? 4 : 0 }}>
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-                  <Box>
-                    <Typography variant="h6" sx={{ fontWeight: 700, color: "#074568" }}>
-                      Section 02 · Questions & Answers ({formData.qa_questions?.length || 0})
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: "#64748b" }}>
-                      Filterable questions by difficulty (Beginner, Intermediate, Advanced) with answers and explanations.
-                    </Typography>
-                  </Box>
-                  <Button
-                    variant="contained"
-                    size="small"
-                    startIcon={<AddIcon />}
-                    onClick={addQA}
-                    sx={{ backgroundColor: "#37AB79", "&:hover": { backgroundColor: "#2d8a62" }, textTransform: "none" }}
+            {(activeMode === "all" || activeTab === 2) && (() => {
+              const visibleQA = (formData.qa_questions || [])
+                .map((item, originalIdx) => ({ item, originalIdx }))
+                .filter(
+                  ({ item }) => qaFilterTab === "all" || (item.difficulty || "beginner").toLowerCase() === qaFilterTab
+                );
+
+              return (
+                <Box sx={{ mb: activeMode === "all" ? 4 : 0 }}>
+                  {/* Header with Title, Counts, and Top Action Buttons */}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: { xs: "flex-start", sm: "center" },
+                      flexDirection: { xs: "column", sm: "row" },
+                      gap: 1.5,
+                      mb: 2,
+                    }}
                   >
-                    + Add Q&A Item
-                  </Button>
-                </Box>
+                    <Box>
+                      <Typography variant="h6" sx={{ fontWeight: 700, color: "#074568" }}>
+                        Section 02 · Questions & Answers ({formData.qa_questions?.length || 0})
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: "#64748b" }}>
+                        Filterable questions by difficulty (Beginner, Intermediate, Advanced) with accordion cards, rich explanations, interview-ready answers, and follow-up questions.
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        startIcon={<UnfoldMoreIcon fontSize="small" />}
+                        onClick={expandAllQa}
+                        sx={{ textTransform: "none", borderColor: "#cbd5e1", color: "#475569" }}
+                      >
+                        Expand All
+                      </Button>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        startIcon={<UnfoldLessIcon fontSize="small" />}
+                        onClick={collapseAllQa}
+                        sx={{ textTransform: "none", borderColor: "#cbd5e1", color: "#475569" }}
+                      >
+                        Collapse All
+                      </Button>
+                      <Button
+                        variant="contained"
+                        size="small"
+                        startIcon={<AddIcon />}
+                        onClick={addQA}
+                        sx={{
+                          backgroundColor: "#37AB79",
+                          "&:hover": { backgroundColor: "#2d8a62" },
+                          textTransform: "none",
+                          fontWeight: 600,
+                        }}
+                      >
+                        + Add Question
+                      </Button>
+                    </Box>
+                  </Box>
 
-                {renderSectionHeaderBox("questions-answers", "02 · Questions & Answers")}
+                  {/* Section Title & Subtitle editing box */}
+                  {renderSectionHeaderBox("questions-answers", "Questions & Answers")}
 
-                {/* Difficulty Filter Tabs */}
-                <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
-                  {["all", "beginner", "intermediate", "advanced"].map((lvl) => (
-                    <Chip
-                      key={lvl}
-                      label={lvl.toUpperCase()}
-                      clickable
-                      onClick={() => setQaFilterTab(lvl)}
-                      color={qaFilterTab === lvl ? "success" : "default"}
-                      variant={qaFilterTab === lvl ? "filled" : "outlined"}
-                      sx={{ fontWeight: 600, fontSize: "0.75rem" }}
-                    />
-                  ))}
-                </Box>
-
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                  {(formData.qa_questions || [])
-                    .filter((q) => qaFilterTab === "all" || (q.difficulty || "beginner").toLowerCase() === qaFilterTab)
-                    .map((item, idx) => (
-                      <Paper key={item.id || idx} variant="outlined" sx={{ p: 2, borderRadius: 2, backgroundColor: "#ffffff" }}>
-                        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1.5 }}>
-                          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                            <Chip
-                              label={(item.difficulty || "beginner").toUpperCase()}
-                              size="small"
-                              sx={{
-                                fontWeight: 700,
-                                backgroundColor:
-                                  item.difficulty === "advanced"
-                                    ? "#fee2e2"
-                                    : item.difficulty === "intermediate"
-                                    ? "#fef3c7"
-                                    : "#e0f2fe",
-                                color:
-                                  item.difficulty === "advanced"
-                                    ? "#b91c1c"
-                                    : item.difficulty === "intermediate"
-                                    ? "#b45309"
-                                    : "#0369a1",
-                              }}
-                            />
-                            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#074568" }}>
-                              {item.question || "Untitled Question"}
-                            </Typography>
-                          </Box>
-                          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                            <IconButton size="small" disabled={idx === 0} onClick={() => moveItem("qa_questions", idx, -1)}>
-                              <ArrowUpwardIcon fontSize="small" />
-                            </IconButton>
-                            <IconButton size="small" disabled={idx === (formData.qa_questions || []).length - 1} onClick={() => moveItem("qa_questions", idx, 1)}>
-                              <ArrowDownwardIcon fontSize="small" />
-                            </IconButton>
-                            <IconButton size="small" onClick={() => deleteQA(idx)} sx={{ color: "#dc2626" }}>
-                              <DeleteIcon fontSize="small" />
-                            </IconButton>
-                          </Box>
-                        </Box>
-
-                        <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-                          <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 1.5 }}>
-                            <TextField
-                              fullWidth
-                              size="small"
-                              label="Question"
-                              value={item.question || ""}
-                              onChange={(e) => updateQA(idx, "question", e.target.value)}
-                              sx={{ flex: 3 }}
-                            />
-                            <FormControl size="small" sx={{ flex: 1, minWidth: 140 }}>
-                              <InputLabel>Difficulty</InputLabel>
-                              <Select
-                                value={item.difficulty || "beginner"}
-                                label="Difficulty"
-                                onChange={(e) => updateQA(idx, "difficulty", e.target.value)}
-                              >
-                                <MenuItem value="beginner">Beginner</MenuItem>
-                                <MenuItem value="intermediate">Intermediate</MenuItem>
-                                <MenuItem value="advanced">Advanced</MenuItem>
-                              </Select>
-                            </FormControl>
-                          </Box>
-
-                          <TextField
-                            fullWidth
-                            size="small"
-                            label="Short Answer"
-                            value={item.answer || ""}
-                            onChange={(e) => updateQA(idx, "answer", e.target.value)}
+                  {/* Difficulty Filter Chips for Admin view */}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      flexWrap: "wrap",
+                      gap: 1,
+                      mb: 2,
+                      p: 1.5,
+                      backgroundColor: "#f8fafc",
+                      borderRadius: 2,
+                      border: "1px solid #e2e8f0",
+                    }}
+                  >
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+                      <Typography variant="caption" sx={{ fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                        Filter by Difficulty:
+                      </Typography>
+                      {["all", "beginner", "intermediate", "advanced"].map((lvl) => {
+                        const count =
+                          lvl === "all"
+                            ? (formData.qa_questions || []).length
+                            : (formData.qa_questions || []).filter(
+                                (q) => (q.difficulty || "beginner").toLowerCase() === lvl
+                              ).length;
+                        return (
+                          <Chip
+                            key={lvl}
+                            label={`${lvl.charAt(0).toUpperCase() + lvl.slice(1)} (${count})`}
+                            clickable
+                            onClick={() => setQaFilterTab(lvl)}
+                            sx={{
+                              fontWeight: 700,
+                              fontSize: "0.75rem",
+                              backgroundColor: qaFilterTab === lvl ? "#0B3553" : "#ffffff",
+                              color: qaFilterTab === lvl ? "#ffffff" : "#475569",
+                              border: qaFilterTab === lvl ? "1px solid #0B3553" : "1px solid #cbd5e1",
+                              "&:hover": {
+                                backgroundColor: qaFilterTab === lvl ? "#072338" : "#f1f5f9",
+                              },
+                            }}
                           />
+                        );
+                      })}
+                    </Box>
+                    {qaFilterTab !== "all" && (
+                      <Typography variant="caption" sx={{ color: "#64748b", fontStyle: "italic" }}>
+                        Showing {qaFilterTab} questions only. New questions will default to {qaFilterTab}.
+                      </Typography>
+                    )}
+                  </Box>
 
-                          <Box>
-                            <Typography variant="caption" sx={{ fontWeight: 600, color: "#475569", display: "block", mb: 0.5 }}>
-                              Detailed Explanation (Rich-Text)
-                            </Typography>
-                            <Box sx={{ border: "1px solid #cbd5e1", borderRadius: 1.5, overflow: "hidden" }}>
-                              <Editor
-                                apiKey={TINYMCE_API_KEY}
-                                value={item.explanation || ""}
-                                init={{
-                                  height: 180,
-                                  menubar: false,
-                                  plugins: ["lists", "link", "code"],
-                                  toolbar: "undo redo | bold italic underline | bullist numlist | code",
-                                }}
-                                onEditorChange={(content) => updateQA(idx, "explanation", content)}
-                              />
-                            </Box>
-                          </Box>
+                  {visibleQA.length === 0 ? (
+                    <Paper
+                      variant="outlined"
+                      sx={{
+                        p: 4,
+                        textAlign: "center",
+                        borderRadius: 2.5,
+                        backgroundColor: "#f8fafc",
+                        border: "1px dashed #cbd5e1",
+                      }}
+                    >
+                      <Typography variant="body1" sx={{ fontWeight: 600, color: "#64748b", mb: 1 }}>
+                        No questions configured for difficulty level "{qaFilterTab.toUpperCase()}".
+                      </Typography>
+                      <Button
+                        size="small"
+                        variant="contained"
+                        startIcon={<AddIcon />}
+                        onClick={addQA}
+                        sx={{
+                          backgroundColor: "#37AB79",
+                          "&:hover": { backgroundColor: "#2d8a62" },
+                          textTransform: "none",
+                        }}
+                      >
+                        + Add {qaFilterTab.toUpperCase()} Question
+                      </Button>
+                    </Paper>
+                  ) : (
+                    /* Sortable List of Question Cards */
+                    <SortableContainer
+                      items={visibleQA.map((v) => v.item)}
+                      onReorder={handleReorderQA}
+                    >
+                      <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                        {visibleQA.map(({ item, originalIdx }, filteredIdx) => {
+                          const isCardExpanded = Boolean(expandedQaIds[item.id]);
+                          const numLabel = String(filteredIdx + 1).padStart(2, "0");
+                          const diff = (item.difficulty || "beginner").toLowerCase();
 
-                          <TextField
-                            fullWidth
-                            size="small"
-                            label="Key Takeaway / Highlight Note"
-                            value={item.highlight_box || ""}
-                            onChange={(e) => updateQA(idx, "highlight_box", e.target.value)}
-                            sx={{ backgroundColor: "#f0fdf4" }}
-                          />
+                          return (
+                            <SortableItem key={item.id} id={item.id}>
+                              {({ attributes, listeners, isDragging }) => (
+                                <Paper
+                                  variant="outlined"
+                                  sx={{
+                                    borderRadius: 2.5,
+                                    backgroundColor: "#ffffff",
+                                    borderColor: isDragging ? "#37AB79" : isCardExpanded ? "#94a3b8" : "#e2e8f0",
+                                    boxShadow: isCardExpanded ? "0 4px 12px rgba(0,0,0,0.05)" : "none",
+                                    overflow: "hidden",
+                                    transition: "border-color 0.2s, box-shadow 0.2s",
+                                  }}
+                                >
+                                  {/* Card Header */}
+                                  <Box
+                                    sx={{
+                                      display: "flex",
+                                      justifyContent: "space-between",
+                                      alignItems: "center",
+                                      p: 1.5,
+                                      px: 2,
+                                      backgroundColor: isCardExpanded ? "#f8fafc" : "#fafafa",
+                                      borderBottom: isCardExpanded ? "1px solid #e2e8f0" : "none",
+                                      gap: 1.5,
+                                    }}
+                                  >
+                                    {/* Left: Drag Handle, Number Badge, Difficulty Chip, Title, Default Open Badge */}
+                                    <Box
+                                      sx={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: 1.25,
+                                        flex: 1,
+                                        minWidth: 0,
+                                      }}
+                                    >
+                                      <DragHandle
+                                        attributes={attributes}
+                                        listeners={listeners}
+                                        isDragging={isDragging}
+                                      />
+                                      <Chip
+                                        label={numLabel}
+                                        size="small"
+                                        sx={{
+                                          fontWeight: 700,
+                                          backgroundColor: isCardExpanded ? "#0B3553" : "#E2E8F0",
+                                          color: isCardExpanded ? "#ffffff" : "#334155",
+                                          borderRadius: 1.5,
+                                          fontSize: "0.8rem",
+                                          height: 26,
+                                        }}
+                                      />
+                                      <Chip
+                                        label={diff.toUpperCase()}
+                                        size="small"
+                                        sx={{
+                                          fontWeight: 700,
+                                          fontSize: "0.7rem",
+                                          height: 22,
+                                          backgroundColor:
+                                            diff === "advanced"
+                                              ? "#fee2e2"
+                                              : diff === "intermediate"
+                                              ? "#fef3c7"
+                                              : "#e0f2fe",
+                                          color:
+                                            diff === "advanced"
+                                              ? "#b91c1c"
+                                              : diff === "intermediate"
+                                              ? "#b45309"
+                                              : "#0369a1",
+                                        }}
+                                      />
+                                      <Typography
+                                        variant="subtitle2"
+                                        sx={{
+                                          fontWeight: 700,
+                                          color: "#1e293b",
+                                          overflow: "hidden",
+                                          textOverflow: "ellipsis",
+                                          whiteSpace: "nowrap",
+                                          cursor: "pointer",
+                                        }}
+                                        onClick={() => toggleQaExpand(item.id)}
+                                      >
+                                        {item.question || "Untitled Question"}
+                                      </Typography>
+                                      {item.default_open && (
+                                        <Chip
+                                          label="Default Open"
+                                          size="small"
+                                          sx={{
+                                            fontSize: "0.7rem",
+                                            height: 20,
+                                            backgroundColor: "#DEF7EC",
+                                            color: "#03543F",
+                                            fontWeight: 600,
+                                          }}
+                                        />
+                                      )}
+                                    </Box>
 
-                          <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 1.5 }}>
-                            <TextField
-                              fullWidth
-                              size="small"
-                              label="Example"
-                              value={item.example || ""}
-                              onChange={(e) => updateQA(idx, "example", e.target.value)}
-                            />
-                            <TextField
-                              fullWidth
-                              size="small"
-                              label="Interview Tip"
-                              value={item.interview_tip || ""}
-                              onChange={(e) => updateQA(idx, "interview_tip", e.target.value)}
-                            />
-                          </Box>
-                        </Box>
-                      </Paper>
-                    ))}
+                                    {/* Right: Actions (Move up/down, Duplicate, Delete, Expand/Collapse) */}
+                                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, flexShrink: 0 }}>
+                                      <AccessibleReorderButtons
+                                        onMoveUp={() => moveQAItem(filteredIdx, -1)}
+                                        onMoveDown={() => moveQAItem(filteredIdx, 1)}
+                                        isFirst={filteredIdx === 0}
+                                        isLast={filteredIdx === visibleQA.length - 1}
+                                      />
+                                      <Tooltip title="Duplicate Question">
+                                        <IconButton
+                                          size="small"
+                                          onClick={() => duplicateQA(originalIdx)}
+                                          sx={{ color: "#64748b", "&:hover": { color: "#074568" } }}
+                                        >
+                                          <ContentCopyIcon fontSize="small" />
+                                        </IconButton>
+                                      </Tooltip>
+                                      <Tooltip title="Delete Question">
+                                        <IconButton
+                                          size="small"
+                                          onClick={() => deleteQA(originalIdx)}
+                                          sx={{ color: "#ef4444", "&:hover": { backgroundColor: "#fee2e2" } }}
+                                        >
+                                          <DeleteIcon fontSize="small" />
+                                        </IconButton>
+                                      </Tooltip>
+                                      <IconButton
+                                        size="small"
+                                        onClick={() => toggleQaExpand(item.id)}
+                                        sx={{ color: "#475569" }}
+                                      >
+                                        {isCardExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                                      </IconButton>
+                                    </Box>
+                                  </Box>
+
+                                  {/* Card Body (Collapsible) */}
+                                  {isCardExpanded && (
+                                    <Box sx={{ p: { xs: 2, sm: 2.5 }, display: "flex", flexDirection: "column", gap: 2.25 }}>
+                                      {/* Field 1: Question Title, Difficulty, and Default Open */}
+                                      <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 2, alignItems: { md: "center" } }}>
+                                        <TextField
+                                          fullWidth
+                                          required
+                                          size="small"
+                                          label="Question Title (Displayed in accordion header)"
+                                          value={item.question || ""}
+                                          onChange={(e) => updateQA(originalIdx, "question", e.target.value)}
+                                          sx={{ flex: 3 }}
+                                        />
+                                        <FormControl size="small" sx={{ minWidth: 160 }}>
+                                          <InputLabel>Difficulty</InputLabel>
+                                          <Select
+                                            value={item.difficulty || "beginner"}
+                                            label="Difficulty"
+                                            onChange={(e) => updateQA(originalIdx, "difficulty", e.target.value)}
+                                          >
+                                            <MenuItem value="beginner">Beginner</MenuItem>
+                                            <MenuItem value="intermediate">Intermediate</MenuItem>
+                                            <MenuItem value="advanced">Advanced</MenuItem>
+                                          </Select>
+                                        </FormControl>
+                                        <FormControlLabel
+                                          control={
+                                            <Switch
+                                              checked={Boolean(item.default_open)}
+                                              onChange={(e) => updateQA(originalIdx, "default_open", e.target.checked)}
+                                              color="primary"
+                                            />
+                                          }
+                                          label={
+                                            <Typography variant="body2" sx={{ fontWeight: 600, color: "#334155" }}>
+                                              Expand by default
+                                            </Typography>
+                                          }
+                                          sx={{ flexShrink: 0 }}
+                                        />
+                                      </Box>
+
+                                      {/* Field 2: Simple Explanation */}
+                                      <Box>
+                                        <Typography variant="caption" sx={{ fontWeight: 700, color: "#1e293b", display: "block", mb: 0.5, fontSize: "0.8rem" }}>
+                                          A. Simple explanation
+                                        </Typography>
+                                        <TextField
+                                          fullWidth
+                                          multiline
+                                          rows={2}
+                                          size="small"
+                                          placeholder="Instead of writing rules by hand, you show a computer many examples and let it work out the rules itself."
+                                          value={item.simple_explanation || item.simple_definition || item.answer || ""}
+                                          onChange={(e) => updateQA(originalIdx, "simple_explanation", e.target.value)}
+                                        />
+                                      </Box>
+
+                                      {/* Field 3: Technical Explanation (Rich-Text Editor) */}
+                                      <Box>
+                                        <Typography variant="caption" sx={{ fontWeight: 700, color: "#1e293b", display: "block", mb: 0.5, fontSize: "0.8rem" }}>
+                                          B. Technical explanation (Rich-Text: paragraphs, lists, bold, math/code)
+                                        </Typography>
+                                        <Box sx={{ border: "1px solid #cbd5e1", borderRadius: 1.5, overflow: "hidden" }}>
+                                          <Editor
+                                            apiKey={TINYMCE_API_KEY}
+                                            value={item.technical_explanation || item.explanation || ""}
+                                            init={{
+                                              height: 180,
+                                              menubar: false,
+                                              plugins: ["lists", "link", "code"],
+                                              toolbar: "undo redo | bold italic underline | bullist numlist | link code",
+                                              content_style: "body { font-family: Inter, sans-serif; font-size: 14px; }",
+                                            }}
+                                            onEditorChange={(content) => updateQA(originalIdx, "technical_explanation", content)}
+                                          />
+                                        </Box>
+                                      </Box>
+
+                                      {/* Field 4: Interview-Ready Answer (Highlighted Mint Callout Box) */}
+                                      <Box sx={{ backgroundColor: "#F0FDF4", p: 1.5, borderRadius: 2, border: "1px solid #BBF7D0", borderLeft: "4px solid #0D5C75" }}>
+                                        <Typography variant="caption" sx={{ fontWeight: 700, color: "#065F46", display: "block", mb: 0.5, fontSize: "0.8rem" }}>
+                                          C. Interview-ready answer ("What you can say in an interview" callout box)
+                                        </Typography>
+                                        <TextField
+                                          fullWidth
+                                          multiline
+                                          rows={2.5}
+                                          size="small"
+                                          placeholder='&quot;Machine learning is a subset of AI where algorithms learn patterns from data to make predictions or decisions without being explicitly programmed for every outcome.&quot;'
+                                          value={item.interview_answer || item.highlight_box || ""}
+                                          onChange={(e) => updateQA(originalIdx, "interview_answer", e.target.value)}
+                                          sx={{
+                                            backgroundColor: "#ffffff",
+                                            borderRadius: 1,
+                                            "& .MuiOutlinedInput-root": { fontStyle: "italic" },
+                                          }}
+                                        />
+                                      </Box>
+
+                                      {/* Field 5: Example */}
+                                      <Box>
+                                        <Typography variant="caption" sx={{ fontWeight: 700, color: "#1e293b", display: "block", mb: 0.5, fontSize: "0.8rem" }}>
+                                          D. Example
+                                        </Typography>
+                                        <TextField
+                                          fullWidth
+                                          multiline
+                                          rows={2}
+                                          size="small"
+                                          placeholder="A spam filter learns from thousands of labelled emails which words and senders suggest spam."
+                                          value={item.example || ""}
+                                          onChange={(e) => updateQA(originalIdx, "example", e.target.value)}
+                                        />
+                                      </Box>
+
+                                      {/* Field 6: Nested Follow-up Questions ("Interviewer may ask") */}
+                                      <Paper
+                                        variant="outlined"
+                                        sx={{
+                                          p: 2,
+                                          borderRadius: 2,
+                                          backgroundColor: "#f8fafc",
+                                          border: "1px dashed #cbd5e1",
+                                        }}
+                                      >
+                                        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1.5 }}>
+                                          <Box>
+                                            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#1e293b" }}>
+                                              E. Interviewer may ask (Suggested Follow-up Questions)
+                                            </Typography>
+                                            <Typography variant="caption" sx={{ color: "#64748b" }}>
+                                              Outlined question pills with supporting hints (e.g. "Try answering this aloud first...").
+                                            </Typography>
+                                          </Box>
+                                          <Button
+                                            size="small"
+                                            variant="outlined"
+                                            startIcon={<AddIcon fontSize="small" />}
+                                            onClick={() => addQAFollowUp(originalIdx)}
+                                            sx={{
+                                              textTransform: "none",
+                                              fontSize: "0.75rem",
+                                              fontWeight: 600,
+                                              borderColor: "#37AB79",
+                                              color: "#166534",
+                                              "&:hover": { borderColor: "#166534", backgroundColor: "#f0fdf4" },
+                                            }}
+                                          >
+                                            + Add Follow-up
+                                          </Button>
+                                        </Box>
+
+                                        {(item.follow_up_questions || []).length === 0 ? (
+                                          <Typography variant="body2" sx={{ color: "#94a3b8", fontStyle: "italic", textAlign: "center", py: 1 }}>
+                                            No follow-up questions yet. Click "+ Add Follow-up" to add one.
+                                          </Typography>
+                                        ) : (
+                                          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+                                            {(item.follow_up_questions || []).map((fq, fIdx) => (
+                                              <Paper
+                                                key={fq.id || fIdx}
+                                                variant="outlined"
+                                                sx={{
+                                                  p: 1.5,
+                                                  borderRadius: 2,
+                                                  backgroundColor: "#ffffff",
+                                                  borderColor: "#e2e8f0",
+                                                }}
+                                              >
+                                                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
+                                                  <Typography variant="caption" sx={{ fontWeight: 700, color: "#475569" }}>
+                                                    Follow-up #{fIdx + 1}
+                                                  </Typography>
+                                                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                                                    <IconButton
+                                                      size="small"
+                                                      disabled={fIdx === 0}
+                                                      onClick={() => moveQAFollowUp(originalIdx, fIdx, -1)}
+                                                      sx={{ p: 0.25 }}
+                                                    >
+                                                      <ArrowUpwardIcon sx={{ fontSize: 16 }} />
+                                                    </IconButton>
+                                                    <IconButton
+                                                      size="small"
+                                                      disabled={fIdx === (item.follow_up_questions || []).length - 1}
+                                                      onClick={() => moveQAFollowUp(originalIdx, fIdx, 1)}
+                                                      sx={{ p: 0.25 }}
+                                                    >
+                                                      <ArrowDownwardIcon sx={{ fontSize: 16 }} />
+                                                    </IconButton>
+                                                    <IconButton
+                                                      size="small"
+                                                      onClick={() => deleteQAFollowUp(originalIdx, fIdx)}
+                                                      sx={{ p: 0.25, color: "#ef4444", "&:hover": { backgroundColor: "#fee2e2" } }}
+                                                    >
+                                                      <DeleteIcon sx={{ fontSize: 16 }} />
+                                                    </IconButton>
+                                                  </Box>
+                                                </Box>
+                                                <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                                                  <TextField
+                                                    fullWidth
+                                                    size="small"
+                                                    label="Follow-up Question Text"
+                                                    placeholder="e.g. How is ML different from traditional programming?"
+                                                    value={fq.question || ""}
+                                                    onChange={(e) => updateQAFollowUp(originalIdx, fIdx, "question", e.target.value)}
+                                                  />
+                                                  <TextField
+                                                    fullWidth
+                                                    size="small"
+                                                    label="Supporting Hint / Instruction (displayed underneath question)"
+                                                    placeholder="e.g. Try answering this aloud first, then link it back to the main question above."
+                                                    value={fq.hint || ""}
+                                                    onChange={(e) => updateQAFollowUp(originalIdx, fIdx, "hint", e.target.value)}
+                                                  />
+                                                </Box>
+                                              </Paper>
+                                            ))}
+                                          </Box>
+                                        )}
+                                      </Paper>
+                                    </Box>
+                                  )}
+                                </Paper>
+                              )}
+                            </SortableItem>
+                          );
+                        })}
+                      </Box>
+                    </SortableContainer>
+                  )}
                 </Box>
-              </Box>
-            )}
+              );
+            })()}
 
             {/* ── TAB 3: 03 · Scenario-Based ── */}
             {(activeMode === "all" || activeTab === 3) && (
