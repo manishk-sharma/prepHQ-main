@@ -1,5 +1,5 @@
 import DomainContactForm from "../../components/DomainContactForm";
-import Hero from "./sections/hero-section/hero";
+import Hero from "./sections/hero-section/Hero";
 import WhatIs from "./sections/what-is/WhatIs";
 import LearningResources from "./sections/learning-section/LearningResources";
 import Tools from "./sections/tools-section/Tools";
