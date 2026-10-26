@@ -13,9 +13,9 @@ import {
 } from "react-icons/fi";
 import {
   FaLinkedinIn,
-  FaXTwitter,
   FaWhatsapp,
   FaFacebookF,
+  FaInstagram,
 } from "react-icons/fa6";
 import parse from "html-react-parser";
 import {
@@ -1390,30 +1390,17 @@ const InterviewsPage = () => {
               ========================================================= */}
           <main className="interview-center-content">
 
-            {/* ── Page Header ─────────────────────────────────────────── */}
+            {/* ── Page Header Matching Reference Image 1 ─────────────── */}
             <header className="interview-page-header">
               <div className="header-text-col">
                 <h1 className="interview-page-title">{pageTitle}</h1>
                 <p className="interview-page-desc">{pageDesc}</p>
               </div>
 
-              {/* Share Controls */}
+              {/* Share Controls: [Share:] [WhatsApp] [LinkedIn] [Facebook] [Instagram] */}
               <div className="header-share-col" aria-label="Share Controls">
-                <span className="share-label">Share</span>
+                <span className="share-label">Share:</span>
                 <div className="share-buttons-group">
-                  <button
-                    type="button"
-                    className="share-icon-btn copy-btn"
-                    onClick={handleCopyPageLink}
-                    title="Copy Link to Clipboard"
-                    aria-label="Copy Link"
-                  >
-                    {copiedLink ? <FiCheck /> : <FiCopy />}
-                    {copiedLink && (
-                      <span className="copy-feedback-tooltip">Copied!</span>
-                    )}
-                  </button>
-
                   <a
                     href={`https://api.whatsapp.com/send?text=${shareTitle}%20${currentUrl}`}
                     target="_blank"
@@ -1437,17 +1424,6 @@ const InterviewsPage = () => {
                   </a>
 
                   <a
-                    href={`https://twitter.com/intent/tweet?text=${shareTitle}&url=${currentUrl}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="share-icon-btn twitter-btn"
-                    title="Share on X (Twitter)"
-                    aria-label="Share on X"
-                  >
-                    <FaXTwitter />
-                  </a>
-
-                  <a
                     href={`https://www.facebook.com/sharer/sharer.php?u=${currentUrl}`}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -1457,8 +1433,26 @@ const InterviewsPage = () => {
                   >
                     <FaFacebookF />
                   </a>
+
+                  <a
+                    href="https://www.instagram.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="share-icon-btn instagram-btn"
+                    title="Share on Instagram"
+                    aria-label="Share on Instagram"
+                    onClick={() => {
+                      if (navigator.clipboard) {
+                        navigator.clipboard.writeText(window.location.href);
+                      }
+                    }}
+                  >
+                    <FaInstagram />
+                  </a>
                 </div>
               </div>
+
+              <hr className="interview-header-divider" />
             </header>
 
             {/* ── Render Sections In Dynamically Configured Order ──────── */}
