@@ -269,13 +269,16 @@ export const generateAcceptance = (difficulty) => {
   return `${value}%`;
 };
 
-const BACKEND_BASE = "https://backend.prephq.theiotacademy.co";
+const BACKEND_BASE =
+  import.meta.env.VITE_API_URL
+    ? import.meta.env.VITE_API_URL.replace(/\/api\/?$/, "")
+    : "";
 
 export const getProfileImageUrl = (path) => {
   if (!path) return null;
   if (path.startsWith("http://") || path.startsWith("https://")) return path;
-  console.log("getProfileImageUrl called with path:", path);
-  return `${BACKEND_BASE}/${path.replace(/^\//, "")}`;
+  const cleanPath = path.replace(/^\//, "");
+  return BACKEND_BASE ? `${BACKEND_BASE}/${cleanPath}` : `/${cleanPath}`;
 };
 
 export const formatSlug = (text) => {
