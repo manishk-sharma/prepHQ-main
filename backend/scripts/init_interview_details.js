@@ -317,50 +317,98 @@ async function initInterviewDetailsTable() {
         num: "01",
         question: "Your model has 95% accuracy, but the business team says the model is not useful. What would you investigate?",
         default_open: true,
-        problem_context: "In imbalanced classification problems (e.g., credit card fraud where 95% of transactions are legitimate and 5% are fraudulent), a naive dummy classifier predicting 'legitimate' 100% of the time achieves 95% accuracy while failing 100% of fraud detections. Raw accuracy is deceptive under class skew.",
-        investigation_approach: "1. Review the full confusion matrix to check True Positives and False Negatives.\n2. Calculate Precision, Recall, and PR-AUC instead of raw accuracy.\n3. Inspect prediction distributions across critical customer sub-segments.\n4. Verify whether the training data had data leakage or temporal mismatch with production reality.",
-        recommended_solution: "Align the evaluation metric with business ROI (e.g. financial cost of an undetected fraud vs customer friction of a false alert). Optimize the classification probability threshold according to a business payoff matrix and train using cost-sensitive learning or class weighting.",
-        expected_outcome: "A high-recall model operating at an optimized threshold that catches 88% of fraudulent events while maintaining acceptable alert volume for fraud operations."
+        interviewer_testing: "Understanding of model evaluation and business context.",
+        testing_criteria: "Understanding of model evaluation and business context.",
+        problem_context: "Understanding of model evaluation and business context.",
+        approach: "Check class balance, then look at the confusion matrix, precision/recall for the class that matters, and the cost of each error type. Ask what decision the model supports.",
+        investigation_approach: "Check class balance, then look at the confusion matrix, precision/recall for the class that matters, and the cost of each error type. Ask what decision the model supports.",
+        expected_answer_label: "Expected answer",
+        expected_answer: "\"Accuracy can hide poor performance when classes are imbalanced. I would check the class distribution, review precision, recall and PR-AUC for the minority class, align the threshold with business cost, and then improve with class weights, better features or more minority data.\"",
+        recommended_solution: "\"Accuracy can hide poor performance when classes are imbalanced. I would check the class distribution, review precision, recall and PR-AUC for the minority class, align the threshold with business cost, and then improve with class weights, better features or more minority data.\"",
+        expected_outcome: "High-recall model operating at business-aligned cost threshold.",
+        follow_up_questions: [
+          { id: "sc-fu-1-1", question: "Is accuracy always reliable?" },
+          { id: "sc-fu-1-2", question: "What metrics would you check?" },
+          { id: "sc-fu-1-3", question: "Could class imbalance be involved?" },
+          { id: "sc-fu-1-4", question: "How would you improve the model?" }
+        ]
       },
       {
         id: "sc-2",
         num: "02",
-        question: "Your model has high training accuracy (98%), but test accuracy is very low (72%). What is happening?",
+        question: "Your training accuracy is 98%, but your test accuracy is only 72%. What could be happening?",
         default_open: false,
-        problem_context: "This is a classic manifestation of high variance / severe overfitting. The model has memorized idiosyncrasies, random noise, or spurious correlations in the training partition that do not generalize to out-of-sample data.",
-        investigation_approach: "1. Verify that feature preprocessing (scaling, imputation, target encoding) was fitted strictly inside cross-validation folds without leakage.\n2. Evaluate feature importance to verify the model is not over-relying on a leaky proxy feature.\n3. Implement strong regularization (L1/L2 penalties, higher dropout rates, lower tree max_depth).\n4. Collect more training samples or apply data augmentation to improve coverage.",
-        recommended_solution: "Prune trees, enforce minimum samples per leaf, add dropout or L2 weight decay, and simplify the feature set by dropping zero-importance features.",
-        expected_outcome: "Generalization gap narrows: Training accuracy stabilizes around 86% while test accuracy rises to 84%."
+        interviewer_testing: "Diagnosing high variance, severe overfitting, and data contamination across partitions.",
+        testing_criteria: "Diagnosing high variance, severe overfitting, and data contamination across partitions.",
+        problem_context: "Diagnosing high variance, severe overfitting, and data contamination across partitions.",
+        approach: "Verify feature preprocessing was fitted inside cross-validation folds without leakage, inspect feature importance for spurious correlations, and evaluate regularization and tree depth constraints.",
+        investigation_approach: "Verify feature preprocessing was fitted inside cross-validation folds without leakage, inspect feature importance for spurious correlations, and evaluate regularization and tree depth constraints.",
+        expected_answer_label: "Expected answer",
+        expected_answer: "\"The model is severely overfitting the training partition and failing to generalize. I would inspect the pipeline for data leakage, apply k-fold cross-validation, add L1/L2 penalties or dropout, reduce tree depth, and gather more diverse training examples.\"",
+        recommended_solution: "\"The model is severely overfitting the training partition and failing to generalize. I would inspect the pipeline for data leakage, apply k-fold cross-validation, add L1/L2 penalties or dropout, reduce tree depth, and gather more diverse training examples.\"",
+        expected_outcome: "Generalization gap narrows with robust out-of-sample performance.",
+        follow_up_questions: [
+          { id: "sc-fu-2-1", question: "How do you distinguish between high bias and high variance?" },
+          { id: "sc-fu-2-2", question: "What regularization techniques work best for tree-based models?" },
+          { id: "sc-fu-2-3", question: "When would you prefer more training data over higher regularization?" }
+        ]
       },
       {
         id: "sc-3",
         num: "03",
-        question: "How would you handle missing data when 40% of rows have null values in a critical feature?",
+        question: "Your training accuracy is 98%, but your test accuracy is only 72%. What could be happening?",
         default_open: false,
-        problem_context: "Dropping 40% of rows causes massive information loss and can introduce severe sample bias if data is Missing Not at Random (MNAR).",
-        investigation_approach: "1. Analyze the missingness mechanism: Missing Completely at Random (MCAR) vs Missing at Random (MAR) vs Missing Not at Random (MNAR).\n2. Add a binary indicator column `is_missing` to preserve the informational signal that a value was withheld.\n3. Use gradient boosting models (XGBoost, LightGBM, CatBoost) that natively learn the optimal branch routing for missing values.\n4. Evaluate iterative model-based imputation (MICE or KNN) against median baseline on validation folds.",
-        recommended_solution: "Add an `is_missing` indicator flag, then apply median/MICE imputation or pass directly into a tree-based ensemble that treats missingness as an informative signal.",
-        expected_outcome: "Zero row loss, retention of latent signal behind why the feature was unrecorded, and improved validation stability."
+        interviewer_testing: "Identifying subtle feature leakage and temporal contamination in time-series splits.",
+        testing_criteria: "Identifying subtle feature leakage and temporal contamination in time-series splits.",
+        problem_context: "Identifying subtle feature leakage and temporal contamination in time-series splits.",
+        approach: "Verify if time-series data was randomly shuffled instead of using walk-forward or temporal splitting, and check for target-encoding leakage across folds.",
+        investigation_approach: "Verify if time-series data was randomly shuffled instead of using walk-forward or temporal splitting, and check for target-encoding leakage across folds.",
+        expected_answer_label: "Expected answer",
+        expected_answer: "\"Randomly shuffling time-dependent data causes future information to leak into past training partitions. I would re-partition the dataset using temporal walk-forward splits, verify target encoding is computed strictly out-of-fold, and remove any lookahead features.\"",
+        recommended_solution: "\"Randomly shuffling time-dependent data causes future information to leak into past training partitions. I would re-partition the dataset using temporal walk-forward splits, verify target encoding is computed strictly out-of-fold, and remove any lookahead features.\"",
+        expected_outcome: "Temporal validity preserved with realistic future performance estimation.",
+        follow_up_questions: [
+          { id: "sc-fu-3-1", question: "How does temporal cross-validation differ from standard K-Fold?" },
+          { id: "sc-fu-3-2", question: "What are the risks of using future information in production feature stores?" }
+        ]
       },
       {
         id: "sc-4",
         num: "04",
-        question: "Your model latency is 350ms in production, but the API SLA is under 50ms. How do you optimize?",
+        question: "Your training accuracy is 98%, but your test accuracy is only 72%. What could be happening?",
         default_open: false,
-        problem_context: "Real-time scoring pipelines require sub-50ms round-trip responses. Latency bottlenecks can stem from heavy neural architectures, feature preprocessing, or unoptimized inference runtimes.",
-        investigation_approach: "1. Profile the latency breakdown: network serialization vs feature lookup vs model forward pass.\n2. Model Quantization: Convert 32-bit floating point weights to 8-bit integers (INT8) for 3-4x inference speedup with negligible accuracy loss.\n3. Knowledge Distillation: Train a compact student model to mimic the large teacher model's probability outputs.\n4. Export to ONNX Runtime / TensorRT: Leverage optimized C++ inference runtimes with kernel fusion.\n5. Inference Caching: Cache predictions for top 20% frequent query feature vectors using Redis to serve recurring requests in < 5ms.",
-        recommended_solution: "Export model to ONNX runtime with INT8 quantization, pre-compute static features in a low-latency Redis feature store, and cache high-frequency query predictions.",
-        expected_outcome: "Average inference latency drops from 350ms to 24ms, satisfying the SLA with 99.8% output parity."
+        interviewer_testing: "Investigating covariate shift and sample selection bias between train and production environments.",
+        testing_criteria: "Investigating covariate shift and sample selection bias between train and production environments.",
+        problem_context: "Investigating covariate shift and sample selection bias between train and production environments.",
+        approach: "Compare train and test feature distributions using Adversarial Validation or Population Stability Index (PSI) to detect covariate shift.",
+        investigation_approach: "Compare train and test feature distributions using Adversarial Validation or Population Stability Index (PSI) to detect covariate shift.",
+        expected_answer_label: "Expected answer",
+        expected_answer: "\"The test distribution differs significantly from the training distribution (covariate shift). I would train a domain classifier (adversarial validation) to distinguish train from test samples, drop non-stationary features, and re-weight training samples accordingly.\"",
+        recommended_solution: "\"The test distribution differs significantly from the training distribution (covariate shift). I would train a domain classifier (adversarial validation) to distinguish train from test samples, drop non-stationary features, and re-weight training samples accordingly.\"",
+        expected_outcome: "Mitigated distribution mismatch and consistent out-of-sample prediction stability.",
+        follow_up_questions: [
+          { id: "sc-fu-4-1", question: "What is adversarial validation and when should you run it?" },
+          { id: "sc-fu-4-2", question: "How does Population Stability Index (PSI) quantify distribution drift?" }
+        ]
       },
       {
         id: "sc-5",
         num: "05",
-        question: "How do you detect and fix data drift or concept drift in a deployed ML model?",
+        question: "Your training accuracy is 98%, but your test accuracy is only 72%. What could be happening?",
         default_open: false,
-        problem_context: "Data drift occurs when input feature distributions shift over time (P(X) changes). Concept drift occurs when the statistical relationship between features and the target variable shifts (P(y|X) changes, e.g. consumer spending patterns post-crisis).",
-        investigation_approach: "1. Monitor Population Stability Index (PSI) and Kolmogorov-Smirnov (KS) tests between training and production feature distributions.\n2. Track rolling prediction probability distributions and model confidence score drift.\n3. Establish automated alerting pipelines with Prometheus/Grafana or Evidently AI.\n4. Implement periodic retraining workflows with weighted time-decay on older data and shadow validation.",
-        recommended_solution: "Establish automated continuous monitoring with PSI alerts. When drift exceeds threshold (PSI > 0.2), trigger an automated retraining pipeline on sliding window data.",
-        expected_outcome: "Proactive model refresh cycles before real-world business accuracy deteriorates in production."
+        interviewer_testing: "Evaluating label noise, inconsistent annotation, and evaluation metric misalignment.",
+        testing_criteria: "Evaluating label noise, inconsistent annotation, and evaluation metric misalignment.",
+        problem_context: "Evaluating label noise, inconsistent annotation, and evaluation metric misalignment.",
+        approach: "Audit test set ground truth labels for annotator disagreement, class ambiguity, or label noise that artificially penalizes model predictions.",
+        investigation_approach: "Audit test set ground truth labels for annotator disagreement, class ambiguity, or label noise that artificially penalizes model predictions.",
+        expected_answer_label: "Expected answer",
+        expected_answer: "\"Inconsistent or noisy labels in the test set can falsely deflate generalization scores. I would inspect confident misclassifications using confident learning, audit annotation agreement scores, and correct systematically mislabeled test samples.\"",
+        recommended_solution: "\"Inconsistent or noisy labels in the test set can falsely deflate generalization scores. I would inspect confident misclassifications using confident learning, audit annotation agreement scores, and correct systematically mislabeled test samples.\"",
+        expected_outcome: "Clean ground-truth evaluation set reflecting true production capability.",
+        follow_up_questions: [
+          { id: "sc-fu-5-1", question: "How do you measure inter-annotator agreement (e.g., Cohen's Kappa)?" },
+          { id: "sc-fu-5-2", question: "What is confident learning and how does it clean noisy labels?" }
+        ]
       }
     ];
 
@@ -548,8 +596,8 @@ print(calculate_metrics(tp=85, fp=15, tn=890, fn=10))
         subtitle: "Explore interview questions topic by topic."
       },
       "scenario-based": {
-        title: "03 · Scenario-Based Interview Questions",
-        subtitle: "Real-world production engineering trade-offs, debugging, and system decisions."
+        title: "Scenario-Based Interview Questions",
+        subtitle: "Questions that test how you apply concepts to real-world problems."
       },
       "coding-questions": {
         title: "04 · Practical & Coding Questions",
@@ -728,11 +776,13 @@ print(calculate_metrics(tp=85, fp=15, tn=890, fn=10))
         `UPDATE interview_details
          SET must_know_questions = ?,
              qa_questions = ?,
+             scenario_questions = ?,
              section_headers = ?
          WHERE slug = ?`,
         [
           JSON.stringify(defaultMustKnow),
           JSON.stringify(defaultQA),
+          JSON.stringify(defaultScenario),
           JSON.stringify(defaultSectionHeaders),
           'machine-learning-interview-questions-answers'
         ]

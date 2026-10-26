@@ -72,8 +72,8 @@ const DEFAULT_SECTION_HEADERS = {
     subtitle: "Explore interview questions topic by topic.",
   },
   "scenario-based": {
-    title: "03 · Scenario-Based Interview Questions",
-    subtitle: "Real-world production engineering trade-offs, debugging, and system decisions.",
+    title: "Scenario-Based Interview Questions",
+    subtitle: "Questions that test how you apply concepts to real-world problems.",
   },
   "coding-questions": {
     title: "04 · Practical & Coding Questions",
@@ -120,6 +120,7 @@ export default function AdminInterviewDetails() {
   const [qaFilterTab, setQaFilterTab] = useState("all");
   const [expandedMustKnowIds, setExpandedMustKnowIds] = useState({});
   const [expandedQaIds, setExpandedQaIds] = useState({});
+  const [expandedScenarioIds, setExpandedScenarioIds] = useState({});
 
   const { data: interviewList = [], refetch: refetchList } = useInterviewDetailsList();
   const { data: currentData, isLoading, refetch } = useInterviewDetails(selectedSlug);
@@ -219,6 +220,35 @@ export default function AdminInterviewDetails() {
       });
       setExpandedQaIds(initialQaExpanded);
 
+      // Normalize Scenario questions
+      const sanitizedScenario = (currentData.scenario_questions || []).map((q, idx) => ({
+        id: q.id || `sc-${idx + 1}-${Date.now()}`,
+        num: q.num || String(idx + 1).padStart(2, "0"),
+        question: q.question || q.title || "",
+        default_open: q.default_open !== undefined ? Boolean(q.default_open) : idx === 0,
+        interviewer_testing: q.interviewer_testing || q.testing_criteria || q.problem_context || "",
+        testing_criteria: q.testing_criteria || q.interviewer_testing || q.problem_context || "",
+        problem_context: q.problem_context || q.interviewer_testing || q.testing_criteria || "",
+        approach: q.approach || q.investigation_approach || "",
+        investigation_approach: q.investigation_approach || q.approach || "",
+        expected_answer_label: q.expected_answer_label || "Expected answer",
+        expected_answer: q.expected_answer || q.recommended_solution || q.expected_outcome || "",
+        recommended_solution: q.recommended_solution || q.expected_answer || q.expected_outcome || "",
+        expected_outcome: q.expected_outcome || q.expected_answer || q.recommended_solution || "",
+        follow_up_questions: (q.follow_up_questions || q.followUps || q.follow_ups || []).map((fq, fidx) => ({
+          id: typeof fq === "object" ? fq.id || `sc-fu-${fidx + 1}-${Date.now()}` : `sc-fu-${fidx + 1}-${Date.now()}`,
+          question: typeof fq === "string" ? fq : fq.question || fq.text || "",
+          hint: typeof fq === "object" ? fq.hint || "" : "",
+        })),
+      }));
+
+      // Expand first Scenario card in admin editor by default
+      const initialScenarioExpanded = {};
+      sanitizedScenario.forEach((q, i) => {
+        initialScenarioExpanded[q.id] = i === 0;
+      });
+      setExpandedScenarioIds(initialScenarioExpanded);
+
       setFormData({
         title: currentData.title || "",
         slug: currentData.slug || selectedSlug,
@@ -234,7 +264,7 @@ export default function AdminInterviewDetails() {
         keywords: currentData.keywords || "",
         must_know_questions: sanitizedMustKnow,
         qa_questions: sanitizedQA,
-        scenario_questions: currentData.scenario_questions || [],
+        scenario_questions: sanitizedScenario,
         coding_questions: currentData.coding_questions || [],
         common_mistakes: currentData.common_mistakes || [],
         quick_revision: currentData.quick_revision || [],
@@ -732,28 +762,78 @@ export default function AdminInterviewDetails() {
   };
 
   // ── 3. Scenario Handlers ───────────────────────────────────────────────────
+  const toggleScenarioExpand = (id) => {
+    setExpandedScenarioIds((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
+
+  const expandAllScenario = () => {
+    const nextState = {};
+    (formData.scenario_questions || []).forEach((q) => {
+      nextState[q.id] = true;
+    });
+    setExpandedScenarioIds(nextState);
+  };
+
+  const collapseAllScenario = () => {
+    setExpandedScenarioIds({});
+  };
+
   const addScenario = () => {
+    const newId = `sc-${Date.now()}`;
     setFormData((prev) => {
       const list = [...(prev.scenario_questions || [])];
       const nextNum = String(list.length + 1).padStart(2, "0");
       list.push({
-        id: `sc-${Date.now()}`,
+        id: newId,
         num: nextNum,
         question: "New Scenario Question",
-        default_open: false,
+        default_open: list.length === 0,
+        interviewer_testing: "",
+        testing_criteria: "",
         problem_context: "",
+        approach: "",
         investigation_approach: "",
+        expected_answer_label: "Expected answer",
+        expected_answer: "",
         recommended_solution: "",
         expected_outcome: "",
+        follow_up_questions: [
+          {
+            id: `sc-fu-${Date.now()}-1`,
+            question: "Is this metric always reliable?",
+            hint: "",
+          },
+        ],
       });
       return { ...prev, scenario_questions: list };
     });
+    setExpandedScenarioIds((prev) => ({ ...prev, [newId]: true }));
   };
 
   const updateScenario = (idx, field, val) => {
     setFormData((prev) => {
       const list = [...(prev.scenario_questions || [])];
-      list[idx] = { ...list[idx], [field]: val };
+      const item = { ...list[idx], [field]: val };
+      // Backward/forward compatibility sync
+      if (field === "interviewer_testing") {
+        item.testing_criteria = val;
+        item.problem_context = val;
+      } else if (field === "testing_criteria" || field === "problem_context") {
+        item.interviewer_testing = val;
+      } else if (field === "approach") {
+        item.investigation_approach = val;
+      } else if (field === "investigation_approach") {
+        item.approach = val;
+      } else if (field === "expected_answer") {
+        item.recommended_solution = val;
+        item.expected_outcome = val;
+      } else if (field === "recommended_solution" || field === "expected_outcome") {
+        item.expected_answer = val;
+      }
+      list[idx] = item;
       return { ...prev, scenario_questions: list };
     });
   };
@@ -762,6 +842,119 @@ export default function AdminInterviewDetails() {
     setFormData((prev) => {
       const list = [...(prev.scenario_questions || [])];
       list.splice(idx, 1);
+      const renumbered = list.map((item, i) => ({
+        ...item,
+        num: String(i + 1).padStart(2, "0"),
+      }));
+      return { ...prev, scenario_questions: renumbered };
+    });
+  };
+
+  const duplicateScenario = (idx) => {
+    setFormData((prev) => {
+      const list = [...(prev.scenario_questions || [])];
+      const orig = list[idx];
+      const newId = `sc-${Date.now()}`;
+      const clone = {
+        ...orig,
+        id: newId,
+        question: `${orig.question || "Scenario"} (Copy)`,
+        follow_up_questions: (orig.follow_up_questions || []).map((fq, fidx) => ({
+          ...fq,
+          id: `sc-fu-${Date.now()}-${fidx + 1}`,
+        })),
+      };
+      list.splice(idx + 1, 0, clone);
+      const renumbered = list.map((item, i) => ({
+        ...item,
+        num: String(i + 1).padStart(2, "0"),
+      }));
+      return { ...prev, scenario_questions: renumbered };
+    });
+  };
+
+  const handleReorderScenario = (newScenarioList) => {
+    const renumbered = newScenarioList.map((item, idx) => ({
+      ...item,
+      num: String(idx + 1).padStart(2, "0"),
+    }));
+    setFormData((prev) => ({
+      ...prev,
+      scenario_questions: renumbered,
+    }));
+  };
+
+  const moveScenarioItem = (idx, direction) => {
+    setFormData((prev) => {
+      const fullList = [...(prev.scenario_questions || [])];
+      const targetIdx = idx + direction;
+      if (targetIdx < 0 || targetIdx >= fullList.length) return prev;
+
+      const temp = fullList[idx];
+      fullList[idx] = fullList[targetIdx];
+      fullList[targetIdx] = temp;
+
+      const renumbered = fullList.map((item, i) => ({
+        ...item,
+        num: String(i + 1).padStart(2, "0"),
+      }));
+      return { ...prev, scenario_questions: renumbered };
+    });
+  };
+
+  // Follow-up question nested handlers for Scenario
+  const addScenarioFollowUp = (scIdx) => {
+    setFormData((prev) => {
+      const list = [...(prev.scenario_questions || [])];
+      const sc = { ...list[scIdx] };
+      const followUps = [...(sc.follow_up_questions || [])];
+      followUps.push({
+        id: `sc-fu-${Date.now()}`,
+        question: "",
+        hint: "",
+      });
+      sc.follow_up_questions = followUps;
+      list[scIdx] = sc;
+      return { ...prev, scenario_questions: list };
+    });
+  };
+
+  const updateScenarioFollowUp = (scIdx, fIdx, field, val) => {
+    setFormData((prev) => {
+      const list = [...(prev.scenario_questions || [])];
+      const sc = { ...list[scIdx] };
+      const followUps = [...(sc.follow_up_questions || [])];
+      followUps[fIdx] = { ...followUps[fIdx], [field]: val };
+      sc.follow_up_questions = followUps;
+      list[scIdx] = sc;
+      return { ...prev, scenario_questions: list };
+    });
+  };
+
+  const deleteScenarioFollowUp = (scIdx, fIdx) => {
+    setFormData((prev) => {
+      const list = [...(prev.scenario_questions || [])];
+      const sc = { ...list[scIdx] };
+      const followUps = [...(sc.follow_up_questions || [])];
+      followUps.splice(fIdx, 1);
+      sc.follow_up_questions = followUps;
+      list[scIdx] = sc;
+      return { ...prev, scenario_questions: list };
+    });
+  };
+
+  const moveScenarioFollowUp = (scIdx, fIdx, direction) => {
+    setFormData((prev) => {
+      const list = [...(prev.scenario_questions || [])];
+      const sc = { ...list[scIdx] };
+      const followUps = [...(sc.follow_up_questions || [])];
+      const targetIdx = fIdx + direction;
+      if (targetIdx < 0 || targetIdx >= followUps.length) return prev;
+      const temp = followUps[fIdx];
+      followUps[fIdx] = followUps[targetIdx];
+      followUps[targetIdx] = temp;
+      sc.follow_up_questions = followUps;
+      list[scIdx] = sc;
       return { ...prev, scenario_questions: list };
     });
   };
@@ -2292,98 +2485,406 @@ export default function AdminInterviewDetails() {
             {/* ── TAB 3: 03 · Scenario-Based ── */}
             {(activeMode === "all" || activeTab === 3) && (
               <Box sx={{ mb: activeMode === "all" ? 4 : 0 }}>
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+                {/* Section Toolbar */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    mb: 2,
+                    flexWrap: "wrap",
+                    gap: 1.5,
+                  }}
+                >
                   <Box>
-                    <Typography variant="h6" sx={{ fontWeight: 700, color: "#074568" }}>
-                      Section 03 · Scenario-Based Interview Questions ({formData.scenario_questions?.length || 0})
-                    </Typography>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <Typography variant="h6" sx={{ fontWeight: 700, color: "#074568" }}>
+                        Section 03 · Scenario-Based Interview Questions
+                      </Typography>
+                      <Chip
+                        label={`${formData.scenario_questions?.length || 0} scenarios`}
+                        size="small"
+                        sx={{ backgroundColor: "#DEF7EC", color: "#03543F", fontWeight: 700 }}
+                      />
+                    </Box>
                     <Typography variant="caption" sx={{ color: "#64748b" }}>
-                      Real-world problem context, investigation approaches, and business-driven recommended solutions.
+                      Real-world scenarios with test rationale, investigation approach, highlighted expected answers, and follow-ups.
                     </Typography>
                   </Box>
-                  <Button
-                    variant="contained"
-                    size="small"
-                    startIcon={<AddIcon />}
-                    onClick={addScenario}
-                    sx={{ backgroundColor: "#37AB79", "&:hover": { backgroundColor: "#2d8a62" }, textTransform: "none" }}
-                  >
-                    + Add Scenario
-                  </Button>
+
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={expandAllScenario}
+                      sx={{ textTransform: "none", fontSize: "0.8rem", borderColor: "#cbd5e1", color: "#475569" }}
+                    >
+                      Expand All
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={collapseAllScenario}
+                      sx={{ textTransform: "none", fontSize: "0.8rem", borderColor: "#cbd5e1", color: "#475569" }}
+                    >
+                      Collapse All
+                    </Button>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      startIcon={<AddIcon />}
+                      onClick={addScenario}
+                      sx={{
+                        backgroundColor: "#0D5C75",
+                        "&:hover": { backgroundColor: "#094153" },
+                        textTransform: "none",
+                        fontWeight: 600,
+                      }}
+                    >
+                      + Add Scenario Question
+                    </Button>
+                  </Box>
                 </Box>
 
+                {/* Editable Section Title & Subtitle */}
                 {renderSectionHeaderBox("scenario-based", "03 · Scenario-Based Interview Questions")}
 
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                  {(formData.scenario_questions || []).map((item, idx) => (
-                    <Paper key={item.id || idx} variant="outlined" sx={{ p: 2, borderRadius: 2, backgroundColor: "#ffffff" }}>
-                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1.5 }}>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#074568" }}>
-                          #{item.num || idx + 1}: {item.question || "Untitled Scenario"}
-                        </Typography>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                          <IconButton size="small" disabled={idx === 0} onClick={() => moveItem("scenario_questions", idx, -1)}>
-                            <ArrowUpwardIcon fontSize="small" />
-                          </IconButton>
-                          <IconButton size="small" disabled={idx === (formData.scenario_questions || []).length - 1} onClick={() => moveItem("scenario_questions", idx, 1)}>
-                            <ArrowDownwardIcon fontSize="small" />
-                          </IconButton>
-                          <IconButton size="small" onClick={() => deleteScenario(idx)} sx={{ color: "#dc2626" }}>
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </Box>
-                      </Box>
+                {/* Sortable Scenario Cards List */}
+                {(formData.scenario_questions || []).length === 0 ? (
+                  <Paper variant="outlined" sx={{ p: 4, textAlign: "center", borderRadius: 3, backgroundColor: "#f8fafc" }}>
+                    <Typography variant="body1" sx={{ color: "#64748b", mb: 1.5, fontWeight: 500 }}>
+                      No scenario-based interview questions yet.
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      startIcon={<AddIcon />}
+                      onClick={addScenario}
+                      sx={{ backgroundColor: "#0D5C75", "&:hover": { backgroundColor: "#094153" }, textTransform: "none" }}
+                    >
+                      + Add First Scenario Question
+                    </Button>
+                  </Paper>
+                ) : (
+                  <SortableContainer
+                    items={formData.scenario_questions || []}
+                    onReorder={handleReorderScenario}
+                  >
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                      {(formData.scenario_questions || []).map((item, idx) => {
+                        const isCardExpanded = expandedScenarioIds[item.id] ?? false;
 
-                      <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-                        <TextField
-                          fullWidth
-                          size="small"
-                          label="Scenario Question Title"
-                          value={item.question || ""}
-                          onChange={(e) => updateScenario(idx, "question", e.target.value)}
-                        />
+                        return (
+                          <SortableItem key={item.id} id={item.id}>
+                            {({ listeners, isDragging }) => (
+                              <Paper
+                                variant="outlined"
+                                sx={{
+                                  borderRadius: 2.5,
+                                  backgroundColor: "#ffffff",
+                                  borderColor: isDragging ? "#0D5C75" : "#e2e8f0",
+                                  boxShadow: isDragging ? 3 : 0,
+                                  borderLeft: "4px solid #0D5C75",
+                                  overflow: "hidden",
+                                  transition: "box-shadow 0.2s ease, border-color 0.2s ease",
+                                }}
+                              >
+                                {/* Card Header */}
+                                <Box
+                                  sx={{
+                                    p: { xs: 1.5, sm: 2 },
+                                    backgroundColor: isCardExpanded ? "#f8fafc" : "#ffffff",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "space-between",
+                                    gap: 1,
+                                    borderBottom: isCardExpanded ? "1px solid #e2e8f0" : "none",
+                                  }}
+                                >
+                                  {/* Left: Drag Handle, Number Badge, Title, Default Open */}
+                                  <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, minWidth: 0, flex: 1 }}>
+                                    <DragHandle listeners={listeners} isDragging={isDragging} />
+                                    <Chip
+                                      label={`#${item.num || String(idx + 1).padStart(2, "0")}`}
+                                      size="small"
+                                      sx={{
+                                        fontWeight: 700,
+                                        backgroundColor: isCardExpanded ? "#0B3553" : "#E2E8F0",
+                                        color: isCardExpanded ? "#ffffff" : "#1e293b",
+                                        borderRadius: 1.5,
+                                        fontSize: "0.75rem",
+                                        height: 24,
+                                      }}
+                                    />
+                                    <Typography
+                                      variant="subtitle2"
+                                      sx={{
+                                        fontWeight: 700,
+                                        color: "#1e293b",
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                        whiteSpace: "nowrap",
+                                        cursor: "pointer",
+                                      }}
+                                      onClick={() => toggleScenarioExpand(item.id)}
+                                    >
+                                      {item.question || "Untitled Scenario Question"}
+                                    </Typography>
+                                    {item.default_open && (
+                                      <Chip
+                                        label="Default Open"
+                                        size="small"
+                                        sx={{
+                                          fontSize: "0.7rem",
+                                          height: 20,
+                                          backgroundColor: "#DEF7EC",
+                                          color: "#03543F",
+                                          fontWeight: 600,
+                                        }}
+                                      />
+                                    )}
+                                  </Box>
 
-                        <Box>
-                          <Typography variant="caption" sx={{ fontWeight: 600, color: "#475569", display: "block", mb: 0.5 }}>
-                            Problem Context / Understanding
-                          </Typography>
-                          <Box sx={{ border: "1px solid #cbd5e1", borderRadius: 1.5, overflow: "hidden" }}>
-                            <Editor
-                              apiKey={TINYMCE_API_KEY}
-                              value={item.problem_context || ""}
-                              init={{
-                                height: 160,
-                                menubar: false,
-                                plugins: ["lists", "link"],
-                                toolbar: "undo redo | bold italic | bullist numlist",
-                              }}
-                              onEditorChange={(content) => updateScenario(idx, "problem_context", content)}
-                            />
-                          </Box>
-                        </Box>
+                                  {/* Right: Actions */}
+                                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, flexShrink: 0 }}>
+                                    <AccessibleReorderButtons
+                                      onMoveUp={() => moveScenarioItem(idx, -1)}
+                                      onMoveDown={() => moveScenarioItem(idx, 1)}
+                                      isFirst={idx === 0}
+                                      isLast={idx === (formData.scenario_questions || []).length - 1}
+                                    />
+                                    <Tooltip title="Duplicate Scenario">
+                                      <IconButton
+                                        size="small"
+                                        onClick={() => duplicateScenario(idx)}
+                                        sx={{ color: "#64748b", "&:hover": { color: "#074568" } }}
+                                      >
+                                        <ContentCopyIcon fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+                                    <Tooltip title="Delete Scenario">
+                                      <IconButton
+                                        size="small"
+                                        onClick={() => deleteScenario(idx)}
+                                        sx={{ color: "#ef4444", "&:hover": { backgroundColor: "#fee2e2" } }}
+                                      >
+                                        <DeleteIcon fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+                                    <IconButton
+                                      size="small"
+                                      onClick={() => toggleScenarioExpand(item.id)}
+                                      sx={{ color: "#475569" }}
+                                    >
+                                      {isCardExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                                    </IconButton>
+                                  </Box>
+                                </Box>
 
-                        <TextField
-                          fullWidth
-                          multiline
-                          rows={3}
-                          size="small"
-                          label="Investigation Approach (Step-by-step points)"
-                          value={item.investigation_approach || ""}
-                          onChange={(e) => updateScenario(idx, "investigation_approach", e.target.value)}
-                        />
+                                {/* Card Body (Collapsible) */}
+                                {isCardExpanded && (
+                                  <Box sx={{ p: { xs: 2, sm: 2.5 }, display: "flex", flexDirection: "column", gap: 2.25 }}>
+                                    {/* Field 1: Scenario Question Title and Expand by default switch */}
+                                    <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 2, alignItems: { sm: "center" } }}>
+                                      <TextField
+                                        fullWidth
+                                        required
+                                        size="small"
+                                        label="Scenario Question (Displayed in header)"
+                                        placeholder="e.g. Your model has 95% accuracy, but the business team says the model is not useful. What would you investigate?"
+                                        value={item.question || ""}
+                                        onChange={(e) => updateScenario(idx, "question", e.target.value)}
+                                        sx={{ flex: 1 }}
+                                      />
+                                      <FormControlLabel
+                                        control={
+                                          <Switch
+                                            checked={Boolean(item.default_open)}
+                                            onChange={(e) => updateScenario(idx, "default_open", e.target.checked)}
+                                            color="primary"
+                                          />
+                                        }
+                                        label={
+                                          <Typography variant="body2" sx={{ fontWeight: 600, color: "#334155" }}>
+                                            Expand by default
+                                          </Typography>
+                                        }
+                                        sx={{ flexShrink: 0 }}
+                                      />
+                                    </Box>
 
-                        <TextField
-                          fullWidth
-                          size="small"
-                          label="Expected Outcome / Recommended Solution (Highlighted Callout Box)"
-                          value={item.expected_outcome || item.recommended_solution || ""}
-                          onChange={(e) => updateScenario(idx, "expected_outcome", e.target.value)}
-                          sx={{ backgroundColor: "#f0fdf4" }}
-                        />
-                      </Box>
-                    </Paper>
-                  ))}
-                </Box>
+                                    {/* Field 2: What the interviewer is testing */}
+                                    <Box>
+                                      <Typography variant="caption" sx={{ fontWeight: 700, color: "#1e293b", display: "block", mb: 0.5, fontSize: "0.8rem" }}>
+                                        A. What the interviewer is testing
+                                      </Typography>
+                                      <TextField
+                                        fullWidth
+                                        multiline
+                                        rows={2}
+                                        size="small"
+                                        placeholder="e.g. Understanding of model evaluation and business context."
+                                        value={item.interviewer_testing || item.testing_criteria || item.problem_context || ""}
+                                        onChange={(e) => updateScenario(idx, "interviewer_testing", e.target.value)}
+                                      />
+                                    </Box>
+
+                                    {/* Field 3: How to approach it (Rich-Text Editor) */}
+                                    <Box>
+                                      <Typography variant="caption" sx={{ fontWeight: 700, color: "#1e293b", display: "block", mb: 0.5, fontSize: "0.8rem" }}>
+                                        B. How to approach it (Rich-Text: investigation steps, paragraphs, lists)
+                                      </Typography>
+                                      <Box sx={{ border: "1px solid #cbd5e1", borderRadius: 1.5, overflow: "hidden" }}>
+                                        <Editor
+                                          apiKey={TINYMCE_API_KEY}
+                                          value={item.approach || item.investigation_approach || ""}
+                                          init={{
+                                            height: 180,
+                                            menubar: false,
+                                            plugins: ["lists", "link", "code"],
+                                            toolbar: "undo redo | bold italic underline | bullist numlist | link code",
+                                            content_style: "body { font-family: Inter, sans-serif; font-size: 14px; }",
+                                          }}
+                                          onEditorChange={(content) => updateScenario(idx, "approach", content)}
+                                        />
+                                      </Box>
+                                    </Box>
+
+                                    {/* Field 4 & 5: Expected Answer (Mint Highlighted Callout Box) */}
+                                    <Box sx={{ backgroundColor: "#DEF7EC", p: 1.5, borderRadius: 2, border: "1px solid #BBF7D0", borderLeft: "4px solid #0D5C75" }}>
+                                      <Typography variant="caption" sx={{ fontWeight: 700, color: "#065F46", display: "block", mb: 0.5, fontSize: "0.8rem" }}>
+                                        C. Expected answer callout box (Mint-green background, teal border)
+                                      </Typography>
+                                      <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                                        <TextField
+                                          fullWidth
+                                          size="small"
+                                          label="Expected Answer Label"
+                                          placeholder="Expected answer"
+                                          value={item.expected_answer_label !== undefined ? item.expected_answer_label : "Expected answer"}
+                                          onChange={(e) => updateScenario(idx, "expected_answer_label", e.target.value)}
+                                          sx={{ backgroundColor: "#ffffff", borderRadius: 1 }}
+                                        />
+                                        <TextField
+                                          fullWidth
+                                          multiline
+                                          rows={3}
+                                          size="small"
+                                          label="Expected Answer Text (Displayed in italics inside mint box)"
+                                          placeholder='e.g. &quot;Accuracy can hide poor performance when classes are imbalanced. I would check the class distribution, review precision, recall and PR-AUC for the minority class, align the threshold with business cost, and then improve with class weights, better features or more minority data.&quot;'
+                                          value={item.expected_answer || item.recommended_solution || item.expected_outcome || ""}
+                                          onChange={(e) => updateScenario(idx, "expected_answer", e.target.value)}
+                                          sx={{
+                                            backgroundColor: "#ffffff",
+                                            borderRadius: 1,
+                                            "& .MuiOutlinedInput-root": { fontStyle: "italic" },
+                                          }}
+                                        />
+                                      </Box>
+                                    </Box>
+
+                                    {/* Field 6: Possible Follow-ups Manager */}
+                                    <Paper
+                                      variant="outlined"
+                                      sx={{
+                                        p: 2,
+                                        borderRadius: 2,
+                                        backgroundColor: "#f8fafc",
+                                        borderColor: "#e2e8f0",
+                                      }}
+                                    >
+                                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1.5 }}>
+                                        <Box>
+                                          <Typography variant="caption" sx={{ fontWeight: 700, color: "#1e293b", display: "block", fontSize: "0.8rem" }}>
+                                            D. Possible follow-ups ({item.follow_up_questions?.length || 0})
+                                          </Typography>
+                                          <Typography variant="caption" sx={{ color: "#64748b" }}>
+                                            Bulleted follow-up questions interviewer might ask based on this scenario.
+                                          </Typography>
+                                        </Box>
+                                        <Button
+                                          variant="outlined"
+                                          size="small"
+                                          startIcon={<AddIcon />}
+                                          onClick={() => addScenarioFollowUp(idx)}
+                                          sx={{
+                                            textTransform: "none",
+                                            borderColor: "#0D5C75",
+                                            color: "#0D5C75",
+                                            "&:hover": { borderColor: "#094153", backgroundColor: "#DEF7EC" },
+                                          }}
+                                        >
+                                          + Add Follow-up
+                                        </Button>
+                                      </Box>
+
+                                      {(item.follow_up_questions || []).length === 0 ? (
+                                        <Typography variant="body2" sx={{ color: "#94a3b8", fontStyle: "italic", textAlign: "center", py: 1 }}>
+                                          No follow-up questions yet. Click "+ Add Follow-up" to add one.
+                                        </Typography>
+                                      ) : (
+                                        <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                                          {(item.follow_up_questions || []).map((fq, fIdx) => (
+                                            <Paper
+                                              key={fq.id || fIdx}
+                                              variant="outlined"
+                                              sx={{
+                                                p: 1.25,
+                                                borderRadius: 1.5,
+                                                backgroundColor: "#ffffff",
+                                                borderColor: "#e2e8f0",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                gap: 1,
+                                              }}
+                                            >
+                                              <Box sx={{ display: "flex", alignItems: "center", gap: 0.25, flexShrink: 0 }}>
+                                                <IconButton
+                                                  size="small"
+                                                  disabled={fIdx === 0}
+                                                  onClick={() => moveScenarioFollowUp(idx, fIdx, -1)}
+                                                  sx={{ p: 0.25 }}
+                                                >
+                                                  <ArrowUpwardIcon sx={{ fontSize: 16 }} />
+                                                </IconButton>
+                                                <IconButton
+                                                  size="small"
+                                                  disabled={fIdx === (item.follow_up_questions || []).length - 1}
+                                                  onClick={() => moveScenarioFollowUp(idx, fIdx, 1)}
+                                                  sx={{ p: 0.25 }}
+                                                >
+                                                  <ArrowDownwardIcon sx={{ fontSize: 16 }} />
+                                                </IconButton>
+                                              </Box>
+                                              <TextField
+                                                fullWidth
+                                                size="small"
+                                                placeholder="e.g. Is accuracy always reliable?"
+                                                value={fq.question || ""}
+                                                onChange={(e) => updateScenarioFollowUp(idx, fIdx, "question", e.target.value)}
+                                              />
+                                              <IconButton
+                                                size="small"
+                                                onClick={() => deleteScenarioFollowUp(idx, fIdx)}
+                                                sx={{ p: 0.5, color: "#ef4444", "&:hover": { backgroundColor: "#fee2e2" }, flexShrink: 0 }}
+                                              >
+                                                <DeleteIcon sx={{ fontSize: 18 }} />
+                                              </IconButton>
+                                            </Paper>
+                                          ))}
+                                        </Box>
+                                      )}
+                                    </Paper>
+                                  </Box>
+                                )}
+                              </Paper>
+                            )}
+                          </SortableItem>
+                        );
+                      })}
+                    </Box>
+                  </SortableContainer>
+                )}
               </Box>
             )}
 

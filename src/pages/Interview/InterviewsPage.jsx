@@ -76,8 +76,8 @@ const DEFAULT_SECTION_HEADERS = {
     subtitle: "Explore interview questions topic by topic.",
   },
   "scenario-based": {
-    title: "03 · Scenario-Based Interview Questions",
-    subtitle: "Real-world interview situations and practical problem solving.",
+    title: "Scenario-Based Interview Questions",
+    subtitle: "Questions that test how you apply concepts to real-world problems.",
   },
   "coding-questions": {
     title: "04 · Practical & Coding Questions",
@@ -808,109 +808,147 @@ const InterviewsPage = () => {
   // ── Section 03 Renderer: Scenario-Based Questions ────────────────────────
   const renderScenarioSection = () => {
     const header = sectionHeaders["scenario-based"];
+    const badgeTitle =
+      header?.title?.replace(/^\d+[\s·.-]*/, "") || "Scenario-Based Interview Questions";
+    const subtitle =
+      header?.subtitle || "Questions that test how you apply concepts to real-world problems.";
+
     return (
       <section
         key="scenario-based"
         id="scenario-based"
-        className="interview-section"
+        className="interview-section must-know-section-wrap"
         aria-labelledby="heading-scenarios"
       >
-        <div className="section-header-wrap">
-          <h2 id="heading-scenarios" className="section-main-heading">
-            {header?.title || "03 · Scenario-Based Interview Questions"}
-          </h2>
-          <p className="section-sub-desc">
-            {header?.subtitle || "Real-world interview situations and practical problem solving."}
-          </p>
+        <div className="must-know-header-wrap">
+          <div id="heading-scenarios" className="must-know-badge">
+            {badgeTitle}
+          </div>
+          <p className="must-know-subtitle">{subtitle}</p>
         </div>
 
-        <div className="interview-accordion-group">
+        <div className="must-know-accordion-list" role="region" aria-label="Scenario-Based Questions">
           {scenarioQuestions.map((item, idx) => {
             const itemId = item.id || `sc-${idx + 1}`;
             const isOpen = !!openAccordions[itemId];
             const num = item.num || String(idx + 1).padStart(2, "0");
 
+            const testingText =
+              item.interviewer_testing || item.testing_criteria || item.problem_context;
+            const approachText =
+              item.approach || item.investigation_approach;
+            const expectedAnswerLabel =
+              item.expected_answer_label || "Expected answer";
+            const expectedAnswer =
+              item.expected_answer || item.recommended_solution || item.expected_outcome;
+
+            // Extract follow-ups supporting array of objects { id, question } or array of strings
+            const rawFollowUps =
+              item.follow_up_questions || item.followUps || item.follow_ups || [];
+            const followUpList = Array.isArray(rawFollowUps)
+              ? rawFollowUps
+                  .map((fu, fIdx) => {
+                    if (typeof fu === "string") {
+                      return { id: `sc-fu-${itemId}-${fIdx}`, question: fu };
+                    }
+                    return {
+                      id: fu.id || `sc-fu-${itemId}-${fIdx}`,
+                      question: fu.question || fu.text || "",
+                    };
+                  })
+                  .filter((fu) => fu.question && fu.question.trim().length > 0)
+              : [];
+
             return (
               <article
                 key={itemId}
-                className={`interview-accordion-item ${isOpen ? "is-open" : ""}`}
+                className={`must-know-card scenario-card ${isOpen ? "is-open" : ""}`}
               >
                 <button
                   type="button"
-                  className="accordion-header-btn"
+                  className="must-know-card-header-btn"
                   onClick={() => toggleAccordion(itemId)}
                   aria-expanded={isOpen}
+                  aria-controls={`body-${itemId}`}
+                  id={`header-${itemId}`}
                 >
-                  <div className="accordion-title-wrap">
-                    <span className="accordion-num-badge">{num}</span>
-                    <h3 className="accordion-title-text">{item.question}</h3>
+                  <div className="must-know-header-left">
+                    <span
+                      className={`must-know-num-badge ${
+                        isOpen ? "badge-open" : "badge-closed"
+                      }`}
+                    >
+                      {num}
+                    </span>
+                    <h3 className="must-know-question-title">{item.question}</h3>
                   </div>
-                  <FiChevronDown
-                    className={`accordion-chevron-icon ${isOpen ? "rotate" : ""}`}
-                    aria-hidden="true"
-                  />
+                  {isOpen ? (
+                    <FiChevronUp className="must-know-chevron" aria-hidden="true" />
+                  ) : (
+                    <FiChevronDown className="must-know-chevron" aria-hidden="true" />
+                  )}
                 </button>
 
                 {isOpen && (
-                  <div className="accordion-body-content">
-                    {(item.problem_context || item.problemUnderstanding) && (
-                      <div className="content-block">
-                        <h4 className="content-subtitle">1. Problem Understanding & Context</h4>
-                        {renderContent(item.problem_context || item.problemUnderstanding)}
-                      </div>
-                    )}
+                  <>
+                    <div className="must-know-divider" aria-hidden="true" />
+                    <div
+                      id={`body-${itemId}`}
+                      className="must-know-card-body"
+                      role="region"
+                      aria-labelledby={`header-${itemId}`}
+                    >
+                      {/* A. What the interviewer is testing */}
+                      {testingText && (
+                        <div className="must-know-field-block">
+                          <h4 className="must-know-field-label">
+                            What the interviewer is testing
+                          </h4>
+                          <div className="must-know-field-text">
+                            {renderContent(testingText)}
+                          </div>
+                        </div>
+                      )}
 
-                    {(item.investigation_approach || item.investigationSteps) && (
-                      <div className="content-block">
-                        <h4 className="content-subtitle">2. Investigation Approach</h4>
-                        {Array.isArray(item.investigationSteps) ? (
-                          <ul className="content-bullet-list">
-                            {item.investigationSteps.map((step, sIdx) => (
-                              <li key={sIdx}>{step}</li>
+                      {/* B. How to approach it */}
+                      {approachText && (
+                        <div className="must-know-field-block">
+                          <h4 className="must-know-field-label">
+                            How to approach it
+                          </h4>
+                          <div className="must-know-field-text">
+                            {renderContent(approachText)}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* C. Expected answer (Highlighted Mint Callout Box) */}
+                      {expectedAnswer && (
+                        <div className="must-know-interview-callout" role="note">
+                          <div className="must-know-callout-label">
+                            {expectedAnswerLabel}
+                          </div>
+                          <div className="must-know-callout-quote">
+                            {renderQuote(expectedAnswer)}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* D. Possible follow-ups (Bulleted List) */}
+                      {followUpList.length > 0 && (
+                        <div className="must-know-field-block">
+                          <h4 className="must-know-field-label">
+                            Possible follow-ups
+                          </h4>
+                          <ul className="scenario-followup-bullets">
+                            {followUpList.map((fu) => (
+                              <li key={fu.id}>{renderContent(fu.question)}</li>
                             ))}
                           </ul>
-                        ) : (
-                          renderContent(item.investigation_approach)
-                        )}
-                      </div>
-                    )}
-
-                    {item.recommended_solution && (
-                      <div className="content-block">
-                        <h4 className="content-subtitle">3. Recommended Solution</h4>
-                        {renderContent(item.recommended_solution)}
-                      </div>
-                    )}
-
-                    {item.reasoning && (
-                      <div className="content-block">
-                        <h4 className="content-subtitle">4. Reasoning & Trade-offs</h4>
-                        {renderContent(item.reasoning)}
-                      </div>
-                    )}
-
-                    {(item.expected_outcome || item.highlightBox) && (
-                      <div className="mint-callout-box" role="note">
-                        <strong>Expected Outcome: </strong>
-                        {renderContent(item.expected_outcome || item.highlightBox)}
-                      </div>
-                    )}
-
-                    {(item.key_considerations || item.followUp) && (
-                      <div className="content-block">
-                        <h4 className="content-subtitle">5. Key Considerations & Follow-Ups</h4>
-                        {Array.isArray(item.followUp) ? (
-                          <ul className="content-bullet-list">
-                            {item.followUp.map((fu, fIdx) => (
-                              <li key={fIdx}>{fu}</li>
-                            ))}
-                          </ul>
-                        ) : (
-                          renderContent(item.key_considerations)
-                        )}
-                      </div>
-                    )}
-                  </div>
+                        </div>
+                      )}
+                    </div>
+                  </>
                 )}
               </article>
             );
