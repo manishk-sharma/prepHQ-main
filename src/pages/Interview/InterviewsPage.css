@@ -12,17 +12,17 @@
 }
 
 /* ==========================================================================
-   MAIN THREE-COLUMN GRID LAYOUT
-   Left: Section Navigation (~200px)
-   Center: Main Interview Questions Content
-   Right: Related Content Sidebar (~260px)
+/* ==========================================================================
+   MAIN TWO-COLUMN GRID LAYOUT (Image 2 Reference)
+   Left: Main Content (~72%)
+   Right: Related Interview Questions Sidebar (~28%)
    ========================================================================== */
 .interview-main-grid {
   display: grid;
-  grid-template-columns: 200px minmax(0, 1fr) 260px;
+  grid-template-columns: minmax(0, 1fr) 280px;
   gap: 28px;
   align-items: start;
-  margin-top: 24px;
+  margin-top: 18px;
 }
 
 /* ==========================================================================
@@ -144,45 +144,52 @@
 /* ── Top Page Header ────────────────────────────────────────────── */
 .interview-page-header {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 20px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #e2e8f0;
+  flex-direction: column;
+  margin-bottom: 0;
 }
 
-.header-text-col {
-  flex: 1;
+.interview-header-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
 .interview-page-title {
-  font-size: 24px;
+  font-size: 21px;
   font-weight: 800;
   color: #111111;
-  margin: 0 0 8px 0;
+  margin: 0;
   letter-spacing: -0.3px;
-  line-height: 1.3;
+  line-height: 1.25;
 }
 
 .interview-page-desc {
-  font-size: 13.5px;
-  line-height: 1.55;
+  font-size: 11.5px;
+  line-height: 1.5;
   color: #64748b;
-  margin: 0;
-  max-width: 660px;
+  margin: 5px 0 0 0;
+  max-width: 720px;
 }
 
-/* Share Controls */
+.interview-header-divider {
+  border: 0;
+  border-top: 1px solid #e2e8f0;
+  margin: 12px 0 20px 0;
+  width: 100%;
+}
+
+/* Share Controls (Matching Image 2) */
 .header-share-col {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-shrink: 0;
-  margin-top: 4px;
 }
 
 .share-label {
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 600;
   color: #475569;
 }
@@ -190,43 +197,34 @@
 .share-buttons-group {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
 }
 
 .share-icon-btn {
-  width: 32px;
-  height: 32px;
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  min-height: 26px;
   border-radius: 6px;
   background-color: #e6fff4;
   border: 1px solid #57cc99;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #075174;
-  font-size: 14px;
+  color: #10b981;
+  font-size: 13px;
   cursor: pointer;
   text-decoration: none;
   transition: all 0.15s ease;
-  position: relative;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 .share-icon-btn:hover {
   background-color: #57cc99;
   color: #ffffff;
+  border-color: #35b779;
   transform: translateY(-1px);
-}
-
-.copy-feedback-tooltip {
-  position: absolute;
-  top: -26px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: #075174;
-  color: #ffffff;
-  font-size: 10px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  white-space: nowrap;
 }
 
 /* ── Content Section Layout ─────────────────────────────────────── */
@@ -608,10 +606,11 @@
 }
 
 .widget-title {
-  font-size: 13.5px;
+  font-size: 15px;
   font-weight: 700;
   color: #111827;
   margin: 0;
+  line-height: 1.3;
   letter-spacing: -0.2px;
 }
 
@@ -703,23 +702,24 @@
    ========================================================================== */
 @media (max-width: 1199px) {
   .interview-main-grid {
-    grid-template-columns: 180px minmax(0, 1fr) 240px;
+    grid-template-columns: minmax(0, 1fr) 260px;
     gap: 20px;
   }
 }
 
 @media (max-width: 991px) {
   .interview-main-grid {
-    grid-template-columns: 180px minmax(0, 1fr);
+    grid-template-columns: 1fr;
+    gap: 24px;
   }
 
   .interview-right-sidebar {
-    grid-column: 1 / -1;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 16px;
+    grid-column: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
     position: static;
-    margin-top: 20px;
+    margin-top: 16px;
   }
 }
 
@@ -730,31 +730,14 @@
     gap: 20px;
   }
 
-  .interview-left-sidebar {
-    position: static;
-    width: 100%;
-  }
-
-  .sidebar-nav-list {
-    flex-direction: row;
-    overflow-x: auto;
-    padding-bottom: 6px;
-    gap: 8px;
-    scrollbar-width: thin;
-  }
-
-  .sidebar-nav-btn {
-    white-space: nowrap;
-    width: auto;
-  }
-
-  .interview-page-header {
+  .interview-header-top-row {
     flex-direction: column;
-    gap: 12px;
+    align-items: flex-start;
+    gap: 8px;
   }
 
   .interview-page-title {
-    font-size: 20px;
+    font-size: 19px;
   }
 
   .revision-table-container {

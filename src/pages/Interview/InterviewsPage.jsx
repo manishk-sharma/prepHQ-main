@@ -13,9 +13,9 @@ import {
 } from "react-icons/fi";
 import {
   FaLinkedinIn,
-  FaXTwitter,
   FaWhatsapp,
   FaFacebookF,
+  FaInstagram,
 } from "react-icons/fa6";
 import parse from "html-react-parser";
 import {
@@ -1349,117 +1349,73 @@ const InterviewsPage = () => {
         <div className="interview-main-grid">
 
           {/* =========================================================
-              LEFT COLUMN: "In This Project" Navigation
-              ========================================================= */}
-          <aside className="interview-left-sidebar" aria-label="Section Navigation">
-            <div className="left-sidebar-inner">
-              <h3 className="sidebar-nav-title">
-                <FiLayers aria-hidden="true" />
-                <span>In This Project</span>
-              </h3>
-
-              <nav className="sidebar-nav-list" role="navigation">
-                {navSections.map((sec) => (
-                  <button
-                    key={sec.id}
-                    type="button"
-                    className={`sidebar-nav-btn ${
-                      activeSection === sec.id ? "active" : ""
-                    }`}
-                    onClick={() => handleScrollToSection(sec.id)}
-                  >
-                    <span className="nav-num-badge">{sec.number}</span>
-                    <span className="nav-label-text">{sec.label}</span>
-                  </button>
-                ))}
-              </nav>
-
-              <button
-                type="button"
-                className="download-pdf-btn"
-                onClick={() => window.print()}
-                title="Download this interview preparation guide as PDF"
-              >
-                <FiDownload aria-hidden="true" />
-                <span>Download PDF</span>
-              </button>
-            </div>
-          </aside>
-
-          {/* =========================================================
-              CENTER COLUMN: Main Dynamic Interview Content
+              MAIN COLUMN: Main Dynamic Interview Content (~72%)
               ========================================================= */}
           <main className="interview-center-content">
 
-            {/* ── Page Header ─────────────────────────────────────────── */}
+            {/* ── Page Header Matching Reference Image 2 ─────────────── */}
             <header className="interview-page-header">
-              <div className="header-text-col">
+              <div className="interview-header-top-row">
                 <h1 className="interview-page-title">{pageTitle}</h1>
-                <p className="interview-page-desc">{pageDesc}</p>
-              </div>
 
-              {/* Share Controls */}
-              <div className="header-share-col" aria-label="Share Controls">
-                <span className="share-label">Share</span>
-                <div className="share-buttons-group">
-                  <button
-                    type="button"
-                    className="share-icon-btn copy-btn"
-                    onClick={handleCopyPageLink}
-                    title="Copy Link to Clipboard"
-                    aria-label="Copy Link"
-                  >
-                    {copiedLink ? <FiCheck /> : <FiCopy />}
-                    {copiedLink && (
-                      <span className="copy-feedback-tooltip">Copied!</span>
-                    )}
-                  </button>
+                {/* Share Controls: [WhatsApp] [LinkedIn] [Facebook] [Instagram] */}
+                <div className="header-share-col" aria-label="Share Controls">
+                  <span className="share-label">Share:</span>
+                  <div className="share-buttons-group">
+                    <a
+                      href={`https://api.whatsapp.com/send?text=${shareTitle}%20${currentUrl}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="share-icon-btn whatsapp-btn"
+                      title="Share on WhatsApp"
+                      aria-label="Share on WhatsApp"
+                    >
+                      <FaWhatsapp />
+                    </a>
 
-                  <a
-                    href={`https://api.whatsapp.com/send?text=${shareTitle}%20${currentUrl}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="share-icon-btn whatsapp-btn"
-                    title="Share on WhatsApp"
-                    aria-label="Share on WhatsApp"
-                  >
-                    <FaWhatsapp />
-                  </a>
+                    <a
+                      href={`https://www.linkedin.com/sharing/share-offsite/?url=${currentUrl}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="share-icon-btn linkedin-btn"
+                      title="Share on LinkedIn"
+                      aria-label="Share on LinkedIn"
+                    >
+                      <FaLinkedinIn />
+                    </a>
 
-                  <a
-                    href={`https://www.linkedin.com/sharing/share-offsite/?url=${currentUrl}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="share-icon-btn linkedin-btn"
-                    title="Share on LinkedIn"
-                    aria-label="Share on LinkedIn"
-                  >
-                    <FaLinkedinIn />
-                  </a>
+                    <a
+                      href={`https://www.facebook.com/sharer/sharer.php?u=${currentUrl}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="share-icon-btn facebook-btn"
+                      title="Share on Facebook"
+                      aria-label="Share on Facebook"
+                    >
+                      <FaFacebookF />
+                    </a>
 
-                  <a
-                    href={`https://twitter.com/intent/tweet?text=${shareTitle}&url=${currentUrl}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="share-icon-btn twitter-btn"
-                    title="Share on X (Twitter)"
-                    aria-label="Share on X"
-                  >
-                    <FaXTwitter />
-                  </a>
-
-                  <a
-                    href={`https://www.facebook.com/sharer/sharer.php?u=${currentUrl}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="share-icon-btn facebook-btn"
-                    title="Share on Facebook"
-                    aria-label="Share on Facebook"
-                  >
-                    <FaFacebookF />
-                  </a>
+                    <a
+                      href="https://www.instagram.com/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="share-icon-btn instagram-btn"
+                      title="Share on Instagram"
+                      aria-label="Share on Instagram"
+                      onClick={() => {
+                        if (navigator.clipboard) {
+                          navigator.clipboard.writeText(window.location.href);
+                        }
+                      }}
+                    >
+                      <FaInstagram />
+                    </a>
+                  </div>
                 </div>
               </div>
+
+              <p className="interview-page-desc">{pageDesc}</p>
+              <hr className="interview-header-divider" />
             </header>
 
             {/* ── Render Sections In Dynamically Configured Order ──────── */}
