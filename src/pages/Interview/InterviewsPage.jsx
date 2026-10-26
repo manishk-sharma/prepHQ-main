@@ -6,6 +6,7 @@ import {
   FiCheck,
   FiDownload,
   FiChevronDown,
+  FiChevronUp,
   FiLayers,
   FiCalendar,
   FiExternalLink,
@@ -52,11 +53,23 @@ const renderContent = (content) => {
   return <p>{content}</p>;
 };
 
+const renderQuote = (content) => {
+  if (!content) return null;
+  if (typeof content !== "string") {
+    return <em>{renderContent(content)}</em>;
+  }
+  const trimmed = content.trim();
+  const startsWithQuote = trimmed.startsWith('"') || trimmed.startsWith('“') || trimmed.startsWith('&quot;');
+  const endsWithQuote = trimmed.endsWith('"') || trimmed.endsWith('”') || trimmed.endsWith('&quot;');
+  const display = startsWithQuote && endsWithQuote ? trimmed : `"${trimmed.replace(/^["“]+|["”]+$/g, "")}"`;
+  return <em>{renderContent(display)}</em>;
+};
+
 // ── Default Fallback Section Headers ───────────────────────────────────────
 const DEFAULT_SECTION_HEADERS = {
   "must-know": {
-    title: "01 · Must-Know Questions",
-    subtitle: "Essential interview questions candidates should prepare first.",
+    title: "Must–Know Questions",
+    subtitle: "Start with the questions you should be able to answer before any Machine Learning interview.",
   },
   "questions-answers": {
     title: "02 · Questions & Answers",
@@ -212,7 +225,11 @@ const InterviewsPage = () => {
   useEffect(() => {
     if (dbData) {
       const initialOpen = {};
-      if (mustKnowQuestions[0]?.id) initialOpen[mustKnowQuestions[0].id] = true;
+      mustKnowQuestions.forEach((q, idx) => {
+        if (q.default_open === true || (idx === 0 && q.default_open !== false)) {
+          initialOpen[q.id || `mk-${idx + 1}`] = true;
+        }
+      });
       if (scenarioQuestions[0]?.id) initialOpen[scenarioQuestions[0].id] = true;
       if (codingQuestions[0]?.id) initialOpen[codingQuestions[0].id] = true;
       if (commonMistakes[0]?.id) initialOpen[commonMistakes[0].id] = true;
@@ -375,113 +392,157 @@ const InterviewsPage = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [navSections]);
 
-  // ── Section 01 Renderer: Must-Know Questions ─────────────────────────────
+  // ── Section 01 Renderer: Must-Know Questions (Reference-Matched Design) ───
   const renderMustKnowSection = () => {
     const header = sectionHeaders["must-know"];
+    const rawTitle = header?.title || "Must–Know Questions";
+    const badgeTitle = rawTitle.replace(/^\d+[\s·.-]*/, "").trim() || "Must–Know Questions";
+    const subtitle =
+      header?.subtitle ||
+      "Start with the questions you should be able to answer before any Machine Learning interview.";
+
     return (
       <section
         key="must-know"
         id="must-know"
-        className="interview-section"
+        className="interview-section must-know-section-wrap"
         aria-labelledby="heading-must-know"
       >
-        <div className="section-header-wrap">
-          <h2 id="heading-must-know" className="section-main-heading">
-            {header?.title || "01 · Must-Know Questions"}
-          </h2>
-          <p className="section-sub-desc">
-            {header?.subtitle || "Essential interview questions candidates should prepare first."}
-          </p>
+        <div className="must-know-header-wrap">
+          <div id="heading-must-know" className="must-know-badge">
+            {badgeTitle}
+          </div>
+          <p className="must-know-subtitle">{subtitle}</p>
         </div>
 
-        <div className="interview-accordion-group" role="region">
+        <div className="must-know-accordion-list" role="region" aria-label="Must-Know Questions">
           {mustKnowQuestions.map((item, idx) => {
             const itemId = item.id || `mk-${idx + 1}`;
             const isOpen = !!openAccordions[itemId];
             const num = item.num || String(idx + 1).padStart(2, "0");
 
+            // Extract follow-up questions supporting both { question, hint } and legacy string arrays
+            const rawFollowUps =
+              item.follow_up_questions || item.subQuestions || item.sub_questions || [];
+            const followUpList = Array.isArray(rawFollowUps)
+              ? rawFollowUps.map((fu, fIdx) => {
+                  if (typeof fu === "string") {
+                    return { id: `fu-${itemId}-${fIdx}`, question: fu, hint: "" };
+                  }
+                  return {
+                    id: fu.id || `fu-${itemId}-${fIdx}`,
+                    question: fu.question || "",
+                    hint: fu.hint || "",
+                  };
+                })
+              : [];
+
+            const simpleExplanation = item.simple_explanation || item.simple_definition;
+            const technicalExplanation = item.technical_explanation || item.explanation;
+            const interviewAnswer =
+              item.interview_answer || item.highlight_box || item.interview_ready_answer;
+
             return (
               <article
                 key={itemId}
-                className={`interview-accordion-item ${isOpen ? "is-open" : ""}`}
+                className={`must-know-card ${isOpen ? "is-open" : ""}`}
               >
                 <button
                   type="button"
-                  className="accordion-header-btn"
+                  className="must-know-card-header-btn"
                   onClick={() => toggleAccordion(itemId)}
                   aria-expanded={isOpen}
+                  aria-controls={`body-${itemId}`}
+                  id={`header-${itemId}`}
                 >
-                  <div className="accordion-title-wrap">
-                    <span className="accordion-num-badge">{num}</span>
-                    <h3 className="accordion-title-text">{item.question}</h3>
+                  <div className="must-know-header-left">
+                    <span
+                      className={`must-know-num-badge ${
+                        isOpen ? "badge-open" : "badge-closed"
+                      }`}
+                    >
+                      {num}
+                    </span>
+                    <h3 className="must-know-question-title">{item.question}</h3>
                   </div>
-                  <FiChevronDown
-                    className={`accordion-chevron-icon ${isOpen ? "rotate" : ""}`}
-                    aria-hidden="true"
-                  />
+                  {isOpen ? (
+                    <FiChevronUp className="must-know-chevron" aria-hidden="true" />
+                  ) : (
+                    <FiChevronDown className="must-know-chevron" aria-hidden="true" />
+                  )}
                 </button>
 
                 {isOpen && (
-                  <div className="accordion-body-content">
-                    {item.simple_definition && (
-                      <div className="content-block">
-                        <h4 className="content-subtitle">Short Answer</h4>
-                        {renderContent(item.simple_definition)}
-                      </div>
-                    )}
-
-                    {item.explanation && (
-                      <div className="content-block">
-                        <h4 className="content-subtitle">Detailed Explanation</h4>
-                        {renderContent(item.explanation)}
-                      </div>
-                    )}
-
-                    {Array.isArray(item.characteristics) &&
-                      item.characteristics.length > 0 && (
-                        <div className="content-block">
-                          <h4 className="content-subtitle">Key Characteristics</h4>
-                          <ul className="content-bullet-list">
-                            {item.characteristics.map((char, cIdx) => (
-                              <li key={cIdx}>{char}</li>
-                            ))}
-                          </ul>
+                  <>
+                    <div className="must-know-divider" aria-hidden="true" />
+                    <div
+                      id={`body-${itemId}`}
+                      className="must-know-card-body"
+                      role="region"
+                      aria-labelledby={`header-${itemId}`}
+                    >
+                      {/* A. Simple explanation */}
+                      {simpleExplanation && (
+                        <div className="must-know-field-block">
+                          <h4 className="must-know-field-label">Simple explanation</h4>
+                          <div className="must-know-field-text">
+                            {renderContent(simpleExplanation)}
+                          </div>
                         </div>
                       )}
 
-                    {(item.highlight_box || item.highlightBox) && (
-                      <div className="mint-callout-box" role="note">
-                        <strong>
-                          {renderContent(item.highlight_box || item.highlightBox)}
-                        </strong>
-                      </div>
-                    )}
+                      {/* B. Technical explanation */}
+                      {technicalExplanation && (
+                        <div className="must-know-field-block">
+                          <h4 className="must-know-field-label">Technical explanation</h4>
+                          <div className="must-know-field-text">
+                            {renderContent(technicalExplanation)}
+                          </div>
+                        </div>
+                      )}
 
-                    {item.example && (
-                      <div className="example-box">
-                        {renderContent(item.example)}
-                      </div>
-                    )}
+                      {/* C. Interview-ready answer */}
+                      {interviewAnswer && (
+                        <div className="must-know-interview-callout" role="note">
+                          <div className="must-know-callout-label">
+                            What you can say in an interview
+                          </div>
+                          <div className="must-know-callout-quote">
+                            {renderQuote(interviewAnswer)}
+                          </div>
+                        </div>
+                      )}
 
-                    {item.interview_tip && (
-                      <div className="mint-callout-box" role="note" style={{ marginTop: "12px" }}>
-                        <strong>💡 Interview Tip:</strong> {renderContent(item.interview_tip)}
-                      </div>
-                    )}
+                      {/* D. Example */}
+                      {item.example && (
+                        <div className="must-know-field-block">
+                          <h4 className="must-know-field-label">Example</h4>
+                          <div className="must-know-field-text">
+                            {renderContent(item.example)}
+                          </div>
+                        </div>
+                      )}
 
-                    {Array.isArray(item.subQuestions || item.sub_questions) &&
-                      (item.subQuestions || item.sub_questions).length > 0 && (
-                        <div className="sub-question-pills-wrap">
-                          {(item.subQuestions || item.sub_questions).map(
-                            (sub, sIdx) => (
-                              <div key={sIdx} className="sub-question-pill">
-                                <span>{sub}</span>
+                      {/* E. Interviewer may ask */}
+                      {followUpList.length > 0 && (
+                        <div className="must-know-field-block">
+                          <h4 className="must-know-field-label">Interviewer may ask</h4>
+                          <div className="must-know-followups-list">
+                            {followUpList.map((fu) => (
+                              <div key={fu.id} className="must-know-followup-item">
+                                <div className="must-know-followup-box">
+                                  {fu.question}
+                                </div>
+                                {fu.hint && (
+                                  <p className="must-know-followup-hint">{fu.hint}</p>
+                                )}
                               </div>
-                            )
-                          )}
+                            ))}
+                          </div>
                         </div>
                       )}
-                  </div>
+                    </div>
+                  </>
                 )}
               </article>
             );

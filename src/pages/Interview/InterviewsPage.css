@@ -770,3 +770,220 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ==========================================================================
+   MUST-KNOW QUESTIONS SECTION (ACCORDION & REFERENCE LAYOUT)
+   ========================================================================== */
+.must-know-section-wrap {
+  margin-bottom: 36px;
+}
+
+.must-know-badge {
+  display: inline-block;
+  background-color: #DEF7EC;
+  color: #111827;
+  font-size: 1.15rem;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 8px;
+  letter-spacing: -0.015em;
+  margin-bottom: 8px;
+}
+
+.must-know-subtitle {
+  font-size: 0.92rem;
+  color: #4B5563;
+  margin: 0 0 20px 0;
+  line-height: 1.5;
+}
+
+.must-know-accordion-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.must-know-card {
+  background-color: #F8F9FA;
+  border: 1px solid #ECEFF2;
+  border-radius: 14px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.must-know-card.is-open {
+  background-color: #F8F9FA;
+  border-color: #E2E8F0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.must-know-card-header-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 20px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  user-select: none;
+  transition: background-color 0.15s ease;
+}
+
+.must-know-card-header-btn:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.must-know-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.must-know-num-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 26px;
+  padding: 0 6px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  flex-shrink: 0;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.must-know-num-badge.badge-closed {
+  background-color: #E2E8F0;
+  color: #334155;
+}
+
+.must-know-num-badge.badge-open {
+  background-color: #0B3553;
+  color: #FFFFFF;
+}
+
+.must-know-question-title {
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+  line-height: 1.38;
+  letter-spacing: -0.01em;
+}
+
+.must-know-chevron {
+  font-size: 1.25rem;
+  color: #111827;
+  flex-shrink: 0;
+  stroke-width: 2.5;
+  transition: transform 0.2s ease;
+}
+
+.must-know-divider {
+  height: 1px;
+  background-color: #E5E7EB;
+  width: 100%;
+  margin: 0;
+}
+
+.must-know-card-body {
+  padding: 20px 24px 24px 24px;
+  background-color: #FFFFFF;
+}
+
+.must-know-field-block {
+  margin-bottom: 16px;
+}
+
+.must-know-field-block:last-child {
+  margin-bottom: 0;
+}
+
+.must-know-field-label {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #4B5563;
+  margin: 0 0 4px 0;
+  letter-spacing: -0.01em;
+}
+
+.must-know-field-text {
+  font-size: 0.92rem;
+  color: #374151;
+  line-height: 1.55;
+}
+
+.must-know-field-text p {
+  margin: 0 0 6px 0;
+}
+
+.must-know-field-text p:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Highlighted "What you can say in an interview" box ── */
+.must-know-interview-callout {
+  background-color: #DEF7EC;
+  border-left: 4px solid #0D5C75;
+  border-radius: 0 12px 12px 0;
+  padding: 14px 18px;
+  margin: 18px 0;
+}
+
+.must-know-callout-label {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 6px;
+  letter-spacing: -0.01em;
+}
+
+.must-know-callout-quote {
+  font-size: 0.91rem;
+  font-style: italic;
+  color: #1E293B;
+  line-height: 1.55;
+}
+
+.must-know-callout-quote em {
+  font-style: italic;
+}
+
+/* ── "Interviewer may ask" follow-up boxes & hints ── */
+.must-know-followups-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.must-know-followup-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.must-know-followup-box {
+  border: 1.5px solid #CBD5E1;
+  border-radius: 10px;
+  padding: 10px 16px;
+  background-color: #FFFFFF;
+  color: #1E293B;
+  font-size: 0.88rem;
+  font-weight: 600;
+  font-style: italic;
+  line-height: 1.45;
+}
+
+.must-know-followup-hint {
+  font-size: 0.81rem;
+  color: #64748B;
+  margin: 5px 0 12px 4px;
+  line-height: 1.4;
+}

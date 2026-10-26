@@ -45,44 +45,85 @@ async function initInterviewDetailsTable() {
         num: "01",
         question: "What is Machine Learning?",
         default_open: true,
-        simple_definition: "A subset of Artificial Intelligence that allows systems to autonomously learn representations from experience without being explicitly hard-coded.",
-        explanation: "Machine Learning is a subset of Artificial Intelligence (AI) that provides systems the ability to automatically learn and extract representations from experience without being explicitly programmed. Instead of developing rigid, rule-based heuristics for every scenario, ML algorithms analyze patterns across historical training data to generalize and make predictions on unseen data.",
-        highlight_box: "Key Takeaway / Interview Formulation: Explain that ML shifts software engineering from handcrafting logic to learning representations from data. Emphasize the end-to-end lifecycle: Problem Formulation → Data Collection → Feature Engineering → Model Training → Evaluation → Deployment & Monitoring.",
-        example: "An email spam classifier processes historical emails labeled as spam or ham, analyzes token frequency vectors, and updates classification weights so it can accurately flag newly emerging phishing schemes.",
-        interview_tip: "Highlight that ML models optimize an objective loss function over empirical data rather than executing human-written conditionals."
+        simple_explanation: "Instead of writing rules by hand, you show a computer many examples and let it work out the rules itself.",
+        simple_definition: "Instead of writing rules by hand, you show a computer many examples and let it work out the rules itself.",
+        technical_explanation: "ML algorithms fit a function f(x) to data by minimising a loss, then generalise to unseen inputs. Learning is driven by data, an objective, and an optimisation procedure.",
+        explanation: "ML algorithms fit a function f(x) to data by minimising a loss, then generalise to unseen inputs. Learning is driven by data, an objective, and an optimisation procedure.",
+        interview_answer: "Machine learning is a subset of AI where algorithms learn patterns from data to make predictions or decisions without being explicitly programmed for every outcome.",
+        highlight_box: "Machine learning is a subset of AI where algorithms learn patterns from data to make predictions or decisions without being explicitly programmed for every outcome.",
+        example: "A spam filter learns from thousands of labelled emails which words and senders suggest spam.",
+        follow_up_questions: [
+          {
+            id: "fu-1-1",
+            question: "How is ML different from traditional programming?",
+            hint: "Try answering this aloud first, then link it back to the main question above."
+          },
+          {
+            id: "fu-1-2",
+            question: "What are the main types of ML?",
+            hint: "Try answering this aloud first, then link it back to the main question above."
+          }
+        ]
       },
       {
         id: "mk-2",
         num: "02",
-        question: "What is the difference between AI, ML, and Deep Learning?",
+        question: "What is the difference between AI, ML and Deep Learning?",
         default_open: false,
+        simple_explanation: "AI is the broad field of intelligent machines; ML is the subfield focused on statistical data-driven learning; Deep Learning is specialized ML using deep neural networks.",
         simple_definition: "AI is the broad field of intelligent machines; ML is the subfield focused on statistical data-driven learning; Deep Learning is specialized ML using deep neural networks.",
-        explanation: "Artificial Intelligence (AI) is the broad discipline of building smart machines capable of tasks that typically require human cognition. Machine Learning (ML) is a subset of AI where systems learn statistical patterns from data. Deep Learning (DL) is a specialized branch of ML utilizing multi-layered Artificial Neural Networks (ANNs, CNNs, Transformers) to autonomously learn hierarchical representations from complex, unstructured data like raw images, audio, and text.",
-        highlight_box: "Mental Model: AI is the universe, Machine Learning is the solar system, and Deep Learning is planet Earth. DL scales with massive datasets where classical ML performance plateaus.",
-        example: "A chess program with minimax rules is AI; a spam filter using logistic regression is ML; a real-time autonomous driving vision model using convolutional networks is Deep Learning.",
-        interview_tip: "Frame Deep Learning's primary advantage as automated feature extraction from unstructured high-dimensional spaces."
+        technical_explanation: "Artificial Intelligence encompasses rule-based and data-driven systems. Machine Learning applies statistical optimization over structured representations. Deep Learning utilizes multi-layered Artificial Neural Networks to autonomously learn hierarchical representations from complex, unstructured data.",
+        explanation: "Artificial Intelligence encompasses rule-based and data-driven systems. Machine Learning applies statistical optimization over structured representations. Deep Learning utilizes multi-layered Artificial Neural Networks to autonomously learn hierarchical representations from complex, unstructured data.",
+        interview_answer: "AI is the overarching discipline of creating intelligent agents, Machine Learning is the branch that learns models from data, and Deep Learning is a specialized ML paradigm utilizing neural architectures with representation learning.",
+        highlight_box: "AI is the overarching discipline of creating intelligent agents, Machine Learning is the branch that learns models from data, and Deep Learning is a specialized ML paradigm utilizing neural architectures with representation learning.",
+        example: "A chess engine using minimax rules is AI; a churn predictor using gradient boosting is ML; self-driving perception using convolutional vision models is Deep Learning.",
+        follow_up_questions: [
+          {
+            id: "fu-2-1",
+            question: "When should you choose classical ML over Deep Learning?",
+            hint: "Focus on dataset size, training compute budget, and model explainability constraints."
+          }
+        ]
       },
       {
         id: "mk-3",
         num: "03",
-        question: "What are supervised and unsupervised learning?",
+        question: "What is the difference between AI, ML and Deep Learning?",
         default_open: false,
-        simple_definition: "Supervised learning learns input-output mappings from ground-truth labeled pairs (X, y); unsupervised learning discovers latent structures in unlabeled data (X).",
-        explanation: "Supervised Learning trains models on labeled ground truth (X, y) to map inputs to target outputs. Key tasks include Classification (discrete labels, e.g. fraud detection) and Regression (continuous values, e.g. house pricing). Unsupervised Learning uncovers hidden structures, clusters, or distributions from unlabeled data X without prior target guidance (e.g., K-Means customer segmentation, PCA dimensionality reduction).",
-        highlight_box: "Interview Tip: Always highlight the data labeling cost trade-off. Supervised learning yields precise task-oriented performance but demands costly human annotations; unsupervised learning reveals latent data groupings automatically.",
-        example: "Supervised: Predicting customer churn (0 or 1). Unsupervised: Clustering customers into behavioural cohorts using K-Means.",
-        interview_tip: "Mention Semi-Supervised and Reinforcement Learning as natural extensions to demonstrate broader domain awareness."
+        simple_explanation: "Supervised learning learns input-output mappings from ground-truth labeled pairs; unsupervised learning discovers latent structures in unlabeled data.",
+        simple_definition: "Supervised learning learns input-output mappings from ground-truth labeled pairs; unsupervised learning discovers latent structures in unlabeled data.",
+        technical_explanation: "Supervised Learning trains models on labeled ground truth (X, y) to map inputs to target outputs (Classification & Regression). Unsupervised Learning discovers latent clustering, distributions, or manifold representations from unlabeled data X without supervisor guidance.",
+        explanation: "Supervised Learning trains models on labeled ground truth (X, y) to map inputs to target outputs (Classification & Regression). Unsupervised Learning discovers latent clustering, distributions, or manifold representations from unlabeled data X without supervisor guidance.",
+        interview_answer: "Supervised learning minimizes empirical risk over labeled target pairs, while unsupervised learning optimizes data density or reconstruction loss without target annotations.",
+        highlight_box: "Supervised learning minimizes empirical risk over labeled target pairs, while unsupervised learning optimizes data density or reconstruction loss without target annotations.",
+        example: "Supervised: Predicting customer churn (0/1). Unsupervised: Segmenting customers into behavioural cohorts using K-Means.",
+        follow_up_questions: [
+          {
+            id: "fu-3-1",
+            question: "How do you evaluate clustering without ground-truth labels?",
+            hint: "Discuss Silhouette Score, Davies-Bouldin index, and domain inspection."
+          }
+        ]
       },
       {
         id: "mk-4",
         num: "04",
-        question: "What is overfitting in Machine Learning and how do you prevent it?",
+        question: "What is the difference between AI, ML and Deep Learning?",
         default_open: false,
+        simple_explanation: "Overfitting happens when a model memorizes training noise instead of general patterns, performing excellently on training data but poorly on test data.",
         simple_definition: "Overfitting happens when a model memorizes training noise instead of general patterns, performing excellently on training data but poorly on test data.",
-        explanation: "Overfitting occurs when a model learns the training data too closely—capturing noise, outliers, and random fluctuations rather than underlying generalizable signals. This manifests as near-perfect training accuracy alongside poor validation or test performance (high variance).",
-        highlight_box: "Key Remedies: 1) Regularization (L1 Lasso for sparsity, L2 Ridge to penalize weights), 2) Cross-Validation (K-Fold CV for out-of-fold generalization), 3) Tree Pruning / Ensembling, 4) Early Stopping & Dropout, 5) Feature Selection & Data Augmentation.",
-        example: "A decision tree grown to maximum depth memorizes every single training customer, creating a complex jagged decision boundary that misclassifies future customers.",
-        interview_tip: "Connect overfitting directly to the Bias-Variance tradeoff: overfitting equals high variance and low bias."
+        technical_explanation: "Overfitting occurs when high model capacity fits sample-specific noise rather than the underlying data generating distribution, causing low training error but high generalization error (high variance).",
+        explanation: "Overfitting occurs when high model capacity fits sample-specific noise rather than the underlying data generating distribution, causing low training error but high generalization error (high variance).",
+        interview_answer: "Overfitting reflects high variance where the model learns spurious correlations in training data. We prevent it via L1/L2 regularization, cross-validation, tree pruning, early stopping, and dataset expansion.",
+        highlight_box: "Overfitting reflects high variance where the model learns spurious correlations in training data. We prevent it via L1/L2 regularization, cross-validation, tree pruning, early stopping, and dataset expansion.",
+        example: "A decision tree grown without depth limits isolates every single training outlier, creating erratic decision boundaries that fail in production.",
+        follow_up_questions: [
+          {
+            id: "fu-4-1",
+            question: "How do L1 and L2 regularization differ in preventing overfitting?",
+            hint: "Explain the geometric weight penalty: L1 (Lasso) enforces sparsity, L2 (Ridge) shrinks weight magnitudes."
+          }
+        ]
       }
     ];
 
@@ -406,8 +447,8 @@ print(calculate_metrics(tp=85, fp=15, tn=890, fn=10))
 
     const defaultSectionHeaders = {
       "must-know": {
-        title: "01 · Must-Know Questions",
-        subtitle: "Essential concepts every candidate must know before stepping into the interview."
+        title: "Must–Know Questions",
+        subtitle: "Start with the questions you should be able to answer before any Machine Learning interview."
       },
       "questions-answers": {
         title: "02 · Questions & Answers",
@@ -589,7 +630,19 @@ print(calculate_metrics(tp=85, fp=15, tn=890, fn=10))
       );
       console.log('Successfully seeded default interview_details record.');
     } else {
-      console.log('Default interview_details record already exists.');
+      console.log('Updating existing default interview_details record with Must-Know questions matching reference design...');
+      await query(
+        `UPDATE interview_details
+         SET must_know_questions = ?,
+             section_headers = ?
+         WHERE slug = ?`,
+        [
+          JSON.stringify(defaultMustKnow),
+          JSON.stringify(defaultSectionHeaders),
+          'machine-learning-interview-questions-answers'
+        ]
+      );
+      console.log('Successfully updated existing default interview_details record.');
     }
 
     console.log('--- interview_details table setup complete ---');
