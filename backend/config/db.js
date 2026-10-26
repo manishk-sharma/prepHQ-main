@@ -21,6 +21,9 @@ const dbConfig = {
   enableKeepAlive: true,
   keepAliveInitialDelay: 0,
   connectTimeout: 5000,
+  ...(process.env.DB_SSL === 'true' || process.env.DB_SSL === '1'
+    ? { ssl: { rejectUnauthorized: false } }
+    : {}),
 };
 
 // Create the connection pool
