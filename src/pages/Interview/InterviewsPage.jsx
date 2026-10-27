@@ -24,7 +24,39 @@ import {
 } from "../../services/interviewsServices";
 import { useTutorialList } from "../../services/tutorialServices";
 import { useBlogList } from "../../services/blogServices";
+import Prism from "prismjs";
+import "prismjs/components/prism-python";
+import "prismjs/components/prism-javascript";
+import "prismjs/components/prism-typescript";
+import "prismjs/components/prism-sql";
+import "prismjs/components/prism-java";
+import "prismjs/components/prism-c";
+import "prismjs/components/prism-cpp";
 import "./InterviewsPage.css";
+
+const highlightCode = (code, lang = "python") => {
+  if (!code || typeof code !== "string") return "";
+  const normalized = (lang || "python").toLowerCase().trim();
+  const langKey =
+    normalized === "c++" || normalized === "cpp"
+      ? "cpp"
+      : normalized === "js" || normalized === "javascript"
+      ? "javascript"
+      : normalized === "ts" || normalized === "typescript"
+      ? "typescript"
+      : normalized === "py" || normalized === "python"
+      ? "python"
+      : normalized;
+  const grammar =
+    Prism.languages[langKey] ||
+    Prism.languages.python ||
+    Prism.languages.javascript;
+  try {
+    return Prism.highlight(code, grammar, langKey);
+  } catch (err) {
+    return code;
+  }
+};
 
 // ── HTML Sanitization & Safe Parsing ───────────────────────────────────────
 const sanitizeHtml = (html) => {
@@ -522,7 +554,9 @@ const InterviewsPage = () => {
                       {/* A. Simple explanation */}
                       {simpleExplanation && (
                         <div className="must-know-field-block">
-                          <h4 className="must-know-field-label">Simple explanation</h4>
+                          <h4 className="must-know-field-label">
+                            {item.simple_explanation_label || "Simple explanation"}
+                          </h4>
                           <div className="must-know-field-text">
                             {renderContent(simpleExplanation)}
                           </div>
@@ -532,7 +566,9 @@ const InterviewsPage = () => {
                       {/* B. Technical explanation */}
                       {technicalExplanation && (
                         <div className="must-know-field-block">
-                          <h4 className="must-know-field-label">Technical explanation</h4>
+                          <h4 className="must-know-field-label">
+                            {item.technical_explanation_label || "Technical explanation"}
+                          </h4>
                           <div className="must-know-field-text">
                             {renderContent(technicalExplanation)}
                           </div>
@@ -554,7 +590,9 @@ const InterviewsPage = () => {
                       {/* D. Example */}
                       {item.example && (
                         <div className="must-know-field-block">
-                          <h4 className="must-know-field-label">Example</h4>
+                          <h4 className="must-know-field-label">
+                            {item.example_label || "Example"}
+                          </h4>
                           <div className="must-know-field-text">
                             {renderContent(item.example)}
                           </div>
@@ -564,7 +602,9 @@ const InterviewsPage = () => {
                       {/* E. Interviewer may ask */}
                       {followUpList.length > 0 && (
                         <div className="must-know-field-block">
-                          <h4 className="must-know-field-label">Interviewer may ask</h4>
+                          <h4 className="must-know-field-label">
+                            {item.follow_up_label || "Interviewer may ask"}
+                          </h4>
                           <div className="must-know-followups-list">
                             {followUpList.map((fu) => (
                               <div key={fu.id} className="must-know-followup-item">
@@ -733,7 +773,9 @@ const InterviewsPage = () => {
                         {/* A. Simple explanation */}
                         {simpleExplanation && (
                           <div className="must-know-field-block">
-                            <h4 className="must-know-field-label">Simple explanation</h4>
+                            <h4 className="must-know-field-label">
+                              {item.simple_explanation_label || "Simple explanation"}
+                            </h4>
                             <div className="must-know-field-text">
                               {renderContent(simpleExplanation)}
                             </div>
@@ -743,7 +785,9 @@ const InterviewsPage = () => {
                         {/* B. Technical explanation */}
                         {technicalExplanation && (
                           <div className="must-know-field-block">
-                            <h4 className="must-know-field-label">Technical explanation</h4>
+                            <h4 className="must-know-field-label">
+                              {item.technical_explanation_label || "Technical explanation"}
+                            </h4>
                             <div className="must-know-field-text">
                               {renderContent(technicalExplanation)}
                             </div>
@@ -765,7 +809,9 @@ const InterviewsPage = () => {
                         {/* D. Example */}
                         {item.example && (
                           <div className="must-know-field-block">
-                            <h4 className="must-know-field-label">Example</h4>
+                            <h4 className="must-know-field-label">
+                              {item.example_label || "Example"}
+                            </h4>
                             <div className="must-know-field-text">
                               {renderContent(item.example)}
                             </div>
@@ -775,7 +821,9 @@ const InterviewsPage = () => {
                         {/* E. Interviewer may ask */}
                         {followUpList.length > 0 && (
                           <div className="must-know-field-block">
-                            <h4 className="must-know-field-label">Interviewer may ask</h4>
+                            <h4 className="must-know-field-label">
+                              {item.follow_up_label || "Interviewer may ask"}
+                            </h4>
                             <div className="must-know-followups-list">
                               {followUpList.map((fu) => (
                                 <div key={fu.id} className="must-know-followup-item">
@@ -819,7 +867,12 @@ const InterviewsPage = () => {
                               </button>
                             </div>
                             <pre className="interview-code-pre">
-                              <code>{item.code_snippet}</code>
+                              <code
+                                className={`language-${(item.language || "python").toLowerCase()}`}
+                                dangerouslySetInnerHTML={{
+                                  __html: highlightCode(item.code_snippet, item.language || "python"),
+                                }}
+                              />
                             </pre>
                           </div>
                         )}
@@ -931,7 +984,7 @@ const InterviewsPage = () => {
                       {testingText && (
                         <div className="must-know-field-block">
                           <h4 className="must-know-field-label">
-                            What the interviewer is testing
+                            {item.interviewer_testing_label || "What the interviewer is testing"}
                           </h4>
                           <div className="must-know-field-text">
                             {renderContent(testingText)}
@@ -943,7 +996,7 @@ const InterviewsPage = () => {
                       {approachText && (
                         <div className="must-know-field-block">
                           <h4 className="must-know-field-label">
-                            How to approach it
+                            {item.approach_label || "How to approach it"}
                           </h4>
                           <div className="must-know-field-text">
                             {renderContent(approachText)}
@@ -967,7 +1020,7 @@ const InterviewsPage = () => {
                       {followUpList.length > 0 && (
                         <div className="must-know-field-block">
                           <h4 className="must-know-field-label">
-                            Possible follow-ups
+                            {item.follow_up_label || "Possible follow-ups"}
                           </h4>
                           <ul className="scenario-followup-bullets">
                             {followUpList.map((fu) => (
@@ -1075,7 +1128,9 @@ const InterviewsPage = () => {
                       {/* Expected approach */}
                       {approach && (
                         <div className="must-know-field-block">
-                          <h4 className="must-know-field-label">Expected approach</h4>
+                          <h4 className="must-know-field-label">
+                            {item.approach_label || "Expected approach"}
+                          </h4>
                           <div className="must-know-field-text">
                             {renderContent(approach)}
                           </div>
@@ -1085,7 +1140,9 @@ const InterviewsPage = () => {
                       {/* Solution */}
                       {item.code && (
                         <div className="must-know-field-block">
-                          <h4 className="must-know-field-label">Solution</h4>
+                          <h4 className="must-know-field-label">
+                            {item.solution_code_label || "Solution"}
+                          </h4>
                           <div
                             className="interview-code-container"
                             role="region"
@@ -1113,7 +1170,12 @@ const InterviewsPage = () => {
                               </button>
                             </div>
                             <pre className="interview-code-pre">
-                              <code>{item.code}</code>
+                              <code
+                                className={`language-${(item.language || "python").toLowerCase()}`}
+                                dangerouslySetInnerHTML={{
+                                  __html: highlightCode(item.code || item.solution || "", item.language || "python"),
+                                }}
+                              />
                             </pre>
                           </div>
                         </div>
@@ -1122,7 +1184,9 @@ const InterviewsPage = () => {
                       {/* Explanation */}
                       {explanation && (
                         <div className="must-know-field-block">
-                          <h4 className="must-know-field-label">Explanation</h4>
+                          <h4 className="must-know-field-label">
+                            {item.explanation_label || "Explanation"}
+                          </h4>
                           <div className="must-know-field-text">
                             {renderContent(explanation)}
                           </div>
@@ -1147,7 +1211,7 @@ const InterviewsPage = () => {
                       {followUpList.length > 0 && (
                         <div className="must-know-field-block">
                           <h4 className="must-know-field-label">
-                            {followUpList.length > 1 ? "Possible follow-ups" : "Interviewer follow-up"}
+                            {item.follow_up_label || (followUpList.length > 1 ? "Possible follow-ups" : "Interviewer follow-up")}
                           </h4>
                           {followUpList.length === 1 ? (
                             <div className="must-know-field-text">
@@ -1243,43 +1307,65 @@ const InterviewsPage = () => {
                       role="region"
                       aria-labelledby={`header-${itemId}`}
                     >
-                      {/* The problem */}
-                      {problemText && (
+                      {/* Single Unified Rich-Text Content */}
+                      {(item.content || /<[a-z][\s\S]*>/i.test(problemText) || (!whyItHurts && !betterApproach)) ? (
                         <div className="must-know-field-block">
-                          <h4 className="must-know-field-label">The problem</h4>
                           <div className="must-know-field-text">
-                            {renderContent(problemText)}
+                            {renderContent(item.content || problemText)}
                           </div>
                         </div>
-                      )}
+                      ) : (
+                        <>
+                          {/* The problem */}
+                          {problemText && (
+                            <div className="must-know-field-block">
+                              <h4 className="must-know-field-label">
+                                {item.problem_label || "The problem"}
+                              </h4>
+                              <div className="must-know-field-text">
+                                {renderContent(problemText)}
+                              </div>
+                            </div>
+                          )}
 
-                      {/* Why it hurts */}
-                      {whyItHurts && (
-                        <div className="must-know-field-block">
-                          <h4 className="must-know-field-label">Why it hurts</h4>
-                          <div className="must-know-field-text">
-                            {renderContent(whyItHurts)}
-                          </div>
-                        </div>
-                      )}
+                          {/* Why it hurts */}
+                          {whyItHurts && (
+                            <div className="must-know-field-block">
+                              <h4 className="must-know-field-label">
+                                {item.why_it_hurts_label || "Why it hurts"}
+                              </h4>
+                              <div className="must-know-field-text">
+                                {renderContent(whyItHurts)}
+                              </div>
+                            </div>
+                          )}
 
-                      {/* Better approach */}
-                      {betterApproach && (
-                        <div className="must-know-field-block">
-                          <h4 className="must-know-field-label">Better approach</h4>
-                          <div className="must-know-field-text">
-                            {renderContent(betterApproach)}
-                          </div>
-                        </div>
-                      )}
+                          {/* Better approach */}
+                          {betterApproach && (
+                            <div className="must-know-field-block">
+                              <h4 className="must-know-field-label">
+                                {item.better_approach_label || "Better approach"}
+                              </h4>
+                              <div className="must-know-field-text">
+                                {renderContent(betterApproach)}
+                              </div>
+                            </div>
+                          )}
 
-                      {/* Optional Recommendation */}
-                      {item.recommendation && (
-                        <div className="must-know-field-block" style={{ marginTop: "10px" }}>
-                          <div className="must-know-field-text" style={{ fontStyle: "italic", color: "#475569" }}>
-                            {renderContent(item.recommendation)}
-                          </div>
-                        </div>
+                          {/* Optional Recommendation */}
+                          {item.recommendation && (
+                            <div className="must-know-field-block" style={{ marginTop: "10px" }}>
+                              {item.recommendation_label && (
+                                <h4 className="must-know-field-label">
+                                  {item.recommendation_label}
+                                </h4>
+                              )}
+                              <div className="must-know-field-text" style={{ fontStyle: "italic", color: "#475569" }}>
+                                {renderContent(item.recommendation)}
+                              </div>
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
                   </>

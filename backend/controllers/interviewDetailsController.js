@@ -251,6 +251,21 @@ export const updateInterviewDetails = async (req, res, next) => {
       return res.status(400).json({ status: 0, message: 'Identifier is required.' });
     }
 
+    let sanitizedQuickRevision = undefined;
+    if (quick_revision !== undefined) {
+      if (!Array.isArray(quick_revision)) {
+        return res.status(400).json({ status: 0, message: 'quick_revision must be an array.' });
+      }
+      if (quick_revision.length > 2000) {
+        return res.status(400).json({ status: 0, message: 'quick_revision cannot exceed 2000 items.' });
+      }
+      sanitizedQuickRevision = quick_revision.map((item, idx) => ({
+        id: item && item.id ? String(item.id).slice(0, 100) : `rev-${idx + 1}-${Date.now()}`,
+        concept: String((item && item.concept) || '').trim().slice(0, 500),
+        explanation: String((item && item.explanation) || '').trim().slice(0, 10000),
+      }));
+    }
+
     const isNumeric = /^\d+$/.test(slugOrId);
     const whereClause = isNumeric ? 'WHERE id = ?' : 'WHERE slug = ?';
 
@@ -298,7 +313,7 @@ export const updateInterviewDetails = async (req, res, next) => {
         scenario_questions !== undefined ? JSON.stringify(scenario_questions) : null,
         coding_questions !== undefined ? JSON.stringify(coding_questions) : null,
         common_mistakes !== undefined ? JSON.stringify(common_mistakes) : null,
-        quick_revision !== undefined ? JSON.stringify(quick_revision) : null,
+        sanitizedQuickRevision !== undefined ? JSON.stringify(sanitizedQuickRevision) : null,
         (section_headers !== undefined || req.body.sectionHeaders !== undefined)
           ? JSON.stringify(section_headers !== undefined ? section_headers : req.body.sectionHeaders)
           : null,

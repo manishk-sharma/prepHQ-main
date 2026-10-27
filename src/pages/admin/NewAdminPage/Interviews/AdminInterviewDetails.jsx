@@ -44,6 +44,17 @@ import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import UnfoldMoreIcon from "@mui/icons-material/UnfoldMore";
 import UnfoldLessIcon from "@mui/icons-material/UnfoldLess";
 import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
+import FileDownloadIcon from "@mui/icons-material/FileDownload";
+import FileUploadIcon from "@mui/icons-material/FileUpload";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+
+import {
+  downloadQuickRevisionTemplate,
+  exportQuickRevisionToExcel,
+  parseQuickRevisionExcel,
+} from "../../../../utils/quickRevisionExcel";
+import QuickRevisionExcelModal from "./components/QuickRevisionExcelModal";
+import CustomSectionHeadingsPanel from "./components/CustomSectionHeadingsPanel";
 
 import {
   useInterviewDetails,
@@ -53,6 +64,7 @@ import {
 } from "../../../../services/interviewsServices";
 import { useNotification } from "../../../../context/useNotificationContext";
 import { Editor } from "@tinymce/tinymce-react";
+import MonacoEditor from "@monaco-editor/react";
 import {
   SortableContainer,
   SortableItem,
@@ -61,6 +73,46 @@ import {
 } from "../Projects/components/DndSortableWrapper";
 
 const TINYMCE_API_KEY = "9upr0hixy7g4w8g9mazmhkqgyl0m4kjvz623rjwvekg4l86k";
+
+const mapToMonacoLang = (lang) => {
+  if (!lang) return "python";
+  const l = lang.toLowerCase().trim();
+  if (l === "c++" || l === "cpp") return "cpp";
+  if (l === "js" || l === "javascript") return "javascript";
+  if (l === "ts" || l === "typescript") return "typescript";
+  if (l === "py" || l === "python") return "python";
+  if (l === "sql") return "sql";
+  if (l === "java") return "java";
+  return l;
+};
+
+const handleMonacoWillMount = (monaco) => {
+  monaco.editor.defineTheme("prepHQ-dark", {
+    base: "vs-dark",
+    inherit: true,
+    rules: [
+      { token: "keyword", foreground: "38bdf8", fontStyle: "bold" },
+      { token: "keyword.python", foreground: "38bdf8", fontStyle: "bold" },
+      { token: "identifier", foreground: "f8fafc" },
+      { token: "function", foreground: "fde047" },
+      { token: "string", foreground: "86efac" },
+      { token: "number", foreground: "f472b6" },
+      { token: "comment", foreground: "6ee7b7", fontStyle: "italic" },
+      { token: "delimiter", foreground: "cbd5e1" },
+      { token: "type", foreground: "c084fc" },
+      { token: "operator", foreground: "c084fc" },
+    ],
+    colors: {
+      "editor.background": "#074568",
+      "editor.foreground": "#f8fafc",
+      "editorLineNumber.foreground": "#64748b",
+      "editorLineNumber.activeForeground": "#38bdf8",
+      "editorCursor.foreground": "#52d39a",
+      "editor.selectionBackground": "#0c638f",
+      "editor.lineHighlightBackground": "#0a5682",
+    },
+  });
+};
 
 const DEFAULT_SECTION_HEADERS = {
   "must-know": {
@@ -101,6 +153,87 @@ const DEFAULT_SECTIONS_ORDER = [
   "quick-revision",
 ];
 
+const SCENARIO_HEADINGS_CONFIG = [
+  {
+    key: "interviewer_testing_label",
+    label: "Testing Criteria Heading",
+    placeholder: "What the interviewer is testing",
+    helperText: "Heading for section A",
+  },
+  {
+    key: "approach_label",
+    label: "Approach Heading",
+    placeholder: "How to approach it",
+    helperText: "Heading for section B",
+  },
+  {
+    key: "expected_answer_heading_label",
+    label: "Expected Answer Callout Heading",
+    placeholder: "Expected answer callout box",
+    helperText: "Heading for section C",
+  },
+  {
+    key: "follow_up_label",
+    label: "Follow-up Questions Heading",
+    placeholder: "Possible follow-ups",
+    helperText: "Heading for section D",
+  },
+];
+
+const CODING_HEADINGS_CONFIG = [
+  {
+    key: "approach_label",
+    label: "Expected Approach Heading",
+    placeholder: "Expected approach",
+    helperText: "Heading for section A",
+  },
+  {
+    key: "solution_code_label",
+    label: "Solution Code Heading",
+    placeholder: "Solution code",
+    helperText: "Heading for section B",
+  },
+  {
+    key: "explanation_label",
+    label: "Explanation Heading",
+    placeholder: "Explanation",
+    helperText: "Heading for section C",
+  },
+  {
+    key: "follow_up_label",
+    label: "Follow-up Questions Heading",
+    placeholder: "Interviewer follow-up questions",
+    helperText: "Heading for section D",
+  },
+];
+
+const MISTAKES_HEADINGS_CONFIG = [
+  {
+    key: "problem_label",
+    label: "The Problem Heading",
+    placeholder: "The problem",
+    helperText: "Heading for section A",
+  },
+  {
+    key: "why_it_hurts_label",
+    label: "Why It Hurts Heading",
+    placeholder: "Why it hurts",
+    helperText: "Heading for section B",
+  },
+  {
+    key: "better_approach_label",
+    label: "Better Approach Heading",
+    placeholder: "Better approach",
+    helperText: "Heading for section C",
+  },
+  {
+    key: "recommendation_label",
+    label: "Recommendation / Tip Heading",
+    placeholder: "Optional Recommendation / Tip",
+    helperText: "Heading for section D",
+  },
+];
+
 const SECTION_META = {
   "must-know": { label: "Must-Know Questions", icon: <HelpOutlineIcon fontSize="small" /> },
   "questions-answers": { label: "Questions & Answers", icon: <MenuBookIcon fontSize="small" /> },
@@ -108,6 +241,31 @@ const SECTION_META = {
   "coding-questions": { label: "Coding Questions", icon: <CodeIcon fontSize="small" /> },
   "common-mistakes": { label: "Common Mistakes", icon: <WarningAmberIcon fontSize="small" /> },
   "quick-revision": { label: "Quick Revision", icon: <TableChartIcon fontSize="small" /> },
+};
+
+const formatMistakeToEditorHtml = (m) => {
+  if (!m) return "";
+  if (m.content) return m.content;
+  if (m.problem && /<[a-z][\s\S]*>/i.test(m.problem)) {
+    return m.problem;
+  }
+  const parts = [];
+  const prob = m.problem || m.mistake;
+  if (prob) {
+    parts.push(`<h4>The problem</h4>\n<p>${prob}</p>`);
+  }
+  const hurts = m.why_it_hurts || m.why_it_happens || m.whyItMatters;
+  if (hurts) {
+    parts.push(`<h4>Why it hurts</h4>\n<p>${hurts}</p>`);
+  }
+  const better = m.better_approach || m.how_to_avoid || m.howToAvoid;
+  if (better) {
+    parts.push(`<h4>Better approach</h4>\n<p>${better}</p>`);
+  }
+  if (m.recommendation) {
+    parts.push(`<p><em>${m.recommendation}</em></p>`);
+  }
+  return parts.join("\n\n");
 };
 
 export default function AdminInterviewDetails() {
@@ -126,6 +284,19 @@ export default function AdminInterviewDetails() {
   const [expandedScenarioIds, setExpandedScenarioIds] = useState({});
   const [expandedCodingIds, setExpandedCodingIds] = useState({});
   const [expandedMistakesIds, setExpandedMistakesIds] = useState({});
+  const [openCustomHeadingsIds, setOpenCustomHeadingsIds] = useState({});
+
+  const toggleCustomHeadings = (qId) => {
+    setOpenCustomHeadingsIds((prev) => ({ ...prev, [qId]: !prev[qId] }));
+  };
+
+  // Quick Revision Excel Import State
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [importResult, setImportResult] = useState(null);
+  const [selectedExcelFile, setSelectedExcelFile] = useState(null);
+  const [isExcelLoading, setIsExcelLoading] = useState(false);
+  const [isDragOverRevision, setIsDragOverRevision] = useState(false);
+  const revisionFileInputRef = React.useRef(null);
 
   const { data: interviewList = [], refetch: refetchList } = useInterviewDetailsList();
   const { data: currentData, isLoading, refetch } = useInterviewDetails(selectedSlug);
@@ -179,6 +350,11 @@ export default function AdminInterviewDetails() {
         highlight_box: q.highlight_box || q.interview_answer || q.interview_ready_answer || "",
         example: q.example || "",
         interview_tip: q.interview_tip || "",
+        simple_explanation_label: q.simple_explanation_label || "",
+        technical_explanation_label: q.technical_explanation_label || "",
+        interview_ready_label: q.interview_ready_label || "",
+        example_label: q.example_label || "",
+        follow_up_label: q.follow_up_label || "",
         follow_up_questions: (q.follow_up_questions || q.subQuestions || q.sub_questions || []).map((fq, fidx) => ({
           id: fq.id || `fq-${fidx + 1}-${Date.now()}`,
           question: fq.question || fq.text || "",
@@ -211,6 +387,11 @@ export default function AdminInterviewDetails() {
         example: q.example || "",
         interview_tip: q.interview_tip || "",
         code_snippet: q.code_snippet || "",
+        simple_explanation_label: q.simple_explanation_label || "",
+        technical_explanation_label: q.technical_explanation_label || "",
+        interview_ready_label: q.interview_ready_label || "",
+        example_label: q.example_label || "",
+        follow_up_label: q.follow_up_label || "",
         follow_up_questions: (q.follow_up_questions || q.subQuestions || q.sub_questions || []).map((fq, fidx) => ({
           id: fq.id || `fq-${fidx + 1}-${Date.now()}`,
           question: fq.question || fq.text || "",
@@ -240,6 +421,10 @@ export default function AdminInterviewDetails() {
         expected_answer: q.expected_answer || q.recommended_solution || q.expected_outcome || "",
         recommended_solution: q.recommended_solution || q.expected_answer || q.expected_outcome || "",
         expected_outcome: q.expected_outcome || q.expected_answer || q.recommended_solution || "",
+        interviewer_testing_label: q.interviewer_testing_label || "",
+        approach_label: q.approach_label || "",
+        expected_answer_heading_label: q.expected_answer_heading_label || "",
+        follow_up_label: q.follow_up_label || "",
         follow_up_questions: (q.follow_up_questions || q.followUps || q.follow_ups || []).map((fq, fidx) => ({
           id: typeof fq === "object" ? fq.id || `sc-fu-${fidx + 1}-${Date.now()}` : `sc-fu-${fidx + 1}-${Date.now()}`,
           question: typeof fq === "string" ? fq : fq.question || fq.text || "",
@@ -270,6 +455,10 @@ export default function AdminInterviewDetails() {
         explanation: q.explanation || "",
         time_complexity: q.time_complexity || "",
         space_complexity: q.space_complexity || "",
+        approach_label: q.approach_label || "",
+        solution_code_label: q.solution_code_label || "",
+        explanation_label: q.explanation_label || "",
+        follow_up_label: q.follow_up_label || "",
         follow_up_questions: (q.follow_up_questions || q.follow_ups || q.followUps || (q.follow_up ? [q.follow_up] : [])).map((fq, fidx) => ({
           id: typeof fq === "object" ? fq.id || `code-fu-${fidx + 1}-${Date.now()}` : `code-fu-${fidx + 1}-${Date.now()}`,
           question: typeof fq === "string" ? fq : fq.question || fq.text || "",
@@ -284,19 +473,27 @@ export default function AdminInterviewDetails() {
       setExpandedCodingIds(initialCodingExpanded);
 
       // Normalize Common Mistakes
-      const sanitizedMistakes = (currentData.common_mistakes || []).map((m, idx) => ({
-        id: m.id || `cm-${idx + 1}-${Date.now()}`,
-        num: m.num || String(idx + 1).padStart(2, "0"),
-        title: m.title || m.question || "",
-        default_open: m.default_open !== undefined ? Boolean(m.default_open) : idx === 0,
-        problem: m.problem || m.mistake || "",
-        mistake: m.mistake || m.problem || "",
-        why_it_hurts: m.why_it_hurts || m.why_it_happens || m.whyItMatters || "",
-        why_it_happens: m.why_it_happens || m.why_it_hurts || m.whyItMatters || "",
-        better_approach: m.better_approach || m.how_to_avoid || m.howToAvoid || "",
-        how_to_avoid: m.how_to_avoid || m.better_approach || m.howToAvoid || "",
-        recommendation: m.recommendation || "",
-      }));
+      const sanitizedMistakes = (currentData.common_mistakes || []).map((m, idx) => {
+        const editorContent = formatMistakeToEditorHtml(m);
+        return {
+          id: m.id || `cm-${idx + 1}-${Date.now()}`,
+          num: m.num || String(idx + 1).padStart(2, "0"),
+          title: m.title || m.question || "",
+          default_open: m.default_open !== undefined ? Boolean(m.default_open) : idx === 0,
+          content: editorContent,
+          problem: editorContent,
+          mistake: editorContent,
+          why_it_hurts: "",
+          why_it_happens: "",
+          better_approach: "",
+          how_to_avoid: "",
+          recommendation: "",
+          problem_label: "",
+          why_it_hurts_label: "",
+          better_approach_label: "",
+          recommendation_label: "",
+        };
+      });
 
       const initialMistakesExpanded = {};
       sanitizedMistakes.forEach((m, i) => {
@@ -464,6 +661,11 @@ export default function AdminInterviewDetails() {
         highlight_box: "",
         example: "",
         interview_tip: "",
+        simple_explanation_label: "",
+        technical_explanation_label: "",
+        interview_ready_label: "",
+        example_label: "",
+        follow_up_label: "",
         follow_up_questions: [
           {
             id: `fq-${Date.now()}-1`,
@@ -475,6 +677,28 @@ export default function AdminInterviewDetails() {
       return { ...prev, must_know_questions: list };
     });
     setExpandedMustKnowIds((prev) => ({ ...prev, [newId]: true }));
+  };
+
+  const getSectionHeadingLabel = (prefix, customVal, defaultVal) => {
+    if (!customVal || !customVal.trim()) return defaultVal;
+    const trimmed = customVal.trim();
+    if (trimmed.toLowerCase().startsWith(prefix.toLowerCase())) return trimmed;
+    return `${prefix} ${trimmed}`;
+  };
+
+  const resetMustKnowHeadings = (idx) => {
+    setFormData((prev) => {
+      const list = [...(prev.must_know_questions || [])];
+      list[idx] = {
+        ...list[idx],
+        simple_explanation_label: "",
+        technical_explanation_label: "",
+        interview_ready_label: "",
+        example_label: "",
+        follow_up_label: "",
+      };
+      return { ...prev, must_know_questions: list };
+    });
   };
 
   const updateMustKnow = (idx, field, val) => {
@@ -640,6 +864,11 @@ export default function AdminInterviewDetails() {
         example: "",
         interview_tip: "",
         code_snippet: "",
+        simple_explanation_label: "",
+        technical_explanation_label: "",
+        interview_ready_label: "",
+        example_label: "",
+        follow_up_label: "",
         follow_up_questions: [
           {
             id: `fq-${Date.now()}-1`,
@@ -651,6 +880,21 @@ export default function AdminInterviewDetails() {
       return { ...prev, qa_questions: list };
     });
     setExpandedQaIds((prev) => ({ ...prev, [newId]: true }));
+  };
+
+  const resetQAHeadings = (idx) => {
+    setFormData((prev) => {
+      const list = [...(prev.qa_questions || [])];
+      list[idx] = {
+        ...list[idx],
+        simple_explanation_label: "",
+        technical_explanation_label: "",
+        interview_ready_label: "",
+        example_label: "",
+        follow_up_label: "",
+      };
+      return { ...prev, qa_questions: list };
+    });
   };
 
   const updateQA = (idx, field, val) => {
@@ -862,6 +1106,10 @@ export default function AdminInterviewDetails() {
         expected_answer: "",
         recommended_solution: "",
         expected_outcome: "",
+        interviewer_testing_label: "",
+        approach_label: "",
+        expected_answer_heading_label: "",
+        follow_up_label: "",
         follow_up_questions: [
           {
             id: `sc-fu-${Date.now()}-1`,
@@ -873,6 +1121,20 @@ export default function AdminInterviewDetails() {
       return { ...prev, scenario_questions: list };
     });
     setExpandedScenarioIds((prev) => ({ ...prev, [newId]: true }));
+  };
+
+  const resetScenarioHeadings = (idx) => {
+    setFormData((prev) => {
+      const list = [...(prev.scenario_questions || [])];
+      list[idx] = {
+        ...list[idx],
+        interviewer_testing_label: "",
+        approach_label: "",
+        expected_answer_heading_label: "",
+        follow_up_label: "",
+      };
+      return { ...prev, scenario_questions: list };
+    });
   };
 
   const updateScenario = (idx, field, val) => {
@@ -1061,6 +1323,10 @@ export default function AdminInterviewDetails() {
         explanation: "",
         time_complexity: "O(n)",
         space_complexity: "O(1)",
+        approach_label: "",
+        solution_code_label: "",
+        explanation_label: "",
+        follow_up_label: "",
         follow_up_questions: [
           {
             id: `code-fu-${Date.now()}-1`,
@@ -1072,6 +1338,20 @@ export default function AdminInterviewDetails() {
       return { ...prev, coding_questions: list };
     });
     setExpandedCodingIds((prev) => ({ ...prev, [newId]: true }));
+  };
+
+  const resetCodingHeadings = (idx) => {
+    setFormData((prev) => {
+      const list = [...(prev.coding_questions || [])];
+      list[idx] = {
+        ...list[idx],
+        approach_label: "",
+        solution_code_label: "",
+        explanation_label: "",
+        follow_up_label: "",
+      };
+      return { ...prev, coding_questions: list };
+    });
   };
 
   const updateCoding = (idx, field, val) => {
@@ -1234,34 +1514,61 @@ export default function AdminInterviewDetails() {
     setFormData((prev) => {
       const list = [...(prev.common_mistakes || [])];
       const nextNum = String(list.length + 1).padStart(2, "0");
+      const initialContent = "<h4>The problem</h4>\n<p>Describe the common mistake here.</p>\n\n<h4>Why it hurts</h4>\n<p>Explain how this weakens the candidate's answer.</p>\n\n<h4>Better approach</h4>\n<p>Explain the correct, interview-ready way to answer.</p>";
       list.push({
         id: newId,
         num: nextNum,
         title: "New Common Mistake",
         default_open: list.length === 0,
-        problem: "",
-        mistake: "",
+        content: initialContent,
+        problem: initialContent,
+        mistake: initialContent,
         why_it_hurts: "",
         why_it_happens: "",
         better_approach: "",
         how_to_avoid: "",
         recommendation: "",
+        problem_label: "",
+        why_it_hurts_label: "",
+        better_approach_label: "",
+        recommendation_label: "",
       });
       return { ...prev, common_mistakes: list };
     });
     setExpandedMistakesIds((prev) => ({ ...prev, [newId]: true }));
   };
 
+  const resetMistakeHeadings = (idx) => {
+    setFormData((prev) => {
+      const list = [...(prev.common_mistakes || [])];
+      list[idx] = {
+        ...list[idx],
+        problem_label: "",
+        why_it_hurts_label: "",
+        better_approach_label: "",
+        recommendation_label: "",
+      };
+      return { ...prev, common_mistakes: list };
+    });
+  };
+
   const updateMistake = (idx, field, val) => {
     setFormData((prev) => {
       const list = [...(prev.common_mistakes || [])];
       const updated = { ...list[idx], [field]: val };
-      if (field === "problem") updated.mistake = val;
-      if (field === "mistake") updated.problem = val;
-      if (field === "why_it_hurts") updated.why_it_happens = val;
-      if (field === "why_it_happens") updated.why_it_hurts = val;
-      if (field === "better_approach") updated.how_to_avoid = val;
-      if (field === "how_to_avoid") updated.better_approach = val;
+      if (field === "content") {
+        updated.content = val;
+        updated.problem = val;
+        updated.mistake = val;
+      }
+      if (field === "problem") {
+        updated.content = val;
+        updated.mistake = val;
+      }
+      if (field === "mistake") {
+        updated.content = val;
+        updated.problem = val;
+      }
       list[idx] = updated;
       return { ...prev, common_mistakes: list };
     });
@@ -1375,6 +1682,123 @@ export default function AdminInterviewDetails() {
     }));
   };
 
+  // ── Quick Revision Excel Handlers ──────────────────────────────────────────
+  const handleDownloadTemplate = () => {
+    try {
+      downloadQuickRevisionTemplate();
+      showNotification("Excel template downloaded (quick-revision-template.xlsx)", "info");
+    } catch (err) {
+      console.error("Template download error:", err);
+      showNotification("Failed to download Excel template", "danger");
+    }
+  };
+
+  const handleExportExcel = () => {
+    try {
+      const col1 = formData.section_headers?.["quick-revision"]?.column1_label || "Concept";
+      const col2 = formData.section_headers?.["quick-revision"]?.column2_label || "Concise Explanation";
+      const rows = formData.quick_revision || [];
+      if (rows.length === 0) {
+        showNotification("No revision rows to export", "warning");
+        return;
+      }
+      exportQuickRevisionToExcel(rows, col1, col2, "quick-revision-table.xlsx");
+      showNotification(`Exported ${rows.length} rows to quick-revision-table.xlsx`, "success");
+    } catch (err) {
+      console.error("Export error:", err);
+      showNotification("Failed to export to Excel", "danger");
+    }
+  };
+
+  const handleImportButtonClick = () => {
+    if (revisionFileInputRef.current) {
+      revisionFileInputRef.current.value = "";
+      revisionFileInputRef.current.click();
+    }
+  };
+
+  const processExcelFile = async (file) => {
+    if (!file) return;
+    setIsExcelLoading(true);
+    setSelectedExcelFile(file);
+
+    try {
+      const result = await parseQuickRevisionExcel(file, formData.quick_revision || []);
+      setImportResult(result);
+      setIsImportModalOpen(true);
+    } catch (err) {
+      console.error("Excel parse error:", err);
+      showNotification(err.message || "Failed to parse Excel file", "danger");
+      setSelectedExcelFile(null);
+      setImportResult(null);
+    } finally {
+      setIsExcelLoading(false);
+    }
+  };
+
+  const handleFileSelected = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      processExcelFile(file);
+    }
+  };
+
+  const handleRevisionFileDrop = (e) => {
+    e.preventDefault();
+    setIsDragOverRevision(false);
+    const file = e.dataTransfer?.files?.[0];
+    if (file) {
+      processExcelFile(file);
+    }
+  };
+
+  const handleConfirmImport = async ({ mode, newRows, stats }) => {
+    setFormData((prev) => ({
+      ...prev,
+      quick_revision: newRows,
+    }));
+
+    try {
+      const payload = {
+        ...formData,
+        quick_revision: newRows,
+      };
+
+      if (currentData && (currentData.id || currentData.slug)) {
+        await updateDetails({
+          slugOrId: formData.slug || selectedSlug,
+          data: payload,
+        });
+      } else {
+        await createDetails(payload);
+      }
+
+      refetch();
+      refetchList();
+      setIsImportModalOpen(false);
+      setImportResult(null);
+      setSelectedExcelFile(null);
+
+      if (mode === "mode_b") {
+        showNotification(
+          `Quick Revision table replaced successfully with ${stats.replacedCount} rows.`,
+          "success"
+        );
+      } else {
+        showNotification(
+          `Quick Revision imported successfully: ${stats.addedCount} added, ${stats.updatedCount} updated (${stats.totalCount} total rows).`,
+          "success"
+        );
+      }
+    } catch (err) {
+      console.error("Import save error:", err);
+      showNotification(
+        `Failed to save imported rows: ${err.message || "Database update failed"}`,
+        "danger"
+      );
+    }
+  };
+
   // ── 7. Sidebar Card Handlers ───────────────────────────────────────────────
   const addSidebarCard = (typeKey) => {
     setFormData((prev) => {
@@ -1451,6 +1875,7 @@ export default function AdminInterviewDetails() {
       refetch();
     } catch (err) {
       console.error("Save error:", err);
+      showNotification(err?.message || "Failed to save interview details", "danger");
     }
   };
 
@@ -1459,9 +1884,7 @@ export default function AdminInterviewDetails() {
     const header = formData.section_headers?.[secKey] || DEFAULT_SECTION_HEADERS[secKey];
     return (
       <Paper variant="outlined" sx={{ p: 2, mb: 2.5, backgroundColor: "#f8fafc", borderRadius: 2 }}>
-        <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#074568", mb: 1 }}>
-          {defaultLabel} Heading & Subtitle
-        </Typography>
+
         <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 1.5 }}>
           <TextField
             size="small"
@@ -2037,10 +2460,19 @@ export default function AdminInterviewDetails() {
                                     />
                                   </Box>
 
+                                  {/* Custom Section Headings Settings Panel */}
+                                  <CustomSectionHeadingsPanel
+                                    item={item}
+                                    onUpdate={(field, val) => updateMustKnow(idx, field, val)}
+                                    onReset={() => resetMustKnowHeadings(idx)}
+                                    isExpanded={Boolean(openCustomHeadingsIds[item.id])}
+                                    onToggle={() => toggleCustomHeadings(item.id)}
+                                  />
+
                                   {/* Field 2: Simple Explanation */}
                                   <Box>
                                     <Typography variant="caption" sx={{ fontWeight: 700, color: "#1e293b", display: "block", mb: 0.5, fontSize: "0.8rem" }}>
-                                      A. Simple explanation
+                                      {getSectionHeadingLabel("A.", item.simple_explanation_label, "A. Simple explanation")}
                                     </Typography>
                                     <TextField
                                       fullWidth
@@ -2056,7 +2488,7 @@ export default function AdminInterviewDetails() {
                                   {/* Field 3: Technical Explanation (Rich-Text Editor) */}
                                   <Box>
                                     <Typography variant="caption" sx={{ fontWeight: 700, color: "#1e293b", display: "block", mb: 0.5, fontSize: "0.8rem" }}>
-                                      B. Technical explanation (Rich-Text: paragraphs, lists, bold, code)
+                                      {getSectionHeadingLabel("B.", item.technical_explanation_label ? `${item.technical_explanation_label} (Rich-Text: paragraphs, lists, bold, code)` : null, "B. Technical explanation (Rich-Text: paragraphs, lists, bold, code)")}
                                     </Typography>
                                     <Box sx={{ border: "1px solid #cbd5e1", borderRadius: 1.5, overflow: "hidden" }}>
                                       <Editor
@@ -2077,7 +2509,7 @@ export default function AdminInterviewDetails() {
                                   {/* Field 4: Interview-Ready Answer (Highlighted Mint Callout Box) */}
                                   <Box sx={{ backgroundColor: "#F0FDF4", p: 1.5, borderRadius: 2, border: "1px solid #BBF7D0", borderLeft: "4px solid #0D5C75" }}>
                                     <Typography variant="caption" sx={{ fontWeight: 700, color: "#065F46", display: "block", mb: 0.5, fontSize: "0.8rem" }}>
-                                      C. Interview-ready answer callout box
+                                      {getSectionHeadingLabel("C.", item.interview_ready_label ? `${item.interview_ready_label} callout box` : null, "C. Interview-ready answer callout box")}
                                     </Typography>
                                     <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                                       <TextField
@@ -2110,7 +2542,7 @@ export default function AdminInterviewDetails() {
                                   {/* Field 5: Example */}
                                   <Box>
                                     <Typography variant="caption" sx={{ fontWeight: 700, color: "#1e293b", display: "block", mb: 0.5, fontSize: "0.8rem" }}>
-                                      D. Example
+                                      {getSectionHeadingLabel("D.", item.example_label, "D. Example")}
                                     </Typography>
                                     <TextField
                                       fullWidth
@@ -2136,7 +2568,7 @@ export default function AdminInterviewDetails() {
                                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1.5 }}>
                                       <Box>
                                         <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#1e293b" }}>
-                                          E. Interviewer may ask (Suggested Follow-up Questions)
+                                          {getSectionHeadingLabel("E.", item.follow_up_label ? `${item.follow_up_label} (Suggested Follow-up Questions)` : null, "E. Interviewer may ask (Suggested Follow-up Questions)")}
                                         </Typography>
                                         <Typography variant="caption" sx={{ color: "#64748b" }}>
                                           Outlined question pills with supporting hints (e.g. "Try answering this aloud first...").
@@ -2265,7 +2697,7 @@ export default function AdminInterviewDetails() {
                   >
                     <Box>
                       <Typography variant="h6" sx={{ fontWeight: 700, color: "#074568" }}>
-                        Section 02 · Questions & Answers ({formData.qa_questions?.length || 0})
+                        Questions & Answers ({formData.qa_questions?.length || 0})
                       </Typography>
                       <Typography variant="caption" sx={{ color: "#64748b" }}>
                         Filterable questions by difficulty (Beginner, Intermediate, Advanced) with accordion cards, rich explanations, interview-ready answers, and follow-up questions.
@@ -2334,8 +2766,8 @@ export default function AdminInterviewDetails() {
                           lvl === "all"
                             ? (formData.qa_questions || []).length
                             : (formData.qa_questions || []).filter(
-                                (q) => (q.difficulty || "beginner").toLowerCase() === lvl
-                              ).length;
+                              (q) => (q.difficulty || "beginner").toLowerCase() === lvl
+                            ).length;
                         return (
                           <Chip
                             key={lvl}
@@ -2468,14 +2900,14 @@ export default function AdminInterviewDetails() {
                                             diff === "advanced"
                                               ? "#fee2e2"
                                               : diff === "intermediate"
-                                              ? "#fef3c7"
-                                              : "#e0f2fe",
+                                                ? "#fef3c7"
+                                                : "#e0f2fe",
                                           color:
                                             diff === "advanced"
                                               ? "#b91c1c"
                                               : diff === "intermediate"
-                                              ? "#b45309"
-                                              : "#0369a1",
+                                                ? "#b45309"
+                                                : "#0369a1",
                                         }}
                                       />
                                       <Typography
@@ -2586,10 +3018,19 @@ export default function AdminInterviewDetails() {
                                         />
                                       </Box>
 
+                                      {/* Custom Section Headings Settings Panel */}
+                                      <CustomSectionHeadingsPanel
+                                        item={item}
+                                        onUpdate={(field, val) => updateQA(originalIdx, field, val)}
+                                        onReset={() => resetQAHeadings(originalIdx)}
+                                        isExpanded={Boolean(openCustomHeadingsIds[item.id])}
+                                        onToggle={() => toggleCustomHeadings(item.id)}
+                                      />
+
                                       {/* Field 2: Simple Explanation */}
                                       <Box>
                                         <Typography variant="caption" sx={{ fontWeight: 700, color: "#1e293b", display: "block", mb: 0.5, fontSize: "0.8rem" }}>
-                                          A. Simple explanation
+                                          {getSectionHeadingLabel("A.", item.simple_explanation_label, "A. Simple explanation")}
                                         </Typography>
                                         <TextField
                                           fullWidth
@@ -2605,7 +3046,7 @@ export default function AdminInterviewDetails() {
                                       {/* Field 3: Technical Explanation (Rich-Text Editor) */}
                                       <Box>
                                         <Typography variant="caption" sx={{ fontWeight: 700, color: "#1e293b", display: "block", mb: 0.5, fontSize: "0.8rem" }}>
-                                          B. Technical explanation (Rich-Text: paragraphs, lists, bold, math/code)
+                                          {getSectionHeadingLabel("B.", item.technical_explanation_label ? `${item.technical_explanation_label} (Rich-Text: paragraphs, lists, bold, math/code)` : null, "B. Technical explanation (Rich-Text: paragraphs, lists, bold, math/code)")}
                                         </Typography>
                                         <Box sx={{ border: "1px solid #cbd5e1", borderRadius: 1.5, overflow: "hidden" }}>
                                           <Editor
@@ -2625,8 +3066,8 @@ export default function AdminInterviewDetails() {
 
                                       {/* Field 4: Interview-Ready Answer (Highlighted Mint Callout Box) */}
                                       <Box sx={{ backgroundColor: "#F0FDF4", p: 1.5, borderRadius: 2, border: "1px solid #BBF7D0", borderLeft: "4px solid #0D5C75" }}>
-                                        <Typography variant="caption" sx={{ fontWeight: 700, color: "#065F46", display: "block", mb: 0.5, fontSize: "0.8rem" }}>
-                                          C. Interview-ready answer callout box
+                                        <Typography variant="caption" sx={{ fontWeight: 700, color: "#065F46", display: "block", mb: 0.5, fontSize: "0.8rem", }}>
+                                          {getSectionHeadingLabel("C.", item.interview_ready_label ? `${item.interview_ready_label} callout box` : null, "C. Interview-ready answer callout box")}
                                         </Typography>
                                         <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                                           <TextField
@@ -2659,7 +3100,7 @@ export default function AdminInterviewDetails() {
                                       {/* Field 5: Example */}
                                       <Box>
                                         <Typography variant="caption" sx={{ fontWeight: 700, color: "#1e293b", display: "block", mb: 0.5, fontSize: "0.8rem" }}>
-                                          D. Example
+                                          {getSectionHeadingLabel("D.", item.example_label, "D. Example")}
                                         </Typography>
                                         <TextField
                                           fullWidth
@@ -2685,7 +3126,7 @@ export default function AdminInterviewDetails() {
                                         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1.5 }}>
                                           <Box>
                                             <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#1e293b" }}>
-                                              E. Interviewer may ask (Suggested Follow-up Questions)
+                                              {getSectionHeadingLabel("E.", item.follow_up_label ? `${item.follow_up_label} (Suggested Follow-up Questions)` : null, "E. Interviewer may ask (Suggested Follow-up Questions)")}
                                             </Typography>
                                             <Typography variant="caption" sx={{ color: "#64748b" }}>
                                               Outlined question pills with supporting hints (e.g. "Try answering this aloud first...").
@@ -2810,7 +3251,7 @@ export default function AdminInterviewDetails() {
                   <Box>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                       <Typography variant="h6" sx={{ fontWeight: 700, color: "#074568" }}>
-                        Section 03 · Scenario-Based Interview Questions
+                        Scenario-Based Interview Questions
                       </Typography>
                       <Chip
                         label={`${formData.scenario_questions?.length || 0} scenarios`}
@@ -3024,10 +3465,20 @@ export default function AdminInterviewDetails() {
                                       />
                                     </Box>
 
+                                    {/* Custom Section Headings Settings Panel */}
+                                    <CustomSectionHeadingsPanel
+                                      item={item}
+                                      fields={SCENARIO_HEADINGS_CONFIG}
+                                      onUpdate={(field, val) => updateScenario(idx, field, val)}
+                                      onReset={() => resetScenarioHeadings(idx)}
+                                      isExpanded={Boolean(openCustomHeadingsIds[item.id])}
+                                      onToggle={() => toggleCustomHeadings(item.id)}
+                                    />
+
                                     {/* Field 2: What the interviewer is testing */}
                                     <Box>
                                       <Typography variant="caption" sx={{ fontWeight: 700, color: "#1e293b", display: "block", mb: 0.5, fontSize: "0.8rem" }}>
-                                        A. What the interviewer is testing
+                                        {getSectionHeadingLabel("A.", item.interviewer_testing_label, "A. What the interviewer is testing")}
                                       </Typography>
                                       <TextField
                                         fullWidth
@@ -3043,7 +3494,7 @@ export default function AdminInterviewDetails() {
                                     {/* Field 3: How to approach it (Rich-Text Editor) */}
                                     <Box>
                                       <Typography variant="caption" sx={{ fontWeight: 700, color: "#1e293b", display: "block", mb: 0.5, fontSize: "0.8rem" }}>
-                                        B. How to approach it (Rich-Text: investigation steps, paragraphs, lists)
+                                        {getSectionHeadingLabel("B.", item.approach_label ? `${item.approach_label} (Rich-Text: investigation steps, paragraphs, lists)` : null, "B. How to approach it (Rich-Text: investigation steps, paragraphs, lists)")}
                                       </Typography>
                                       <Box sx={{ border: "1px solid #cbd5e1", borderRadius: 1.5, overflow: "hidden" }}>
                                         <Editor
@@ -3064,13 +3515,13 @@ export default function AdminInterviewDetails() {
                                     {/* Field 4 & 5: Expected Answer (Mint Highlighted Callout Box) */}
                                     <Box sx={{ backgroundColor: "#DEF7EC", p: 1.5, borderRadius: 2, border: "1px solid #BBF7D0", borderLeft: "4px solid #0D5C75" }}>
                                       <Typography variant="caption" sx={{ fontWeight: 700, color: "#065F46", display: "block", mb: 0.5, fontSize: "0.8rem" }}>
-                                        C. Expected answer callout box (Mint-green background, teal border)
+                                        {getSectionHeadingLabel("C.", item.expected_answer_heading_label ? `${item.expected_answer_heading_label} (Mint-green background, teal border)` : null, "C. Expected answer callout box (Mint-green background, teal border)")}
                                       </Typography>
                                       <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                                         <TextField
                                           fullWidth
                                           size="small"
-                                          label="Expected Answer Label"
+                                          label="Label"
                                           placeholder="Expected answer"
                                           value={item.expected_answer_label !== undefined ? item.expected_answer_label : "Expected answer"}
                                           onChange={(e) => updateScenario(idx, "expected_answer_label", e.target.value)}
@@ -3081,7 +3532,7 @@ export default function AdminInterviewDetails() {
                                           multiline
                                           rows={3}
                                           size="small"
-                                          label="Expected Answer Text (Displayed in italics inside mint box)"
+                                          label="Text (Displayed in italics inside mint box)"
                                           placeholder='e.g. &quot;Accuracy can hide poor performance when classes are imbalanced. I would check the class distribution, review precision, recall and PR-AUC for the minority class, align the threshold with business cost, and then improve with class weights, better features or more minority data.&quot;'
                                           value={item.expected_answer || item.recommended_solution || item.expected_outcome || ""}
                                           onChange={(e) => updateScenario(idx, "expected_answer", e.target.value)}
@@ -3107,7 +3558,7 @@ export default function AdminInterviewDetails() {
                                       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1.5 }}>
                                         <Box>
                                           <Typography variant="caption" sx={{ fontWeight: 700, color: "#1e293b", display: "block", fontSize: "0.8rem" }}>
-                                            D. Possible follow-ups ({item.follow_up_questions?.length || 0})
+                                            {getSectionHeadingLabel("D.", item.follow_up_label ? `${item.follow_up_label} (${item.follow_up_questions?.length || 0})` : null, `D. Possible follow-ups (${item.follow_up_questions?.length || 0})`)}
                                           </Typography>
                                           <Typography variant="caption" sx={{ color: "#64748b" }}>
                                             Bulleted follow-up questions interviewer might ask based on this scenario.
@@ -3216,7 +3667,7 @@ export default function AdminInterviewDetails() {
                   <Box>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                       <Typography variant="h6" sx={{ fontWeight: 700, color: "#074568" }}>
-                        Section 04 · Practical & Coding Questions
+                        Practical & Coding Questions
                       </Typography>
                       <Chip
                         label={`${formData.coding_questions?.length || 0} questions`}
@@ -3371,14 +3822,14 @@ export default function AdminInterviewDetails() {
                                             item.difficulty === "Easy"
                                               ? "#DEF7EC"
                                               : item.difficulty === "Medium"
-                                              ? "#FEF3C7"
-                                              : "#FEE2E2",
+                                                ? "#FEF3C7"
+                                                : "#FEE2E2",
                                           color:
                                             item.difficulty === "Easy"
                                               ? "#03543F"
                                               : item.difficulty === "Medium"
-                                              ? "#92400E"
-                                              : "#991B1B",
+                                                ? "#92400E"
+                                                : "#991B1B",
                                         }}
                                       />
                                     )}
@@ -3498,10 +3949,20 @@ export default function AdminInterviewDetails() {
                                       />
                                     </Box>
 
+                                    {/* Custom Section Headings Settings Panel */}
+                                    <CustomSectionHeadingsPanel
+                                      item={item}
+                                      fields={CODING_HEADINGS_CONFIG}
+                                      onUpdate={(field, val) => updateCoding(idx, field, val)}
+                                      onReset={() => resetCodingHeadings(idx)}
+                                      isExpanded={Boolean(openCustomHeadingsIds[item.id])}
+                                      onToggle={() => toggleCustomHeadings(item.id)}
+                                    />
+
                                     {/* Field 1: Expected Approach */}
                                     <Box>
                                       <Typography variant="caption" sx={{ fontWeight: 700, color: "#1e293b", display: "block", mb: 0.5, fontSize: "0.8rem" }}>
-                                        A. Expected approach (Short explanation of algorithm or strategy)
+                                        {getSectionHeadingLabel("A.", item.approach_label ? `${item.approach_label} (Short explanation of algorithm or strategy)` : null, "A. Expected approach (Short explanation of algorithm or strategy)")}
                                       </Typography>
                                       <TextField
                                         fullWidth
@@ -3519,49 +3980,49 @@ export default function AdminInterviewDetails() {
                                     <Box>
                                       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 0.5 }}>
                                         <Typography variant="caption" sx={{ fontWeight: 700, color: "#1e293b", fontSize: "0.8rem" }}>
-                                          B. Solution code (Syntax-highlighted monospace code block, preserves indentation)
+                                          {getSectionHeadingLabel("B.", item.solution_code_label ? `${item.solution_code_label} (Syntax-highlighted monospace code block, preserves indentation)` : null, "B. Solution code (Syntax-highlighted monospace code block, preserves indentation)")}
                                         </Typography>
                                         <Chip
                                           label={item.language || "python"}
                                           size="small"
-                                          sx={{ height: 20, fontSize: "0.7rem", backgroundColor: "#075174", color: "#fff", fontWeight: 700 }}
+                                          sx={{ height: 20, fontSize: "0.7rem", backgroundColor: "#074568", color: "#fff", fontWeight: 700 }}
                                         />
                                       </Box>
-                                      <TextField
-                                        fullWidth
-                                        multiline
-                                        rows={9}
-                                        placeholder={`def find_duplicates(nums):\n    seen, dups = set(), set()\n    for x in nums:\n        if x in seen:\n            dups.add(x)\n        seen.add(x)\n    return list(dups)`}
-                                        value={item.code || item.solution || ""}
-                                        onChange={(e) => updateCoding(idx, "code", e.target.value)}
+                                      <Box
                                         sx={{
-                                          backgroundColor: "#075174",
-                                          borderRadius: 2,
-                                          p: 1,
-                                          "& .MuiInputBase-root": {
-                                            backgroundColor: "transparent",
-                                            color: "#e2e8f0",
-                                            fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
-                                            fontSize: "0.875rem",
-                                            lineHeight: 1.6,
-                                          },
-                                          "& .MuiOutlinedInput-notchedOutline": {
-                                            borderColor: "rgba(255, 255, 255, 0.2)",
-                                          },
-                                          "&:hover .MuiOutlinedInput-notchedOutline": {
-                                            borderColor: "#38bdf8",
-                                          },
-                                          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                                            borderColor: "#38bdf8",
-                                          },
+                                          border: "1px solid #0a5682",
+                                          borderRadius: 1.5,
+                                          overflow: "hidden",
+                                          boxShadow: "0 2px 8px rgba(7, 69, 104, 0.15)",
                                         }}
-                                      />
+                                      >
+                                        <MonacoEditor
+                                          height="260px"
+                                          language={mapToMonacoLang(item.language)}
+                                          theme="prepHQ-dark"
+                                          beforeMount={handleMonacoWillMount}
+                                          value={item.code || item.solution || ""}
+                                          onChange={(val) => updateCoding(idx, "code", val || "")}
+                                          options={{
+                                            fontSize: 13,
+                                            minimap: { enabled: false },
+                                            scrollBeyondLastLine: false,
+                                            automaticLayout: true,
+                                            wordWrap: "on",
+                                            lineNumbers: "on",
+                                            tabSize: 4,
+                                            fontFamily: "'JetBrains Mono', Consolas, 'Fira Code', 'Courier New', monospace",
+                                            padding: { top: 12, bottom: 12 },
+                                            suggestOnTriggerCharacters: true,
+                                          }}
+                                        />
+                                      </Box>
                                     </Box>
 
                                     {/* Field 3: Explanation */}
                                     <Box>
                                       <Typography variant="caption" sx={{ fontWeight: 700, color: "#1e293b", display: "block", mb: 0.5, fontSize: "0.8rem" }}>
-                                        C. Explanation (Detailed breakdown of how the solution works)
+                                        {getSectionHeadingLabel("C.", item.explanation_label ? `${item.explanation_label} (Detailed breakdown of how the solution works)` : null, "C. Explanation (Detailed breakdown of how the solution works)")}
                                       </Typography>
                                       <TextField
                                         fullWidth
@@ -3608,7 +4069,7 @@ export default function AdminInterviewDetails() {
                                       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1.5 }}>
                                         <Box>
                                           <Typography variant="caption" sx={{ fontWeight: 700, color: "#1e293b", display: "block", fontSize: "0.8rem" }}>
-                                            D. Interviewer follow-up questions ({item.follow_up_questions?.length || 0})
+                                            {getSectionHeadingLabel("D.", item.follow_up_label ? `${item.follow_up_label} (${item.follow_up_questions?.length || 0})` : null, `D. Interviewer follow-up questions (${item.follow_up_questions?.length || 0})`)}
                                           </Typography>
                                           <Typography variant="caption" sx={{ color: "#64748b" }}>
                                             Follow-up questions or alternative constraints an interviewer might ask.
@@ -3717,7 +4178,7 @@ export default function AdminInterviewDetails() {
                   <Box>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                       <Typography variant="h6" sx={{ fontWeight: 700, color: "#074568" }}>
-                        Section 05 · Common Interview Mistakes
+                        Common Interview Mistakes
                       </Typography>
                       <Chip
                         label={`${formData.common_mistakes?.length || 0} mistakes`}
@@ -3931,69 +4392,19 @@ export default function AdminInterviewDetails() {
                                       />
                                     </Box>
 
-                                    {/* Field 1: The problem */}
-                                    <Box>
-                                      <Typography variant="caption" sx={{ fontWeight: 700, color: "#1e293b", display: "block", mb: 0.5, fontSize: "0.8rem" }}>
-                                        A. The problem (Concise explanation of the mistake)
-                                      </Typography>
-                                      <TextField
-                                        fullWidth
-                                        multiline
-                                        rows={2}
-                                        size="small"
-                                        placeholder="Reciting textbook lines word for word."
-                                        value={item.problem || item.mistake || ""}
-                                        onChange={(e) => updateMistake(idx, "problem", e.target.value)}
-                                        sx={{ backgroundColor: "#f8fafc", borderRadius: 1.5 }}
-                                      />
-                                    </Box>
-
-                                    {/* Field 2: Why it hurts */}
-                                    <Box>
-                                      <Typography variant="caption" sx={{ fontWeight: 700, color: "#1e293b", display: "block", mb: 0.5, fontSize: "0.8rem" }}>
-                                        B. Why it hurts (How the mistake affects interview performance)
-                                      </Typography>
-                                      <TextField
-                                        fullWidth
-                                        multiline
-                                        rows={2}
-                                        size="small"
-                                        placeholder="Interviewers can tell, and follow-up questions expose shallow understanding."
-                                        value={item.why_it_hurts || item.why_it_happens || ""}
-                                        onChange={(e) => updateMistake(idx, "why_it_hurts", e.target.value)}
-                                        sx={{ backgroundColor: "#f8fafc", borderRadius: 1.5 }}
-                                      />
-                                    </Box>
-
-                                    {/* Field 3: Better approach */}
-                                    <Box>
-                                      <Typography variant="caption" sx={{ fontWeight: 700, color: "#1e293b", display: "block", mb: 0.5, fontSize: "0.8rem" }}>
-                                        C. Better approach (How the candidate can improve)
-                                      </Typography>
-                                      <TextField
-                                        fullWidth
-                                        multiline
-                                        rows={2}
-                                        size="small"
-                                        placeholder="Explain in your own words, then connect it to a problem you have worked on."
-                                        value={item.better_approach || item.how_to_avoid || ""}
-                                        onChange={(e) => updateMistake(idx, "better_approach", e.target.value)}
-                                        sx={{ backgroundColor: "#f8fafc", borderRadius: 1.5 }}
-                                      />
-                                    </Box>
-
-                                    {/* Field 4: Recommendation tip (optional) */}
-                                    <Box>
-                                      <Typography variant="caption" sx={{ fontWeight: 600, color: "#64748b", display: "block", mb: 0.5, fontSize: "0.75rem" }}>
-                                        D. Optional Recommendation / Tip (Summary highlight)
-                                      </Typography>
-                                      <TextField
-                                        fullWidth
-                                        size="small"
-                                        placeholder="e.g. Always anchor your answers with a concrete project story or metric."
-                                        value={item.recommendation || ""}
-                                        onChange={(e) => updateMistake(idx, "recommendation", e.target.value)}
-                                        sx={{ backgroundColor: "#f0fdf4", borderRadius: 1.5 }}
+                                    {/* Mistake Content (Single Rich-Text Editor) */}
+                                    <Box sx={{ border: "1px solid #cbd5e1", borderRadius: 1.5, overflow: "hidden" }}>
+                                      <Editor
+                                        apiKey={TINYMCE_API_KEY}
+                                        value={item.content || item.problem || ""}
+                                        init={{
+                                          height: 240,
+                                          menubar: false,
+                                          plugins: ["lists", "link", "code"],
+                                          toolbar: "undo redo | bold italic underline | bullist numlist | link code",
+                                          content_style: "body { font-family: Inter, sans-serif; font-size: 14px; }",
+                                        }}
+                                        onEditorChange={(content) => updateMistake(idx, "content", content)}
                                       />
                                     </Box>
                                   </Box>
@@ -4026,7 +4437,7 @@ export default function AdminInterviewDetails() {
                   <Box>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                       <Typography variant="h6" sx={{ fontWeight: 700, color: "#074568" }}>
-                        Section 06 · Quick Revision Table
+                        Quick Revision Table
                       </Typography>
                       <Chip
                         label={`${formData.quick_revision?.length || 0} rows`}
@@ -4039,27 +4450,189 @@ export default function AdminInterviewDetails() {
                     </Typography>
                   </Box>
 
-                  <Button
-                    variant="contained"
-                    size="small"
-                    startIcon={<AddIcon />}
-                    onClick={addRevisionRow}
+                  {/* Hidden Excel File Input */}
+                  <input
+                    type="file"
+                    ref={revisionFileInputRef}
+                    accept=".xlsx, .xls"
+                    style={{ display: "none" }}
+                    onChange={handleFileSelected}
+                  />
+
+                  {/* Excel Controls + Add Row Button Group */}
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      startIcon={<FileDownloadIcon fontSize="small" />}
+                      onClick={handleDownloadTemplate}
+                      sx={{
+                        borderColor: "#075174",
+                        color: "#075174",
+                        "&:hover": { borderColor: "#053d57", backgroundColor: "rgba(7, 81, 116, 0.04)" },
+                        textTransform: "none",
+                        fontWeight: 600,
+                        fontSize: "0.8125rem",
+                      }}
+                    >
+                      Download Excel Template
+                    </Button>
+
+                    <Button
+                      variant="contained"
+                      size="small"
+                      startIcon={<TableChartIcon fontSize="small" />}
+                      onClick={handleExportExcel}
+                      disabled={!formData.quick_revision || formData.quick_revision.length === 0}
+                      sx={{
+                        backgroundColor: "#075174",
+                        "&:hover": { backgroundColor: "#053d57" },
+                        textTransform: "none",
+                        fontWeight: 600,
+                        fontSize: "0.8125rem",
+                      }}
+                    >
+                      Export to Excel
+                    </Button>
+
+                    <Button
+                      variant="contained"
+                      size="small"
+                      startIcon={isExcelLoading ? <CircularProgress size={16} color="inherit" /> : <FileUploadIcon fontSize="small" />}
+                      onClick={handleImportButtonClick}
+                      disabled={isExcelLoading}
+                      sx={{
+                        backgroundColor: "#37AB79",
+                        "&:hover": { backgroundColor: "#2d8a62" },
+                        textTransform: "none",
+                        fontWeight: 600,
+                        fontSize: "0.8125rem",
+                      }}
+                    >
+                      {isExcelLoading ? "Parsing Excel..." : "Import Excel"}
+                    </Button>
+
+                    <Button
+                      variant="contained"
+                      size="small"
+                      startIcon={<AddIcon />}
+                      onClick={addRevisionRow}
+                      sx={{
+                        backgroundColor: "#075174",
+                        "&:hover": { backgroundColor: "#053d57" },
+                        textTransform: "none",
+                        fontWeight: 600,
+                        fontSize: "0.8125rem",
+                      }}
+                    >
+                      + Add Revision Row
+                    </Button>
+                  </Box>
+                </Box>
+
+                {/* Selected File Card / Drag-and-Drop Area */}
+                {selectedExcelFile ? (
+                  <Paper
+                    variant="outlined"
                     sx={{
-                      backgroundColor: "#075174",
-                      "&:hover": { backgroundColor: "#053d57" },
-                      textTransform: "none",
-                      fontWeight: 600,
+                      p: 1.5,
+                      mb: 2,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      backgroundColor: "#f0fdf4",
+                      borderColor: "#86efac",
+                      borderRadius: 2,
+                      flexWrap: "wrap",
+                      gap: 1,
                     }}
                   >
-                    + Add Revision Row
-                  </Button>
-                </Box>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <FileUploadIcon sx={{ color: "#16a34a" }} />
+                      <Box>
+                        <Typography variant="body2" sx={{ fontWeight: 700, color: "#166534" }}>
+                          Selected File: {selectedExcelFile.name} ({(selectedExcelFile.size / 1024).toFixed(1)} KB)
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: "#15803d" }}>
+                          File parsed successfully — click below to review preview and confirm import
+                        </Typography>
+                      </Box>
+                    </Box>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <Button
+                        size="small"
+                        variant="contained"
+                        onClick={() => setIsImportModalOpen(true)}
+                        sx={{
+                          backgroundColor: "#37AB79",
+                          "&:hover": { backgroundColor: "#2d8a62" },
+                          textTransform: "none",
+                          fontWeight: 700,
+                        }}
+                      >
+                        Preview & Confirm Import
+                      </Button>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={handleImportButtonClick}
+                        sx={{ textTransform: "none", color: "#075174", borderColor: "#cbd5e1" }}
+                      >
+                        Change File
+                      </Button>
+                      <Button
+                        size="small"
+                        color="inherit"
+                        onClick={() => {
+                          setSelectedExcelFile(null);
+                          setImportResult(null);
+                        }}
+                        sx={{ textTransform: "none", color: "#64748b" }}
+                      >
+                        Clear
+                      </Button>
+                    </Box>
+                  </Paper>
+                ) : (
+                  <Box
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setIsDragOverRevision(true);
+                    }}
+                    onDragLeave={() => setIsDragOverRevision(false)}
+                    onDrop={handleRevisionFileDrop}
+                    onClick={handleImportButtonClick}
+                    sx={{
+                      p: 1.5,
+                      mb: 2,
+                      borderRadius: 2,
+                      border: "1.5px dashed",
+                      borderColor: isDragOverRevision ? "#37AB79" : "#cbd5e1",
+                      backgroundColor: isDragOverRevision ? "#f0fdf4" : "#fafafa",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 1.5,
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                      "&:hover": {
+                        borderColor: "#37AB79",
+                        backgroundColor: "#f0fdf4",
+                      },
+                    }}
+                  >
+                    <CloudUploadIcon sx={{ color: isDragOverRevision ? "#37AB79" : "#94a3b8", fontSize: 24 }} />
+                    <Typography variant="body2" sx={{ color: "#475569", fontWeight: 500, fontSize: "0.85rem" }}>
+                      Drop an Excel file (<strong>.xlsx</strong> or <strong>.xls</strong>) here, or click to browse and bulk import / update concepts
+                    </Typography>
+                  </Box>
+                )}
 
                 {/* Section Header & Column Labels Editor */}
                 <Paper variant="outlined" sx={{ p: 2, mb: 2.5, backgroundColor: "#f8fafc", borderRadius: 2 }}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#074568", mb: 1 }}>
+                  {/* <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#074568", mb: 1 }}>
                     Quick Revision Section Header & Table Columns
-                  </Typography>
+                  </Typography> */}
                   <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 1.5, mb: 1.5 }}>
                     <TextField
                       size="small"
@@ -4141,8 +4714,8 @@ export default function AdminInterviewDetails() {
                                   backgroundColor: isDragging
                                     ? "#f0fdf4"
                                     : idx % 2 === 0
-                                    ? "#ffffff"
-                                    : "#f8fafc",
+                                      ? "#ffffff"
+                                      : "#f8fafc",
                                   gap: 1,
                                 }}
                               >
@@ -4189,6 +4762,17 @@ export default function AdminInterviewDetails() {
                     </SortableContainer>
                   )}
                 </Paper>
+
+                {/* Quick Revision Excel Import & Preview Modal */}
+                <QuickRevisionExcelModal
+                  open={isImportModalOpen}
+                  onClose={() => setIsImportModalOpen(false)}
+                  importResult={importResult}
+                  existingRows={formData.quick_revision || []}
+                  onConfirmImport={handleConfirmImport}
+                  isSaving={isSaving}
+                  onChangeFile={handleImportButtonClick}
+                />
               </Box>
             )}
 

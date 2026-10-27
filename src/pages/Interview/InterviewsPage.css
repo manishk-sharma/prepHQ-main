@@ -117,8 +117,8 @@
   padding: 8px 14px;
   border: 1.5px solid #52d39a;
   border-radius: 8px;
-  background-color: #ffffff;
-  color: #075174;
+  background-color: #E6FFF4 !important;
+  color: #000000 !important;
   font-size: 12.5px;
   font-weight: 600;
   cursor: pointer;
@@ -453,6 +453,7 @@
 .interview-code-container {
   border-radius: 20px;
   background: #074568;
+  border-left: 5px solid #57CC99;
   padding: 14px 16px;
   margin: 14px 0;
   position: relative;
@@ -498,14 +499,65 @@
 .interview-code-pre {
   margin: 0;
   overflow-x: auto;
-  font-family: "JetBrains Mono", Consolas, "Courier New", monospace;
-  font-size: 12px;
-  line-height: 1.55;
+  font-family: "JetBrains Mono", Consolas, "Fira Code", monospace;
+  font-size: 13px;
+  line-height: 1.6;
   color: #f8fafc;
+  background-color: #074568;
 }
 
 .interview-code-pre code {
-  font-family: "Merriweather Sans";
+  font-family: "JetBrains Mono", Consolas, "Fira Code", "Courier New", monospace;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* ── Prism Syntax Highlighting Colorful Tokens ── */
+.interview-code-pre .token.keyword {
+  color: #38bdf8;
+  font-weight: 700;
+}
+
+.interview-code-pre .token.function {
+  color: #fde047;
+}
+
+.interview-code-pre .token.string {
+  color: #86efac;
+}
+
+.interview-code-pre .token.comment {
+  color: #6ee7b7;
+  font-style: italic;
+}
+
+.interview-code-pre .token.number {
+  color: #f472b6;
+}
+
+.interview-code-pre .token.operator {
+  color: #c084fc;
+}
+
+.interview-code-pre .token.punctuation {
+  color: #cbd5e1;
+}
+
+.interview-code-pre .token.boolean {
+  color: #fb923c;
+  font-weight: 600;
+}
+
+.interview-code-pre .token.builtin {
+  color: #67e8f9;
+}
+
+.interview-code-pre .token.class-name {
+  color: #fbbf24;
+}
+
+.interview-code-pre .token.property {
+  color: #a5b4fc;
 }
 
 .complexity-meta-bar {
@@ -539,7 +591,7 @@
 }
 
 .revision-table thead {
-  background-color: #075174;
+  background-color: #074568;
   color: #ffffff;
 }
 
@@ -852,12 +904,12 @@
 }
 
 .must-know-num-badge.badge-closed {
-  background-color: #E2E8F0;
-  color: #334155;
+  background-color: #D9D9D9;
+  color: #000000;
 }
 
 .must-know-num-badge.badge-open {
-  background-color: #0B3553;
+  background-color: #074568;
   color: #FFFFFF;
 }
 
@@ -887,7 +939,7 @@
 
 .must-know-card-body {
   padding: 20px 24px 24px 36px;
-  background-color: #F8F9FA;
+  background-color: #F6F6F6;
 }
 
 .must-know-field-block {
@@ -902,7 +954,7 @@
   font-size: 0.86rem;
   font-weight: 700;
   color: #374151;
-  margin: 0 0 5px 0;
+  margin: 0 0 8px 0;
   letter-spacing: -0.01em;
 }
 
@@ -920,10 +972,22 @@
   margin-bottom: 0;
 }
 
+.must-know-field-text h4 {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #374151;
+  margin: 14px 0 6px 0;
+  letter-spacing: -0.01em;
+}
+
+.must-know-field-text h4:first-child {
+  margin-top: 0;
+}
+
 /* ── Highlighted "What you can say in an interview" box ── */
 .must-know-interview-callout {
-  background-color: #DEF7EC;
-  border-left: 4px solid #0D5C75;
+  background-color: #E6FFF4;
+  border-left: 5px solid #0D5C75;
   border-radius: 12px;
   padding: 15px 18px;
   margin: 18px 0;
@@ -1033,16 +1097,16 @@
 
 /* ── Scenario-Based Cards & Elements ── */
 .scenario-card {
-  border-left: 4px solid #0D5C75 !important;
+  border-left: 5px solid #0D5C75 !important;
 }
 
 .scenario-followup-bullets {
-  margin: 6px 0 0 0;
+  margin: 10px 0 0 0;
   padding-left: 20px;
   list-style-type: disc;
   color: #374151;
   font-size: 0.90rem;
-  line-height: 1.6;
+  line-height: 10px;
 }
 
 .scenario-followup-bullets li {
