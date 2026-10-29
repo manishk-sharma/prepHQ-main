@@ -44,17 +44,13 @@ import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import UnfoldMoreIcon from "@mui/icons-material/UnfoldMore";
 import UnfoldLessIcon from "@mui/icons-material/UnfoldLess";
 import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
-import FileDownloadIcon from "@mui/icons-material/FileDownload";
-import FileUploadIcon from "@mui/icons-material/FileUpload";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-
-import {
-  downloadQuickRevisionTemplate,
-  exportQuickRevisionToExcel,
-  parseQuickRevisionExcel,
-} from "../../../../utils/quickRevisionExcel";
-import QuickRevisionExcelModal from "./components/QuickRevisionExcelModal";
 import CustomSectionHeadingsPanel from "./components/CustomSectionHeadingsPanel";
+import {
+  rowsToTableHtml,
+  tableHtmlToRows,
+  DEFAULT_COL1,
+  DEFAULT_COL2,
+} from "../../../../utils/quickRevisionConverter";
 
 import {
   useInterviewDetails,
@@ -290,13 +286,8 @@ export default function AdminInterviewDetails() {
     setOpenCustomHeadingsIds((prev) => ({ ...prev, [qId]: !prev[qId] }));
   };
 
-  // Quick Revision Excel Import State
-  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-  const [importResult, setImportResult] = useState(null);
-  const [selectedExcelFile, setSelectedExcelFile] = useState(null);
-  const [isExcelLoading, setIsExcelLoading] = useState(false);
-  const [isDragOverRevision, setIsDragOverRevision] = useState(false);
-  const revisionFileInputRef = React.useRef(null);
+  const [revisionTableHtml, setRevisionTableHtml] = useState("");
+
 
   const { data: interviewList = [], refetch: refetchList } = useInterviewDetailsList();
   const { data: currentData, isLoading, refetch } = useInterviewDetails(selectedSlug);
@@ -508,6 +499,10 @@ export default function AdminInterviewDetails() {
         explanation: r.explanation || r.definition || r.summary || "",
       }));
 
+      const col1 = currentData.section_headers?.["quick-revision"]?.column1_label || DEFAULT_COL1;
+      const col2 = currentData.section_headers?.["quick-revision"]?.column2_label || DEFAULT_COL2;
+      setRevisionTableHtml(rowsToTableHtml(sanitizedQuickRevision, col1, col2));
+
       setFormData({
         title: currentData.title || "",
         slug: currentData.slug || selectedSlug,
@@ -574,6 +569,7 @@ export default function AdminInterviewDetails() {
           mini_guides: [],
         },
       });
+      setRevisionTableHtml(rowsToTableHtml([], DEFAULT_COL1, DEFAULT_COL2));
       setSelectedSlug(uniqueSlug);
       navigate(`/admin/interviews/details/${uniqueSlug}`);
       return;
@@ -1633,170 +1629,57 @@ export default function AdminInterviewDetails() {
     });
   };
 
-  // ── 6. Quick Revision Handlers ─────────────────────────────────────────────
-  const addRevisionRow = () => {
-    const newId = `rev-${Date.now()}`;
-    setFormData((prev) => {
-      const list = [...(prev.quick_revision || [])];
-      list.push({
-        id: newId,
-        concept: "",
-        explanation: "",
+  // ── 6. Quick Revision Rich-Text Editor Handlers ────────────────────────────
+  const handleRevisionEditorChange = (newHtml) => {
+    setRevisionTableHtml(newHtml);
+    const { rows, col1Label, col2Label } = tableHtmlToRows(newHtml, formData.quick_revision || []);
+    setFormData((prev) => ({
+      ...prev,
+      quick_revision: rows,
+      ...(col1Label || col2Label
+        ? {
+            section_headers: {
+              ...prev.section_headers,
+              "quick-revision": {
+                ...prev.section_headers?.["quick-revision"],
+                ...(col1Label ? { column1_label: col1Label } : {}),
+                ...(col2Label ? { column2_label: col2Label } : {}),
+              },
+            },
+          }
+        : {}),
+    }));
+  };
+
+  const handleRevisionHeaderChange = (field, value) => {
+    handleSectionHeaderChange("quick-revision", field, value);
+    setRevisionTableHtml((prevHtml) => {
+      if (!prevHtml) return prevHtml;
+      let count = 0;
+      return prevHtml.replace(/<th\b[^>]*>[\s\S]*?<\/th>/gi, (match) => {
+        count++;
+        if (field === "column1_label" && count === 1) {
+          return match.replace(/>[\s\S]*?<\/th>/i, `>${value}</th>`);
+        }
+        if (field === "column2_label" && count === 2) {
+          return match.replace(/>[\s\S]*?<\/th>/i, `>${value}</th>`);
+        }
+        return match;
       });
-      return { ...prev, quick_revision: list };
     });
   };
 
-  const updateRevisionRow = (idx, field, val) => {
-    setFormData((prev) => {
-      const list = [...(prev.quick_revision || [])];
-      list[idx] = { ...list[idx], [field]: val };
-      return { ...prev, quick_revision: list };
-    });
-  };
-
-  const deleteRevisionRow = (idx) => {
-    setFormData((prev) => {
-      const list = [...(prev.quick_revision || [])];
-      list.splice(idx, 1);
-      return { ...prev, quick_revision: list };
-    });
-  };
-
-  const moveRevisionRow = (index, direction) => {
-    setFormData((prev) => {
-      const list = [...(prev.quick_revision || [])];
-      const targetIdx = index + direction;
-      if (targetIdx < 0 || targetIdx >= list.length) return prev;
-      const temp = list[index];
-      list[index] = list[targetIdx];
-      list[targetIdx] = temp;
-      return { ...prev, quick_revision: list };
-    });
-  };
-
-  const handleReorderRevision = (reorderedList) => {
-    setFormData((prev) => ({
-      ...prev,
-      quick_revision: reorderedList,
-    }));
-  };
-
-  // ── Quick Revision Excel Handlers ──────────────────────────────────────────
-  const handleDownloadTemplate = () => {
-    try {
-      downloadQuickRevisionTemplate();
-      showNotification("Excel template downloaded (quick-revision-template.xlsx)", "info");
-    } catch (err) {
-      console.error("Template download error:", err);
-      showNotification("Failed to download Excel template", "danger");
-    }
-  };
-
-  const handleExportExcel = () => {
-    try {
-      const col1 = formData.section_headers?.["quick-revision"]?.column1_label || "Concept";
-      const col2 = formData.section_headers?.["quick-revision"]?.column2_label || "Concise Explanation";
-      const rows = formData.quick_revision || [];
-      if (rows.length === 0) {
-        showNotification("No revision rows to export", "warning");
-        return;
-      }
-      exportQuickRevisionToExcel(rows, col1, col2, "quick-revision-table.xlsx");
-      showNotification(`Exported ${rows.length} rows to quick-revision-table.xlsx`, "success");
-    } catch (err) {
-      console.error("Export error:", err);
-      showNotification("Failed to export to Excel", "danger");
-    }
-  };
-
-  const handleImportButtonClick = () => {
-    if (revisionFileInputRef.current) {
-      revisionFileInputRef.current.value = "";
-      revisionFileInputRef.current.click();
-    }
-  };
-
-  const processExcelFile = async (file) => {
-    if (!file) return;
-    setIsExcelLoading(true);
-    setSelectedExcelFile(file);
-
-    try {
-      const result = await parseQuickRevisionExcel(file, formData.quick_revision || []);
-      setImportResult(result);
-      setIsImportModalOpen(true);
-    } catch (err) {
-      console.error("Excel parse error:", err);
-      showNotification(err.message || "Failed to parse Excel file", "danger");
-      setSelectedExcelFile(null);
-      setImportResult(null);
-    } finally {
-      setIsExcelLoading(false);
-    }
-  };
-
-  const handleFileSelected = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      processExcelFile(file);
-    }
-  };
-
-  const handleRevisionFileDrop = (e) => {
-    e.preventDefault();
-    setIsDragOverRevision(false);
-    const file = e.dataTransfer?.files?.[0];
-    if (file) {
-      processExcelFile(file);
-    }
-  };
-
-  const handleConfirmImport = async ({ mode, newRows, stats }) => {
-    setFormData((prev) => ({
-      ...prev,
-      quick_revision: newRows,
-    }));
-
-    try {
-      const payload = {
-        ...formData,
-        quick_revision: newRows,
-      };
-
-      if (currentData && (currentData.id || currentData.slug)) {
-        await updateDetails({
-          slugOrId: formData.slug || selectedSlug,
-          data: payload,
-        });
-      } else {
-        await createDetails(payload);
-      }
-
-      refetch();
-      refetchList();
-      setIsImportModalOpen(false);
-      setImportResult(null);
-      setSelectedExcelFile(null);
-
-      if (mode === "mode_b") {
-        showNotification(
-          `Quick Revision table replaced successfully with ${stats.replacedCount} rows.`,
-          "success"
-        );
-      } else {
-        showNotification(
-          `Quick Revision imported successfully: ${stats.addedCount} added, ${stats.updatedCount} updated (${stats.totalCount} total rows).`,
-          "success"
-        );
-      }
-    } catch (err) {
-      console.error("Import save error:", err);
-      showNotification(
-        `Failed to save imported rows: ${err.message || "Database update failed"}`,
-        "danger"
-      );
-    }
+  const handleResetRevisionTableTemplate = () => {
+    const col1 = formData.section_headers?.["quick-revision"]?.column1_label || DEFAULT_COL1;
+    const col2 = formData.section_headers?.["quick-revision"]?.column2_label || DEFAULT_COL2;
+    const currentRows = formData.quick_revision && formData.quick_revision.length > 0
+      ? formData.quick_revision
+      : [
+          { id: "rev-1", concept: "Sample Concept", explanation: "Sample concise explanation" },
+        ];
+    const generatedHtml = rowsToTableHtml(currentRows, col1, col2);
+    setRevisionTableHtml(generatedHtml);
+    showNotification("Quick Revision table template reset in editor", "info");
   };
 
   // ── 7. Sidebar Card Handlers ───────────────────────────────────────────────
@@ -1857,8 +1740,17 @@ export default function AdminInterviewDetails() {
     }
 
     try {
+      let latestRevisionRows = formData.quick_revision || [];
+      if (revisionTableHtml && revisionTableHtml.trim()) {
+        const { rows } = tableHtmlToRows(revisionTableHtml, latestRevisionRows);
+        if (rows && rows.length > 0) {
+          latestRevisionRows = rows;
+        }
+      }
+
       const payload = {
         ...formData,
+        quick_revision: latestRevisionRows,
         slug: formData.slug.trim(),
         title: formData.title.trim(),
       };
@@ -4450,189 +4342,27 @@ export default function AdminInterviewDetails() {
                     </Typography>
                   </Box>
 
-                  {/* Hidden Excel File Input */}
-                  <input
-                    type="file"
-                    ref={revisionFileInputRef}
-                    accept=".xlsx, .xls"
-                    style={{ display: "none" }}
-                    onChange={handleFileSelected}
-                  />
-
-                  {/* Excel Controls + Add Row Button Group */}
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      startIcon={<FileDownloadIcon fontSize="small" />}
-                      onClick={handleDownloadTemplate}
-                      sx={{
-                        borderColor: "#075174",
-                        color: "#075174",
-                        "&:hover": { borderColor: "#053d57", backgroundColor: "rgba(7, 81, 116, 0.04)" },
-                        textTransform: "none",
-                        fontWeight: 600,
-                        fontSize: "0.8125rem",
-                      }}
-                    >
-                      Download Excel Template
-                    </Button>
-
-                    <Button
-                      variant="contained"
-                      size="small"
-                      startIcon={<TableChartIcon fontSize="small" />}
-                      onClick={handleExportExcel}
-                      disabled={!formData.quick_revision || formData.quick_revision.length === 0}
-                      sx={{
-                        backgroundColor: "#075174",
-                        "&:hover": { backgroundColor: "#053d57" },
-                        textTransform: "none",
-                        fontWeight: 600,
-                        fontSize: "0.8125rem",
-                      }}
-                    >
-                      Export to Excel
-                    </Button>
-
-                    <Button
-                      variant="contained"
-                      size="small"
-                      startIcon={isExcelLoading ? <CircularProgress size={16} color="inherit" /> : <FileUploadIcon fontSize="small" />}
-                      onClick={handleImportButtonClick}
-                      disabled={isExcelLoading}
-                      sx={{
-                        backgroundColor: "#37AB79",
-                        "&:hover": { backgroundColor: "#2d8a62" },
-                        textTransform: "none",
-                        fontWeight: 600,
-                        fontSize: "0.8125rem",
-                      }}
-                    >
-                      {isExcelLoading ? "Parsing Excel..." : "Import Excel"}
-                    </Button>
-
-                    <Button
-                      variant="contained"
-                      size="small"
-                      startIcon={<AddIcon />}
-                      onClick={addRevisionRow}
-                      sx={{
-                        backgroundColor: "#075174",
-                        "&:hover": { backgroundColor: "#053d57" },
-                        textTransform: "none",
-                        fontWeight: 600,
-                        fontSize: "0.8125rem",
-                      }}
-                    >
-                      + Add Revision Row
-                    </Button>
-                  </Box>
-                </Box>
-
-                {/* Selected File Card / Drag-and-Drop Area */}
-                {selectedExcelFile ? (
-                  <Paper
+                  {/* Template Reset Action */}
+                  <Button
                     variant="outlined"
+                    size="small"
+                    startIcon={<TableChartIcon fontSize="small" />}
+                    onClick={handleResetRevisionTableTemplate}
                     sx={{
-                      p: 1.5,
-                      mb: 2,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      backgroundColor: "#f0fdf4",
-                      borderColor: "#86efac",
-                      borderRadius: 2,
-                      flexWrap: "wrap",
-                      gap: 1,
+                      borderColor: "#075174",
+                      color: "#075174",
+                      textTransform: "none",
+                      fontWeight: 600,
+                      fontSize: "0.8125rem",
+                      "&:hover": { borderColor: "#053d57", backgroundColor: "rgba(7, 81, 116, 0.04)" },
                     }}
                   >
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <FileUploadIcon sx={{ color: "#16a34a" }} />
-                      <Box>
-                        <Typography variant="body2" sx={{ fontWeight: 700, color: "#166534" }}>
-                          Selected File: {selectedExcelFile.name} ({(selectedExcelFile.size / 1024).toFixed(1)} KB)
-                        </Typography>
-                        <Typography variant="caption" sx={{ color: "#15803d" }}>
-                          File parsed successfully — click below to review preview and confirm import
-                        </Typography>
-                      </Box>
-                    </Box>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <Button
-                        size="small"
-                        variant="contained"
-                        onClick={() => setIsImportModalOpen(true)}
-                        sx={{
-                          backgroundColor: "#37AB79",
-                          "&:hover": { backgroundColor: "#2d8a62" },
-                          textTransform: "none",
-                          fontWeight: 700,
-                        }}
-                      >
-                        Preview & Confirm Import
-                      </Button>
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        onClick={handleImportButtonClick}
-                        sx={{ textTransform: "none", color: "#075174", borderColor: "#cbd5e1" }}
-                      >
-                        Change File
-                      </Button>
-                      <Button
-                        size="small"
-                        color="inherit"
-                        onClick={() => {
-                          setSelectedExcelFile(null);
-                          setImportResult(null);
-                        }}
-                        sx={{ textTransform: "none", color: "#64748b" }}
-                      >
-                        Clear
-                      </Button>
-                    </Box>
-                  </Paper>
-                ) : (
-                  <Box
-                    onDragOver={(e) => {
-                      e.preventDefault();
-                      setIsDragOverRevision(true);
-                    }}
-                    onDragLeave={() => setIsDragOverRevision(false)}
-                    onDrop={handleRevisionFileDrop}
-                    onClick={handleImportButtonClick}
-                    sx={{
-                      p: 1.5,
-                      mb: 2,
-                      borderRadius: 2,
-                      border: "1.5px dashed",
-                      borderColor: isDragOverRevision ? "#37AB79" : "#cbd5e1",
-                      backgroundColor: isDragOverRevision ? "#f0fdf4" : "#fafafa",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 1.5,
-                      cursor: "pointer",
-                      transition: "all 0.2s ease",
-                      "&:hover": {
-                        borderColor: "#37AB79",
-                        backgroundColor: "#f0fdf4",
-                      },
-                    }}
-                  >
-                    <CloudUploadIcon sx={{ color: isDragOverRevision ? "#37AB79" : "#94a3b8", fontSize: 24 }} />
-                    <Typography variant="body2" sx={{ color: "#475569", fontWeight: 500, fontSize: "0.85rem" }}>
-                      Drop an Excel file (<strong>.xlsx</strong> or <strong>.xls</strong>) here, or click to browse and bulk import / update concepts
-                    </Typography>
-                  </Box>
-                )}
+                    Reset / Reformat Table Template
+                  </Button>
+                </Box>
 
                 {/* Section Header & Column Labels Editor */}
                 <Paper variant="outlined" sx={{ p: 2, mb: 2.5, backgroundColor: "#f8fafc", borderRadius: 2 }}>
-                  {/* <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#074568", mb: 1 }}>
-                    Quick Revision Section Header & Table Columns
-                  </Typography> */}
                   <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 1.5, mb: 1.5 }}>
                     <TextField
                       size="small"
@@ -4654,125 +4384,103 @@ export default function AdminInterviewDetails() {
                       size="small"
                       label="Table Column 1 Header"
                       value={formData.section_headers?.["quick-revision"]?.column1_label || "Concept"}
-                      onChange={(e) => handleSectionHeaderChange("quick-revision", "column1_label", e.target.value)}
+                      onChange={(e) => handleRevisionHeaderChange("column1_label", e.target.value)}
                       sx={{ flex: 1 }}
                     />
                     <TextField
                       size="small"
                       label="Table Column 2 Header"
                       value={formData.section_headers?.["quick-revision"]?.column2_label || "Concise Explanation"}
-                      onChange={(e) => handleSectionHeaderChange("quick-revision", "column2_label", e.target.value)}
+                      onChange={(e) => handleRevisionHeaderChange("column2_label", e.target.value)}
                       sx={{ flex: 2 }}
                     />
                   </Box>
                 </Paper>
 
-                {/* Table Rows List */}
-                <Paper variant="outlined" sx={{ borderRadius: 2, overflow: "hidden", borderColor: "#e2e8f0" }}>
-                  <Box
-                    sx={{
-                      display: "grid",
-                      gridTemplateColumns: { xs: "50px 1fr 1.5fr 70px", sm: "80px 1.2fr 2.5fr 90px" },
-                      backgroundColor: "#075174",
-                      color: "#fff",
-                      px: 2,
-                      py: 1.4,
-                      fontWeight: 700,
-                      fontSize: "0.875rem",
-                      alignItems: "center",
+                {/* Rich-Text Quick Revision Table Editor */}
+                <Box
+                  sx={{
+                    border: "1px solid #cbd5e1",
+                    borderRadius: 2,
+                    overflow: "hidden",
+                    backgroundColor: "#fff",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+                  }}
+                >
+                  <Editor
+                    apiKey={TINYMCE_API_KEY}
+                    value={revisionTableHtml}
+                    init={{
+                      height: 520,
+                      menubar: false,
+                      statusbar: true,
+                      plugins: ["lists", "link", "code", "table"],
+                      toolbar:
+                        "undo redo | bold italic underline | bullist numlist | link code | table",
+                      content_style: `
+                        body {
+                          font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                          font-size: 13.5px;
+                          margin: 12px;
+                          color: #334155;
+                        }
+                        table {
+                          width: 100%;
+                          border-collapse: collapse;
+                          border: 1px solid #cbd5e1;
+                          border-radius: 6px;
+                          overflow: hidden;
+                        }
+                        thead {
+                          background-color: #074568;
+                          color: #ffffff;
+                        }
+                        th {
+                          background-color: #074568;
+                          color: #ffffff;
+                          padding: 10px 14px;
+                          text-align: left;
+                          font-weight: 700;
+                          font-size: 12.5px;
+                          border: 1px solid #074568;
+                        }
+                        td {
+                          padding: 9px 14px;
+                          border: 1px solid #e2e8f0;
+                          vertical-align: top;
+                          font-size: 13px;
+                          line-height: 1.5;
+                        }
+                        tr:nth-child(even) td {
+                          background-color: #f8fafc;
+                        }
+                        td:first-child {
+                          font-weight: 700;
+                          color: #075174;
+                          width: 26%;
+                        }
+                        code {
+                          background-color: #f1f5f9;
+                          padding: 2px 5px;
+                          border-radius: 4px;
+                          font-family: monospace;
+                          font-size: 0.88em;
+                        }
+                        ul, ol {
+                          margin: 0;
+                          padding-left: 20px;
+                        }
+                        p {
+                          margin: 0 0 6px 0;
+                        }
+                        p:last-child {
+                          margin-bottom: 0;
+                        }
+                      `,
                     }}
-                  >
-                    <Box>#</Box>
-                    <Box>{formData.section_headers?.["quick-revision"]?.column1_label || "Concept"}</Box>
-                    <Box>{formData.section_headers?.["quick-revision"]?.column2_label || "Concise Explanation"}</Box>
-                    <Box sx={{ textAlign: "right" }}>Actions</Box>
-                  </Box>
-
-                  {(formData.quick_revision || []).length === 0 ? (
-                    <Box sx={{ p: 4, textAlign: "center", color: "#64748b" }}>
-                      <Typography variant="body2" sx={{ mb: 1.5 }}>
-                        No revision rows yet. Click "+ Add Revision Row" above.
-                      </Typography>
-                    </Box>
-                  ) : (
-                    <SortableContainer
-                      items={formData.quick_revision || []}
-                      onReorder={handleReorderRevision}
-                    >
-                      <Box sx={{ display: "flex", flexDirection: "column" }}>
-                        {(formData.quick_revision || []).map((row, idx) => (
-                          <SortableItem key={row.id || idx} id={row.id || `rev-${idx}`}>
-                            {({ listeners, isDragging }) => (
-                              <Box
-                                sx={{
-                                  display: "grid",
-                                  gridTemplateColumns: { xs: "50px 1fr 1.5fr 70px", sm: "80px 1.2fr 2.5fr 90px" },
-                                  alignItems: "center",
-                                  px: 2,
-                                  py: 1,
-                                  borderBottom: "1px solid #f1f5f9",
-                                  backgroundColor: isDragging
-                                    ? "#f0fdf4"
-                                    : idx % 2 === 0
-                                      ? "#ffffff"
-                                      : "#f8fafc",
-                                  gap: 1,
-                                }}
-                              >
-                                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                                  <DragHandle listeners={listeners} isDragging={isDragging} />
-                                  <Typography variant="caption" sx={{ fontWeight: 700, color: "#64748b" }}>
-                                    {String(idx + 1).padStart(2, "0")}
-                                  </Typography>
-                                </Box>
-                                <TextField
-                                  size="small"
-                                  placeholder="e.g. Overfitting"
-                                  value={row.concept || ""}
-                                  onChange={(e) => updateRevisionRow(idx, "concept", e.target.value)}
-                                  sx={{ mr: 0.5, "& .MuiInputBase-input": { fontWeight: 600 } }}
-                                />
-                                <TextField
-                                  size="small"
-                                  placeholder="e.g. Performs well on training data but poorly on unseen data"
-                                  value={row.explanation || ""}
-                                  onChange={(e) => updateRevisionRow(idx, "explanation", e.target.value)}
-                                  sx={{ mr: 0.5 }}
-                                />
-                                <Box sx={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 0.25 }}>
-                                  <AccessibleReorderButtons
-                                    onMoveUp={() => moveRevisionRow(idx, -1)}
-                                    onMoveDown={() => moveRevisionRow(idx, 1)}
-                                    isFirst={idx === 0}
-                                    isLast={idx === (formData.quick_revision || []).length - 1}
-                                  />
-                                  <IconButton
-                                    size="small"
-                                    onClick={() => deleteRevisionRow(idx)}
-                                    sx={{ color: "#ef4444", "&:hover": { backgroundColor: "#fee2e2" } }}
-                                  >
-                                    <DeleteIcon sx={{ fontSize: 18 }} />
-                                  </IconButton>
-                                </Box>
-                              </Box>
-                            )}
-                          </SortableItem>
-                        ))}
-                      </Box>
-                    </SortableContainer>
-                  )}
-                </Paper>
-
-                {/* Quick Revision Excel Import & Preview Modal */}
-                <QuickRevisionExcelModal
-                  open={isImportModalOpen}
-                  onClose={() => setIsImportModalOpen(false)}
-                  importResult={importResult}
-                  existingRows={formData.quick_revision || []}
-                  onConfirmImport={handleConfirmImport}
-                  isSaving={isSaving}
-                  onChangeFile={handleImportButtonClick}
-                />
+                    onEditorChange={handleRevisionEditorChange}
+                  />
+                </Box>
               </Box>
             )}
 

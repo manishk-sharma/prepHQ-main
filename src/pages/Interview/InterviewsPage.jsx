@@ -1421,7 +1421,10 @@ const InterviewsPage = () => {
               {quickRevision.map((row, idx) => (
                 <tr key={row.id || idx}>
                   <td className="concept-name-cell">{row.concept}</td>
-                  <td>{renderContent(row.explanation)}</td>
+                  <td
+                    className="revision-explanation-cell"
+                    dangerouslySetInnerHTML={{ __html: row.explanation || "" }}
+                  />
                 </tr>
               ))}
             </tbody>

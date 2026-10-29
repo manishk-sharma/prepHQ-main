@@ -630,6 +630,34 @@
   white-space: nowrap;
 }
 
+.revision-explanation-cell {
+  color: #334155;
+  line-height: 1.5;
+}
+
+.revision-explanation-cell p {
+  margin: 0;
+}
+
+.revision-explanation-cell p + p {
+  margin-top: 0.75rem;
+}
+
+.revision-explanation-cell ul,
+.revision-explanation-cell ol {
+  margin: 0;
+  padding-left: 20px;
+  margin-top: 0.5rem;
+}
+
+.revision-explanation-cell code {
+  background-color: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.85em;
+}
+
 /* ==========================================================================
    RIGHT SIDEBAR: Related Content Widgets
    ========================================================================== */
